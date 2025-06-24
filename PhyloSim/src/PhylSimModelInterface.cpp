@@ -114,7 +114,7 @@ using namespace Rcpp;
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
                bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, int seed,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
-               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny) {
+               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -143,6 +143,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile << "airmatR = " << airmatR.begin() <<", " << airmatR.end() << ";" << std::endl;
     debugFile << "NumericVector soilmatR = " << soilmatR << ";" << std::endl;
     debugFile << "soilmatR = " << soilmatR.begin() <<", " << soilmatR.end() << ";" << std::endl;
+    debugFile << "double nicheWidth = " << nicheWidth << ";" << std::endl;
     debugFile.close();
 #endif
 
@@ -161,7 +162,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
                               dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
-                              redQueenStrength, protracted, airmat, soilmat);
+                              redQueenStrength, protracted, airmat, soilmat, nicheWidth);
 
 
     for (int step = 0; step < nRuns; step++) {
