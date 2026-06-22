@@ -119,7 +119,7 @@ runSimulation <- function(par)
       }else{
         # TODO: ape can not read the tree if it is not pruned by prunePhylogenyR:
         # Error in if (tp[3] != "") obj$node.label <- tp[3] : missing value where TRUE/FALSE needed 
-        phyloi <- ape::read.tree(text= out[[i]]$Phylogeny)
+       # phyloi <- ape::read.tree(text= out[[i]]$Phylogeny)
       }
        
       output$Output[[i]] = list(
@@ -128,8 +128,8 @@ runSimulation <- function(par)
         envMat = matrix(out[[i]]$Environment,ncol=par$x, nrow=par$y), 
         compMat = matrix(out[[i]]$CompetitionTrait,ncol=par$x, nrow=par$y), 
         neutMat = matrix(out[[i]]$NeutralTrait,ncol=par$x, nrow=par$y),
-        phylogeny = if (par$convertToBinaryTree && !is.double(phyloi)) ape::multi2di(phyloi) else phyloi, 
-        phyloTXT = out[[i]]$Phylogeny,
+#        phylogeny = if (par$convertToBinaryTree && !is.double(phyloi)) ape::multi2di(phyloi) else phyloi, 
+#        phyloTXT = out[[i]]$Phylogeny,
         summaries = NA)
     }
     cat("done! \n")
