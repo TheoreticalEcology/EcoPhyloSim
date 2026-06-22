@@ -1,3 +1,5 @@
+# EcoPhyloSim
+
 A model, provided as an R package, for the simulation of spatially
 explicit biogeographical and phylogenetic data.
 
@@ -25,7 +27,7 @@ You can install directly from gh, using the ‘devtools’ package:
     # Run the model
     simu <- runSimulation(par)
 
-    ## [1] "Core simulation finished after 0 minute(s) and 0.495 second(s). Converting data"
+    ## [1] "Core simulation finished after 0 minute(s) and 0.496 second(s). Converting data"
     ## done!
 
     plot(simu)

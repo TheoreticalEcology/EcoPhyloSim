@@ -9,6 +9,7 @@ output: md_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# EcoPhyloSim
 
 A model, provided as an R package, for the simulation of spatially explicit biogeographical and phylogenetic data. 
 
