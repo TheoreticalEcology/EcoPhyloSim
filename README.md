@@ -1,4 +1,14 @@
-# EcoPhyloSim
+---
+title: "EcoPhyloSim"
+author: "Florian Hartig"
+date: "2024-07-19"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+
+
 
 A model, provided as an R package, for the simulation of spatially explicit biogeographical and phylogenetic data. 
 
@@ -7,9 +17,9 @@ A model, provided as an R package, for the simulation of spatially explicit biog
 You can install directly from gh, using the 'devtools' package:
 
 
-```r
-devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim/", 
-                         subdir = "phylosim",  
+``` r
+devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim", 
+                         subdir = "PhyloSim",  
                          dependencies = T, 
                          build_vignettes = T)
 
@@ -21,7 +31,8 @@ browseVignettes("PhyloSim")
 
 
 
-```r
+``` r
+set.seed(123)
 library(PhyloSim)
 
 # Define a parameter set
@@ -33,17 +44,17 @@ simu <- runSimulation(par)
 ```
 
 ```
-## [1] "Core simulation finished after 0 minute(s) and 1.71 second(s). Converting data"
+## [1] "Core simulation finished after 0 minute(s) and 0.265 second(s). Converting data"
 ## done!
 ```
 
-```r
+``` r
 plot(simu)
 ```
 
 ![](Readme_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
-```r
+``` r
 #Look at the species area relation
 sac(simu, rep = 100, plot= TRUE)
 ```
@@ -52,15 +63,15 @@ sac(simu, rep = 100, plot= TRUE)
 
 ```
 ##    size sr.Mean sr.UpperCI sr.LowerCI
-## 1     4    1.38       2.00       1.00
-## 2    49    1.95       3.00       1.00
-## 3   144    2.75       4.05       1.95
-## 4   324    3.35       5.00       2.00
-## 5   529    4.06       6.00       3.00
-## 6   784    4.58       6.00       3.00
-## 7  1156    5.49       7.00       4.00
-## 8  1521    5.92       7.00       4.00
-## 9  1936    6.45       7.00       5.00
-## 10 2500    7.00       7.00       7.00
+## 1     4    1.31       2.05       1.00
+## 2    49    2.20       4.00       1.00
+## 3   144    3.24       6.00       1.00
+## 4   324    4.85       7.00       2.00
+## 5   529    6.43       8.00       4.00
+## 6   784    8.42      11.00       5.00
+## 7  1156   10.64      13.00       8.95
+## 8  1521   12.13      13.05      11.00
+## 9  1936   13.11      14.00      12.00
+## 10 2500   14.00      14.00      14.00
 ```
 
