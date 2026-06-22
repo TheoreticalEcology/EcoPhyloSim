@@ -80,3 +80,4 @@ PhyloSim/inst/doc/PhyloSimManual.pdf
 *.idea
 CMakeFiles
 cmake-build-debug
+.DS_Store
