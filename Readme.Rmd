@@ -2,9 +2,7 @@
 title: "EcoPhyloSim"
 author: "Florian Hartig"
 date: "2024-07-19"
-output: 
-  html_document: 
-    keep_md: yes
+output: md_document
 ---
 
 ```{r setup, include=FALSE}
