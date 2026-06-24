@@ -72,53 +72,26 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   summaryStatistics$gammaDiversity <- gammaDiversity(simulation)
   
   # phylogenetic imbalance
-  # uses apTreeshape's colless function
-  
-  # phylo object must be converted to treeshape object
-  tsPhylogeny <- apTreeshape::as.treeshape.phylo(ape::drop.fossil(simulation$Output[[1]]$phylogeny))
-  
-  # apTreeshape::colless only works on trees with more than 2 tips
-  if(nrow(tsPhylogeny$merge) != 1) {
-    # more than 2 tips
-    # normalization of the colless index
-    # TODO: let the user chose the normalization
-    normalization = "yule"
-    #normalization = "pda"
-    #normalization = NULL
-    
-    summaryStatistics$imbalance <- apTreeshape::colless(tsPhylogeny,
-                                                        norm = normalization)
-  } else {
-    # less than 2 tips
-    # WARNING
-    # This does not seem to make sense
-    
-    # copied from apTreeshape::colless
-    # necessary, because apTreeshape does not implement colless for trees
-    # with only two tips
-    norm.yule <- function(ICN, tree) {
-      leaf_nb <- nrow(tree$merge) + 1
-      EICN <- leaf_nb * log(leaf_nb) + (0.57721566 - 1 - log(2)) * 
-        leaf_nb
-      IC <- (ICN - EICN)/(leaf_nb)
-      IC
-    }
-    
-    # TODO: implement pda and NULL normalization
-    summaryStatistics$imbalance <- norm.yule(0, tsPhylogeny)
-  }
-  
+  # Colless index (Yule-normalized), computed internally (see collessImbalance.R).
+  # Previously relied on apTreeshape, which was archived from CRAN.
+  summaryStatistics$imbalance <- .collessIndex(
+    ape::drop.fossil(simulation$Output[[1]]$phylogeny),
+    norm = "yule")
+
   # phylogenetic dispersion
-  # uses PhyloMeasures' implementation of the NRI
-  
-  # Commented code below causes error. Drop fossil seems to drop clades that are no real fossils?!
-  #summaryStatistics$dispersion <- mean(PhyloMeasures::mpd.query(ape::drop.fossil(simulation$Output[[1]]$phylogeny),
-  #                                                              plots$communityTable,
-  #                                                              standardize = TRUE))
-  
-  summaryStatistics$dispersion <- mean(PhyloMeasures::mpd.query(simulation$Output[[1]]$phylogeny,
-                                                                plots$communityTable,
-                                                                standardize = TRUE))
+  # standardized mean pairwise distance (z-score, analogous to -NRI).
+  # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
+  # picante::ses.mpd, which is maintained and already a dependency.
+  phylo <- simulation$Output[[1]]$phylogeny
+  comm  <- plots$communityTable
+  if (is.null(colnames(comm))) colnames(comm) <- phylo$tip.label
+  commonSpecies <- intersect(colnames(comm), phylo$tip.label)
+  comm  <- comm[, commonSpecies, drop = FALSE]
+  phylo <- ape::keep.tip(phylo, commonSpecies)
+
+  sesMpd <- picante::ses.mpd(comm, stats::cophenetic(phylo),
+                             null.model = "taxa.labels", runs = 999)
+  summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
   
   # gamma statistics
   # uses ape's implementation of the gammaStatistics
@@ -211,8 +184,8 @@ clarkEvans <- function (mat, ...) {
     pos <- which(mat == ids[i])
     col <- ceiling(pos / nRow)
     row <- pos %% nCol
-    pp <- spatstat::ppp(x=col, y=row, window=spatstat::owin(xrange = c(0, nCol), yrange = c(0, nRow)))
-    ce <- spatstat::clarkevans(pp, ...)
+    pp <- spatstat.geom::ppp(x=col, y=row, window=spatstat.geom::owin(xrange = c(0, nCol), yrange = c(0, nRow)))
+    ce <- spatstat.explore::clarkevans(pp, ...)
     if (!is.infinite(ce) && !is.na(ce) && !is.nan(ce)) {
       ceSum <- ceSum + ce
       n <- n + 1

@@ -80,7 +80,6 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   cl <- parallel::makeCluster(nCores)
   doParallel::registerDoParallel(cl)
   
-  library(foreach)
   foreach(i=1:length(simFiles), .packages = c("PhyloSim")) %dopar% {
     loadLocal <- function(path) return(local(get(load(path))))
     joinPath <- function(x, sysName = "auto") {
@@ -136,7 +135,6 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     dir.create(outDir)
   }
   
-  library(foreach)
   foreach(i=1:length(sumFiles), .packages = c("PhyloSim")) %dopar% {
     # loadLocal <- function(path) return(local(get(load(path))))
     # joinPath <- function(x, sysName = "auto") {
@@ -488,7 +486,6 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
   
   # initialize parallel cores
   nCores <- PhyloSim:::getValidatedNCores(nCores)
-  library(foreach)
   cl <- parallel::makeCluster(nCores)
   doParallel::registerDoParallel(cl)
   

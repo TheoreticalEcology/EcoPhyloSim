@@ -26,7 +26,13 @@ Imports:
     foreach,
     MESS,
     sf,
-    spatstat
+    spatstat.geom,
+    spatstat.explore,
+    vegan,
+    abctools,
+    ranger,
+    data.table,
+    gtools
 Suggests:
     knitr,
     rmarkdown
