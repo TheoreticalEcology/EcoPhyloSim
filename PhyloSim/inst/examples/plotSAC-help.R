@@ -26,7 +26,7 @@ sac(simu = simu.envcom.local)
 
 #Plot SAC curve with random plotsize
 
-sac(simu=simu.envcom.local, size = sort(sample(c(10:1000), size = 10)))
+sac(simu=simu.envcom.local, size = sort(sample(c(10:100), size = 10)))
 
 
 

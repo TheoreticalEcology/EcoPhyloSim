@@ -4,10 +4,12 @@
 \alias{plot.PhyloSim}
 \title{Plot objects of class PhyloSim}
 \usage{
-\method{plot}{PhyloSim}(simu)
+\method{plot}{PhyloSim}(x, ...)
 }
 \arguments{
-\item{simu}{Simulation output of \code{\link{runSimulation}}}
+\item{x}{Simulation output of \code{\link{runSimulation}}}
+
+\item{...}{further arguments, currently not used}
 }
 \description{
 Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.

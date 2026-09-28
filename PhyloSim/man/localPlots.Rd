@@ -48,6 +48,6 @@ par <- createCompletePar(x = xSize,
 
 sim <- runSimulation(par = par)
 
-localPlots(simu = sim, size = 2, n = 3, plot = T)
+localPlots(simu = sim, size = 2, n = 3, plot = TRUE)
 
 }

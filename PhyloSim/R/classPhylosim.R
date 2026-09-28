@@ -5,14 +5,15 @@
 
 #' @title Plot objects of class PhyloSim
 #' @description Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.
-#' @param simu Simulation output of \code{\link{runSimulation}}
+#' @param x Simulation output of \code{\link{runSimulation}}
+#' @param ... further arguments, currently not used
 
 #' @details The tiplabels of the phylogeny tree are colored in correspondency to the spatial abundance plot
 
 #' @export
 
-plot.PhyloSim <- function(simu){
-  plotSpatialPhylo(simu)
+plot.PhyloSim <- function(x, ...){
+  plotSpatialPhylo(x)
 }
 
 
@@ -20,59 +21,59 @@ plot.PhyloSim <- function(simu){
 
 #' @title Summary for objects of class PhyloSim
 #' @description Gives summary about parameter settings, runtime and species Richness.
-#' @param simu Simulation output of \code{\link{runSimulation}}
+#' @param object Simulation output of \code{\link{runSimulation}}
+#' @param ... further arguments, currently not used
 #' @export
 
-summary.PhyloSim <- function(simu){
+summary.PhyloSim <- function(object, ...){
   
-  if(length(simu$Model$runs)==1){
-    runsarg<-simu$Model$runs
+  if(length(object$Model$runs)==1){
+    runsarg<-object$Model$runs
   } else{
     runsarg<- "c("
-    for(i in 1:(length(simu$Model$runs)-1)){
-      runsarg<- paste(runsarg,simu$Model$runs[[i]],",")
+    for(i in 1:(length(object$Model$runs)-1)){
+      runsarg<- paste(runsarg,object$Model$runs[[i]],",")
     }
-    runsarg<- paste(runsarg, simu$Model$runs[[length(simu$Model$runs)]], ")" )
+    runsarg<- paste(runsarg, object$Model$runs[[length(object$Model$runs)]], ")" )
   }
   
   cat("Summary for class Phylosim",  "\n")
-  cat("# Call: runSimulation(x = ", simu$Model$x, ", y = ", simu$Model$y, ", dispersal = '", 
-      simu$Model$dispersal,"'", ", runs =", runsarg,"\n", ", density = ", simu$Model$density, 
-      ", environment = ", simu$Model$environment, ", specRate = ",simu$Model$specRate,")", "\n", sep="")
+  cat("# Call: runSimulation(x = ", object$Model$x, ", y = ", object$Model$y, ", dispersal = '", 
+      object$Model$dispersal,"'", ", runs =", runsarg,"\n", ", density = ", object$Model$density, 
+      ", environment = ", object$Model$environment, ", specRate = ",object$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
-  cat("Number of Species in Metacommunity: ", specRich(simu), "\n", sep="")
-  cat("Colless' Imbalance: ", collessImbalance(simu), "\n", sep="")
-  cat("Gamma: ", suppressWarnings(ape::gammaStat(ape::drop.fossil(simu$Output[[length(simu$Output)]]$phylogeny))), "\n" )
-  cat("Time elapsed: ", simu$Model$runtime,"seconds", "\n", sep="")
-  }
+  cat("Number of Species in Metacommunity: ", specRich(object), "\n", sep="")
+  cat("Colless' Imbalance: ", collessImbalance(object), "\n", sep="")
+  cat("Gamma: ", suppressWarnings(ape::gammaStat(ape::drop.fossil(object$Output[[length(object$Output)]]$phylogeny))), "\n" )
+  cat("Time elapsed: ", object$Model$runtime,"seconds", "\n", sep="")
+}
 
 
 
 #print.phylosim 
 #' @title Prints summary for objects of class PhyloSim
 #' @description Prints parameter settings, runtime and species Richness.
-#' @param simu Simulation output of \code{\link{runSimulation}}
+#' @param x Simulation output of \code{\link{runSimulation}}
+#' @param ... further arguments, currently not used
 #' @export
 
-print.PhyloSim <- function(simu){
+print.PhyloSim <- function(x, ...){
   
-  if(length(simu$Model$runs)==1){
-    runsarg<-simu$Model$runs
+  if(length(x$Model$runs)==1){
+    runsarg<-x$Model$runs
   } else{
     runsarg<- "c("
-    for(i in 1:(length(simu$Model$runs)-1)){
-      runsarg<- paste(runsarg,simu$Model$runs[[i]],",")
+    for(i in 1:(length(x$Model$runs)-1)){
+      runsarg<- paste(runsarg,x$Model$runs[[i]],",")
     }
-    runsarg<- paste(runsarg, simu$Model$runs[[length(simu$Model$runs)]], ")" )
+    runsarg<- paste(runsarg, x$Model$runs[[length(x$Model$runs)]], ")" )
   }
   
   cat("Summary for class PhyloSim",  "\n")
-  cat("# Call: runSimulation(x = ", simu$Model$x, ", y = ", simu$Model$y, ", dispersal = '", 
-      simu$Model$dispersal,"'", ", runs =", runsarg, ", density = ", simu$Model$density, 
-      ", environment = ", simu$Model$environment, ", specRate = ",simu$Model$specRate,")", "\n", sep="")
+  cat("# Call: runSimulation(x = ", x$Model$x, ", y = ", x$Model$y, ", dispersal = '", 
+      x$Model$dispersal,"'", ", runs =", runsarg, ", density = ", x$Model$density, 
+      ", environment = ", x$Model$environment, ", specRate = ",x$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
-  cat("Time elapsed: ", simu$Model$runtime,"seconds", "\n", sep="")
+  cat("Time elapsed: ", x$Model$runtime,"seconds", "\n", sep="")
   
 }
-
-

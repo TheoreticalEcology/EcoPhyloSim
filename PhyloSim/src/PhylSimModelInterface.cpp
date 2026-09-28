@@ -24,6 +24,86 @@
 using namespace Rcpp;
 
 //' Core phylosim model
+//'
+//' Low-level engine that runs the actual PhyloSim simulation. This function is called
+//' internally by \code{\link{runSimulation}} and is not normally called directly by the
+//' user -- most parameters correspond directly to the (user-facing) arguments of
+//' \code{\link{createCompletePar}}, but several categorical/continuous parameters there
+//' are split here into separate on/off switches and strength values (see Details below).
+//'
+//' @param x Integer, dimension of the model landscape in x-direction.
+//' @param y Integer, dimension of the model landscape in y-direction.
+//' @param dispersal Integer, dispersal mode/distance. 0 sets global dispersal (offspring
+//'   may colonize any cell in the lattice with equal probability); integers >= 1 set local
+//'   dispersal with a characteristic distance (delta) for an exponential dispersal kernel
+//'   (see \code{dispersalCutoff}).
+//' @param runs Integer vector, the generation(s) at which the simulation state is saved.
+//'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
+//'   intermediate states are saved at each value as well.
+//' @param specRate Numeric, number of new individuals/species introduced to the community
+//'   in each generation (speciation rate).
+//' @param dens Logical, whether density dependence is active. If \code{FALSE}, density
+//'   dependence is disabled (together with \code{env = FALSE} this yields the neutral
+//'   model). The strength of density dependence is set by \code{compStrength}.
+//' @param env Logical, whether environmental filtering is active. If \code{FALSE},
+//'   environmental filtering is disabled (together with \code{dens = FALSE} this yields
+//'   the neutral model). The strength of environmental filtering is set by \code{envStrength}.
+//' @param neutral Logical, whether the neutral trait (returned as \code{NeutralTrait} /
+//'   \code{neutMat}) is tracked and evolved during the simulation. This is independent of
+//'   \code{dens}/\code{env} -- it does not switch the model into or out of the neutral
+//'   model, it only controls whether this additional, selectively neutral marker trait is
+//'   computed.
+//' @param mort Logical, whether fitness differences among individuals are expressed via
+//'   differential mortality. Corresponds to \code{fitnessActsOn = "mortality"} (or
+//'   \code{"both"}, together with \code{repro = TRUE}) in \code{\link{createCompletePar}}.
+//' @param mortStrength Integer, the fitness-based mortality ratio (must be >= 1); the
+//'   higher the value, the stronger fitness differences translate into mortality
+//'   differences. Corresponds to \code{fitnessBaseMortalityRatio} in
+//'   \code{\link{createCompletePar}}.
+//' @param repro Logical, whether fitness differences among individuals are expressed via
+//'   differential reproductive output. Corresponds to \code{fitnessActsOn = "reproduction"}
+//'   (or \code{"both"}, together with \code{mort = TRUE}) in \code{\link{createCompletePar}}.
+//' @param dispersalCutoff Integer, cutoff distance for the local dispersal kernel (ignored
+//'   if \code{dispersal = 0}); individuals only disperse within this distance, typically
+//'   set to 2x the dispersal distance, to limit computation.
+//' @param densityCutoff Integer, defines the effective spatial range of the competition /
+//'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
+//'   \code{densityCut} in \code{\link{createCompletePar}}.
+//' @param seed Integer, sets the random seed.
+//' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
+//'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
+//'   influence of the environment on individual fitness. Corresponds to \code{environment}
+//'   in \code{\link{createCompletePar}}.
+//' @param compStrength Numeric between 0 and 1, strength of the density-dependence /
+//'   competition effect (ignored if \code{dens = FALSE}); the higher the value, the
+//'   stronger the influence of trait-based competition on individual fitness. Corresponds
+//'   to \code{density} in \code{\link{createCompletePar}}.
+//' @param fission Integer, which fission (speciation) type to use: 0 = none (default),
+//'   1 = every second individual of a species becomes part of a new species, 2 = the
+//'   population is geographically split into two parts, one of which becomes a new species.
+//' @param redQueen Numeric, strength of the fitness decline of an aging species.
+//' @param redQueenStrength Numeric, strength of the Red Queen effect; values > 0 give a
+//'   newly formed species a fitness boost due to its novelty, which vanishes over time.
+//' @param protracted Integer, number of generations a new species stays 'incipient' before
+//'   turning into a 'good' species (protracted speciation). Default is 0 (point speciation).
+//' @param airmatR Numeric vector, the environmental values of the grid, flattened
+//'   column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} in
+//'   \code{\link{createCompletePar}}.
+//' @param soilmatR Numeric vector, a second, optional environmental grid, flattened
+//'   column-major (length x*y), analogous to \code{airmatR}. TODO: confirm exact role --
+//'   not currently exposed as a separate argument in \code{createCompletePar}.
+//' @param prunePhylogeny Logical, whether the returned phylogeny is pruned to extant
+//'   (non-fossil) tips by the internal pruning function, or the full phylogeny (including
+//'   extinct lineages) is returned.
+//'
+//' @return A list with one element per entry in \code{runs}, each containing the raw
+//'   simulation output for that generation: \code{Species} (species identity per grid
+//'   cell), \code{EnvTrait} (environmental trait per individual), \code{NeutralTrait}
+//'   (neutral trait per individual), \code{CompetitionTrait} (competition trait per
+//'   individual), \code{Environment} (environmental value per grid cell) and
+//'   \code{Phylogeny} (Newick string). \code{\link{runSimulation}} reshapes and renames
+//'   these into the final \code{Phylosim} object (\code{specMat}, \code{traitMat},
+//'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 //' @export
 // [[Rcpp::export]]
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,

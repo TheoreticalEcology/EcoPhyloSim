@@ -56,5 +56,5 @@ highlightLocalPhylo(simu.envcom.local, size = 50, n = 3)
 #increasing plot size
 par(mfrow=c(2,2))
 highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
-highlightLocalPhylo(simu.envcom.local, size = 1000, n =2)
+highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
 }

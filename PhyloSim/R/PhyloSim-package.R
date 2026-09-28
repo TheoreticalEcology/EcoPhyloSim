@@ -10,7 +10,7 @@
 #'  \code{\link{plotSpatialPhylo}} \tab Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.\cr
 #'  \code{\link{rac}} \tab Plots the Rank Abundance Curve for a given community\cr
 #'  \code{\link{sac}} \tab Plots the species area curve for a given community\cr
-#'  \code{\link{plotclades}} \tab Visualises the phylogenetic clades of a local community within a metacommunity.\cr
+#'  \code{\link{highlightLocalPhylo}} \tab Visualises the phylogenetic clades of a local community within a metacommunity.\cr
 #'  \code{\link{plotTraitDistribution}} \tab Plots trait-histograms, trait ~ Environment relationship and the spatial distribution of the different traits\cr
 #'}
 #'
@@ -19,6 +19,9 @@
 #'
 #'
 #' @author Paul Bauche, Florian Hartig
+#' @importFrom grDevices colorRampPalette dev.size grey rainbow rgb
+#' @importFrom graphics barplot hist image layout lines mtext par plot.new polygon text title
+#' @importFrom stats binomial cophenetic density dist ecdf glm median na.omit quantile rmultinom sd
 #' 
 #' @example /inst/examples/phylosim-help.R
 #'  

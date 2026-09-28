@@ -14,7 +14,7 @@ The core of this package is basically a community assembly model, which can be r
 \code{\link{plotSpatialPhylo}} \tab Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.\cr
 \code{\link{rac}} \tab Plots the Rank Abundance Curve for a given community\cr
 \code{\link{sac}} \tab Plots the species area curve for a given community\cr
-\code{\link{plotclades}} \tab Visualises the phylogenetic clades of a local community within a metacommunity.\cr
+\code{\link{highlightLocalPhylo}} \tab Visualises the phylogenetic clades of a local community within a metacommunity.\cr
 \code{\link{plotTraitDistribution}} \tab Plots trait-histograms, trait ~ Environment relationship and the spatial distribution of the different traits\cr
 }
 
@@ -24,7 +24,9 @@ The function \code{\link{phyloReconstruct}} creates a phylogeny from given neutr
 data(simu.envcom.local)
 plotSpatialPhylo(simu.envcom.local)
 
-par <- createCompletePar(x = 50, y = 50, dispersal = "global" , runs = c(500,1000),density = 1, environment =0.5, specRate = 1)
+par <- createCompletePar(x = 50, y = 50, dispersal = "global",
+                         runs = c(500,1000), density = 1,
+                         environment = 0.5, specRate = 1)
 new.simulation <- runSimulation(par)
 plotSpatialPhylo(new.simulation)
 }

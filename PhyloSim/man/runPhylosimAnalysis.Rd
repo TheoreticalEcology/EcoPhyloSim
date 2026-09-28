@@ -29,18 +29,19 @@ This function is used to perform many (>1000) PhyloSim simulations in parallel w
 variableParams must be list of functions. The idea behind this is to draw from a prior, so the functions should return a single value drawn from the corresponding parameter prior. However, the implementation allows the user to specify stateful function, instead of priors to perform analyses with variable Parameters that are not drawn from a prior, but follow a sequence e.g. run simulations with varying specRate.
 }
 \examples{
+\dontrun{
 variableParams <- list(environment=function()return(runif(1)),
                        specRate=function()return(runif(1, 1, 10)))
 fixedParams <- list(x=30, y=30,
                     runs=1000,
                     densityCut=1,
-                    calculateSummaries=TRUE
+                    calculateSummaries=TRUE)
 
 runPhylosimAnalysis(variableParams,
                     fixedParams,
                     1000,
                     "outDirName")
-
+}
 }
 \author{
 Tankred Ott
