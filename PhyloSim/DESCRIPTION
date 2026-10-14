@@ -27,7 +27,6 @@ Imports:
     shape,
     foreach,
     MESS,
-    sf,
     spatstat.geom,
     spatstat.explore,
     vegan,

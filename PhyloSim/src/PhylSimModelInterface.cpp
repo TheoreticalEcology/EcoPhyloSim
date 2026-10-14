@@ -90,8 +90,10 @@ using namespace Rcpp;
 //'   column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} in
 //'   \code{\link{createCompletePar}}.
 //' @param soilmatR Numeric vector, a second, optional environmental grid, flattened
-//'   column-major (length x*y), analogous to \code{airmatR}. TODO: confirm exact role --
-//'   not currently exposed as a separate argument in \code{createCompletePar}.
+//'   column-major (length x*y), analogous to \code{airmatR}. Stored internally per grid
+//'   cell but not currently read by any fitness or dispersal calculation, so it has no
+//'   effect on simulation output. Retained for potential future use; not currently
+//'   exposed as a separate argument in \code{createCompletePar}.
 //' @param prunePhylogeny Logical, whether the returned phylogeny is pruned to extant
 //'   (non-fossil) tips by the internal pruning function, or the full phylogeny (including
 //'   extinct lineages) is returned.
@@ -136,7 +138,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile << "int protracted = " << protracted << ";" << std::endl;
     debugFile << "NumericVector airmatR = " << airmatR << ";" << std::endl;
     debugFile << "airmatR = " << airmatR.begin() <<", " << airmatR.end() << ";" << std::endl;
-    debugFile << "NumericVector airmatR = " << soilmatR << ";" << std::endl;
+    debugFile << "NumericVector soilmatR = " << soilmatR << ";" << std::endl;
     debugFile << "soilmatR = " << soilmatR.begin() <<", " << soilmatR.end() << ";" << std::endl;
     debugFile.close();
 #endif

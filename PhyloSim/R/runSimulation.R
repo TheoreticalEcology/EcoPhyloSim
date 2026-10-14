@@ -9,6 +9,7 @@
 #' @export
 #' @example /inst/examples/runSimulation-help.R
 
+
 runSimulation <- function(par)
 {
   

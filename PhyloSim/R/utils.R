@@ -47,10 +47,11 @@ getSpecies <- function (sim) {
 #' speciesIDs <- getSpecies(simu)
 #' 
 #' ## Get Species Traits of a species
-#' envTraits <- PhyloSim:::getSpeciesTrait(simu, speciesIDs[[1]][1], "environment", 1)
+#' envTraits <- getSpeciesTrait(simu, speciesIDs[[1]][1], "environment", 1)
 #' 
 #' hist(envTraits)
 #' 
+#' @export
 getSpeciesTrait <- function (sim, speciesID, trait="neutral", whichRun = 1) {
   out <- NA
   specIndices <- getSpeciesIndices(sim, speciesID, whichRun)

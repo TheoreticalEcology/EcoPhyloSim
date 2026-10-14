@@ -90,8 +90,10 @@ column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} 
 \code{\link{createCompletePar}}.}
 
 \item{soilmatR}{Numeric vector, a second, optional environmental grid, flattened
-column-major (length x*y), analogous to \code{airmatR}. TODO: confirm exact role --
-not currently exposed as a separate argument in \code{createCompletePar}.}
+column-major (length x*y), analogous to \code{airmatR}. Stored internally per grid
+cell but not currently read by any fitness or dispersal calculation, so it has no
+effect on simulation output. Retained for potential future use; not currently
+exposed as a separate argument in \code{createCompletePar}.}
 
 \item{prunePhylogeny}{Logical, whether the returned phylogeny is pruned to extant
 (non-fossil) tips by the internal pruning function, or the full phylogeny (including

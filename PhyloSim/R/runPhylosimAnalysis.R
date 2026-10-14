@@ -148,8 +148,8 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     # }
     
     # Load simulation chunk and parameter chunk
-    sumChunk <- PhyloSim:::loadLocal(joinPath(c(dir, sumFiles[i])))
-    parChunk <- PhyloSim:::loadLocal(joinPath(c(dir, parFiles[i])))
+    sumChunk <- loadLocal(joinPath(c(dir, sumFiles[i])))
+    parChunk <- loadLocal(joinPath(c(dir, parFiles[i])))
     
     # Find indices where summaries are NA and remove them
     naIndices <- which(is.na(sumChunk))
@@ -173,8 +173,8 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     sumFileName <-  paste(c("summary_clean", suffix), collapse = "")
     parFileName <-  paste(c("param_clean", suffix), collapse = "")
     # save file
-    save(sumChunk, file = PhyloSim:::joinPath(c(outDir, sumFileName)))
-    save(parChunk, file = PhyloSim:::joinPath(c(outDir, parFileName)))
+    save(sumChunk, file = joinPath(c(outDir, sumFileName)))
+    save(parChunk, file = joinPath(c(outDir, parFileName)))
   }
   parallel::stopCluster(cl)
 }
@@ -284,9 +284,9 @@ runSimulationChunkwise <- function (fixedParamsList, variableParams, nRuns, chun
 # variable 'variableParams'"). Fixed by making it an explicit parameter.
 prepareForAnalysis <- function(dir=".", variableParams) {
   # load Data
-  cleanedDir <- PhyloSim:::joinPath(c(dir,"cleaned_up"))
-  summaries <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(cleanedDir, "combined_summary_clean")))
-  pars <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(cleanedDir, "combined_param_clean")))
+  cleanedDir <- joinPath(c(dir,"cleaned_up"))
+  summaries <- loadLocal(joinPath(c(cleanedDir, "combined_summary_clean")))
+  pars <- loadLocal(joinPath(c(cleanedDir, "combined_param_clean")))
   
   # extract variable parameters' values
   pars_df <- PhyloSim::extractParams(pars, names(variableParams))
@@ -296,13 +296,13 @@ prepareForAnalysis <- function(dir=".", variableParams) {
   summaries_sd <- apply(X = summaries_df, MARGIN = 2, FUN=sd)
   summaries_df_scaled <- as.data.frame(scale(summaries_df, scale = summaries_sd, center = F))
   
-  analysisDir <- PhyloSim:::joinPath(c(dir,"analysis_ready"))
+  analysisDir <- joinPath(c(dir,"analysis_ready"))
   if(!dir.exists(analysisDir)){
     dir.create(analysisDir)
   }
-  save(pars_df, file = PhyloSim:::joinPath(c(analysisDir, "parameters")))
-  save(summaries_df, file = PhyloSim:::joinPath(c(analysisDir, "summaries")))
-  save(summaries_df_scaled, file = PhyloSim:::joinPath(c(analysisDir, "summaries_scaled"))) 
+  save(pars_df, file = joinPath(c(analysisDir, "parameters")))
+  save(summaries_df, file = joinPath(c(analysisDir, "summaries")))
+  save(summaries_df_scaled, file = joinPath(c(analysisDir, "summaries_scaled"))) 
 }
 
 #' @author Tankred Ott
@@ -446,13 +446,13 @@ rejectionSamplePhylosimAnalysis <- function (p, s, nDraws, eQuantile=0.025, nCor
   sums <- NULL
   
   if (is.character(p)) {
-    pars <- PhyloSim:::loadLocal(p)  
+    pars <- loadLocal(p)  
   } else {
     pars <- p
   }
   
   if (is.character(s)) {
-    sums <- PhyloSim:::loadLocal(s)  
+    sums <- loadLocal(s)  
   } else {
     sums <- s
   }
@@ -496,7 +496,7 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
   drawIndices <- sample(1:nrow(params), nDraws)
   
   # initialize parallel cores
-  nCores <- PhyloSim:::getValidatedNCores(nCores)
+  nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
   doParallel::registerDoParallel(cl)
   

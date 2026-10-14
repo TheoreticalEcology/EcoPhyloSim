@@ -36,7 +36,7 @@ simu <- runSimulation(par)
 speciesIDs <- getSpecies(simu)
 
 ## Get Species Traits of a species
-envTraits <- PhyloSim:::getSpeciesTrait(simu, speciesIDs[[1]][1], "environment", 1)
+envTraits <- getSpeciesTrait(simu, speciesIDs[[1]][1], "environment", 1)
 
 hist(envTraits)
 

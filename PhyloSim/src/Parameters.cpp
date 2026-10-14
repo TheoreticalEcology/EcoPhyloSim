@@ -11,7 +11,7 @@
 #include <string>
 #include <ctime>
 #include <vector>
-#include <iostream>
+
 #include <map>
 //
 using namespace std;
@@ -69,15 +69,10 @@ Parameters::~Parameters() {
 //
 void Parameters::readParameterFromXMLFile(string xmlFileName) {
     xml_document parameterDocument;
-    if (s_LogInfos) {
-        cout << "Filename of the XML document to load parameters from: " << xmlFileName.c_str() << endl;
-    }
+
     // Load xml document
     xml_parse_result pars_res = parameterDocument.load_file(xmlFileName.c_str(), format_default, encoding_utf8);
-    if (s_LogInfos) {
-        // Print loading result
-        cout << "Loading result: " << (pars_res == 1 ? "SUCCESS" : "FAIL") << endl;
-    }
+  
     xml_node params = parameterDocument.child("Phylogeny_Parameter_Document");
     // Extract parameter from the XML document.
     for (auto itr = params.children().begin(); itr != params.children().end(); ++itr) {
@@ -85,12 +80,7 @@ void Parameters::readParameterFromXMLFile(string xmlFileName) {
         string paramType = string((*itr).attribute("Type").value());
         string paramValue = string((*itr).attribute("Value").value());
 //
-        if (s_LogInfos) {
-            cout << "ChildName: " << (*itr).name() << endl;
-            cout << "Parametername: " << paramName << endl;
-            cout << "Parametertype: " << paramType << endl;
-            cout << "Parameter value: " << paramValue << endl;
-        }
+       
         // Put parameter in according map
         // TODO(Betim): Catch conversion exceptions!
         if (paramType == string("int")) {
@@ -155,22 +145,14 @@ void Parameters::writeParametersToXMLFile() {
         c.append_attribute("Value") = (*itr).second;
     }
 //
-    if (s_LogInfos) {
-        cout << "Printing XML parameter document to stdout" << endl;
-        parameterDocument.save(cout);
-    }
+ 
 //
     string fileName = Parameters::s_PathToXmlFile + Parameters::s_XMLFileName;
     const char *file = fileName.c_str();
 //  const char* file =Parameters::m_XMLFileName.c_str();
-    if (s_LogInfos) {
-        cout << "Creating XML document!" << endl;
-        cout << "Filename of the XML document: " << file << endl;
-    }
+   
     bool saveSuccessful = parameterDocument.save_file(file, "\t", format_default, encoding_utf8);
-    if (s_LogInfos) {
-        cout << "Saving XML file..." << (saveSuccessful ? "SUCCESS" : "FAIL") << endl;
-    }
+   
 }
 
 //
