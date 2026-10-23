@@ -8,9 +8,9 @@ rejectionSample(params, summaries, nDraws = 10, eQuantile = 0.025,
   nCores = "auto", sumFun = median)
 }
 \arguments{
-\item{params}{A data.frame of the parameters (different parameters in colums)}
+\item{params}{A data.frame of the parameters (different parameters in columns)}
 
-\item{summaries}{A data.frame of the summary statistics (different summaries in colums)}
+\item{summaries}{A data.frame of the summary statistics (different summaries in columns)}
 
 \item{nDraws}{Number of ABC rejection sampling draws}
 

@@ -11,7 +11,7 @@ getSpeciesTrait(sim, speciesID, trait = "neutral", whichRun = 1)
 
 \item{speciesID}{Integer, species ID}
 
-\item{trait}{String, determining which trait should be returned ("evironment", "competition", "neutral").}
+\item{trait}{String, determining which trait should be returned ("environment", "competition", "neutral").}
 
 \item{whichRun}{Integer, specifying from which run the data should be collected.}
 }
@@ -22,7 +22,7 @@ Vector, containing the trait values
 Function to extract the traits of a species from a Phylosim object.
 }
 \details{
-The function extracts the environmental, competition or neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs in whichRun determines which run should be used.
+The function extracts the environmental, competition or neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs, whichRun determines which run should be used.
 }
 \examples{
 ## Define a parameter set

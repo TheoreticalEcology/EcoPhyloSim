@@ -2,7 +2,7 @@
 % Please edit documentation in R/classPhylosimList.R
 \name{print.PhylosimList}
 \alias{print.PhylosimList}
-\title{Prints summary for objects of class PhyloSim}
+\title{Prints summary for objects of class PhylosimList}
 \usage{
 \method{print}{PhylosimList}(x, ...)
 }

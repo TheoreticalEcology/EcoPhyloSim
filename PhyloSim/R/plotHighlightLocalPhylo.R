@@ -2,11 +2,11 @@
 #' @description Visualises the phylogenetic clades of a local community within a metacommunity. 
 #' @param simu Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least the phylogeny ($phylogeny) and species matrix ($specMat). The species matrix is used as metacommunity
 #' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
-#' @param size, size of the local plots.
+#' @param size size of the local plots.
 #' @param n The number of local communities. For each community a new plot is created. Needs to be greater than 1
 #' @param subplot if no simu object is given, a communitytable of a local community can be given here
-#' @param phylogeny if no simu object is ginve, an object of the class 'phylo' can be given here to describe the communites phylogeny
-#' @details This function works with a single simu object (class "phylosim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and localc plots. Here the phylogeny represents the metacommunity wihtin which the local plots create the clades
+#' @param phylogeny if no simu object is given, an object of the class 'phylo' can be given here to describe the community's phylogeny
+#' @details This function works with a single simu object (class "phylosim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and local plots. Here the phylogeny represents the metacommunity within which the local plots create the clades
 #' @example /inst/examples/plotHighlightLocalPhylo-help.R
 #' @export
 highlightLocalPhylo <- function(simu,which.result=NULL, size, n, subplot = NULL, phylogeny=NULL){

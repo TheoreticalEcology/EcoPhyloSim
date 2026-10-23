@@ -23,7 +23,7 @@ sac(simu, which.result = NULL, size = NULL, rep = 50, plot = T,
 \item{nested}{Logical, determining whether nested subplots should be used.}
 }
 \value{
-A list containing the mean species richness for each size and the respective standard deviation. If which.result = "all" only the plot will be returned.
+A data frame containing the mean species richness for each size and the respective 5\% and 95\% quantile confidence interval. If which.result = "all" only the plot will be returned.
 }
 \description{
 Plots the species area curve for a given community.

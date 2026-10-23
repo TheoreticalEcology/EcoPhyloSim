@@ -7,7 +7,7 @@
 */
 #include "Parameters.h"
 #include "StringConversion.h"
-#include "pugixml.hpp"
+#include "pugixml.h"
 #include <string>
 #include <ctime>
 #include <vector>

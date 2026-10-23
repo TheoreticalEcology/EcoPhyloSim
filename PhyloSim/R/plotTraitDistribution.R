@@ -16,7 +16,6 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   dat <- simu$Output[[which.result]]
   
   names <- unique(as.numeric(dat$specMat))
-  names <- unique(as.numeric(dat$specMat))
   p   <- seq(from = 0, to = 1 ,length.out = length(names))
   red <- sample(p, size = length(names))
   green <- sample(p, size = length(names))

@@ -1,6 +1,6 @@
 
 #' @title Plot all objects in an object of class PhylosimList
-#' @description Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.
+#' @description Plots the phylogeny tree ,the spatial abundance of the evolved species and their traits.
 #' @param x Simulation output of \code{\link{runSimulationBatch}}
 #' @param ... further arguments, currently not used
 
@@ -19,7 +19,7 @@ plot.PhylosimList <- function(x, ...){
 
 
 #print.phylosimlist 
-#' @title Prints summary for objects of class PhyloSim
+#' @title Prints summary for objects of class PhylosimList
 #' @description Prints parameter settings, runtime and species Richness.
 #' @param x Simulation output of \code{\link{runSimulation}}
 #' @param ... further arguments, currently not used
@@ -39,16 +39,16 @@ print.PhylosimList <- function(x, ...){
 }
 
 
-#' @title Prints summary for objects of class PhyloSim
-#' @description Prints parameter settings, runtime and species Richness.
-#' @param object Simulation output of \code{\link{runSimulation}}
+#' @title Summary for objects of class PhylosimList
+#' @description Gives summary about parameter settings, runtime and species Richness.
+#' @param object Simulation output of \code{\link{runSimulationBatch}}
 #' @param ... further arguments, currently not used
 #' @export
 
 summary.PhylosimList <- function(object, ...){
   cat("Summary for class PhylosimList",  "\n")
   cat("------------------------------------", "\n","------------------------------------", "\n", sep="")
-  cat("# Simu", "X ", "Y", "Dispersal", "Density", "Environment","#Runs", "#Species","Colless'","Gamma","\n")
+  cat("# Simu", "X ", "Y", "Dispersal", "Density", "Environment","#Species","#Runs","Colless'","Gamma","\n")
   cat("------------------------------------", "\n")
   cat()
   for(i in 1:length(object)){

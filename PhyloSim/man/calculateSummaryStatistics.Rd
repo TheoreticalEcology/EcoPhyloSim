@@ -15,10 +15,26 @@ calculateSummaryStatistics(simulation, strict = TRUE)
 A list containing the summary statistics.
 }
 \description{
-Calculates the summary satistics for a simulation of class PhyloSim.
+Calculates the summary statistics for a simulation of class PhyloSim.
 }
 \details{
-TODO: implement
+Computes the following summary statistics from a single simulation run:
+\describe{
+\item{racAuc}{Area under the Rank Abundance Curve (see \code{\link{rac}}).}
+\item{sacAuc}{Area under the Species Area Curve (see \code{\link{sac}}).}
+\item{alphaDiversity}{Mean local (alpha) species richness.}
+\item{betaDiversity}{Mean beta diversity (see \code{\link[vegan]{betadiver}}).}
+\item{gammaDiversity}{Total species richness of the community.}
+\item{imbalance}{Yule-normalized Colless index of phylogenetic imbalance.}
+\item{dispersion}{Standardized phylogenetic dispersion (SES-MPD z-score).}
+\item{gammaStatistics}{Gamma statistic (see \code{\link[ape]{gammaStat}}) testing for deviation from a constant diversification rate.}
+\item{meanNodeAge}{Mean branch length of the phylogeny.}
+\item{varPart_1}{Variance in community composition explained by environment (see \code{\link[vegan]{varpart}}).}
+\item{varPart_2}{Variance in community composition explained by competition (see \code{\link[vegan]{varpart}}).}
+\item{ce}{Clark-Evans index of spatial clustering.}
+\item{nb8}{Index of local species clustering among neighbouring grid cells.}
+\item{envIntercept, env, envSqr}{Coefficients relating species occurrence to the environmental value.}
+}
 }
 \examples{
 

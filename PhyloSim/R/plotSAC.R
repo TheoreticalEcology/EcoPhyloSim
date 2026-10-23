@@ -6,10 +6,10 @@
 #' @param size a single value or a vector determining the edge length of the subplots. If not provided, 10 logarithmic plotsizes will be used.
 #' @param rep The number of repetitions per size to calculate the mean 
 #' @param plot Logical determining whether to plot the SAC or not
-#' @param nested Logical, determining whether nested subplots should be used.
 #' @param title String, determining the title of the plot
+#' @param nested Logical, determining whether nested subplots should be used.
 #' @details Displays the accumulated species richness as a function of plot size or the amount of equally sized plots. It serves as an indicator for the clustering of a species community. A positively bent curve usually indicates clustering since an increase in plot size or number leads to an increase in species richness while a negatively bent curve indicates a more neutral distribution of species within the community. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
-#' @return A list containing the mean species richness for each size and the respective standard deviation. If which.result = "all" only the plot will be returned.
+#' @return A data frame containing the mean species richness for each size and the respective 5% and 95% quantile confidence interval. If which.result = "all" only the plot will be returned.
 #' @example /inst/examples/plotSAC-help.R
 
 #' @export

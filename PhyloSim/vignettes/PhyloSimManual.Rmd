@@ -102,15 +102,22 @@ increase the computational speed, there is a dispersal cutoff at $2\delta$,
 meaning that individuals disperse only within a distance of $2\delta$.
 
 **2. Evolution.** The second step in the simulation of one generation is trait
-evolution. Trait evolution is modelled by a small Gaussian random variable that
-is added on top of the parental trait values. Additional to the random step, a
-directed attraction towards the species' mean value is implemented:
+evolution. Trait evolution is modelled by a small uniformly distributed random
+value that is added on top of the parental trait values. In addition to the
+random step, a directed attraction towards the species' mean value is
+implemented:
 
-$$ \mathrm{newtrait} = (1 - w_s \cdot p) + (w_s \cdot s) + (w_r \cdot r) $$
+$$ \mathrm{newtrait} = (1 - w_s)\cdot p + w_s \cdot s + r $$
+
+where $p$ is the individual's own (parental) trait value, $s$ is the mean
+trait value of its species, $w_s$ is a fixed attraction weight towards the
+species mean (hardcoded to 0.2 in the current implementation), and $r$ is a
+small random perturbation drawn uniformly from $[-\mathrm{width}, \mathrm{width}]$
+(with $\mathrm{width} = 0.01$).
 
 **3. Fitness calculation.** After reproduction, the new individual calculates
 its fitness according to its competition and environmental traits. For example,
-the closer the values of the competition traits in the surrounding of an
+the closer the values of the competition traits in the vicinity of an
 individual, the stronger its fitness is reduced. Numerically it can be written
 as the sum of all absolute competition trait differences in a certain area
 around the individual:
@@ -128,9 +135,11 @@ the parent's traits and a randomly generated value as follows:
 
 $$ \mathrm{newtrait} = (w_p \cdot p) + (w_r \cdot r) $$
 
-There are several other speciation mechanisms implemented in the model:
+All speciation mechanisms implemented in the model are summarized below;
+point speciation (the default, described above) is included for comparison:
 
-- **Point Mutation:** a randomly chosen individual becomes a new species.
+- **Point Mutation** (equivalent to the default *point speciation* process
+  described above): a randomly chosen individual becomes a new species.
 - **Fission Type 1:** a species is randomly chosen and every second individual
   of the species becomes part of a new species.
 - **Fission Type 2:** a species is randomly chosen and geographically split in
@@ -172,7 +181,7 @@ The list of parameters is now used to execute the simulation:
 simu <- runSimulation(par)
 ```
 
-The output is saved as an object of type `Phylosim`. Each `Phylosim` object
+The output is saved as an object of type `PhyloSim`. Each `PhyloSim` object
 contains two lists, `$Output` and `$Model`. All model results are saved in the
 `Output` list.
 
@@ -195,8 +204,8 @@ The simulation settings are saved in the model object:
 str(simu$Model)
 ```
 
-The `Phylosim` object serves as the basis of all further analysis. It can
-directly be passed to all other functions. If the `Phylosim` object contains
+The `PhyloSim` object serves as the basis of all further analysis. It can
+directly be passed to all other functions. If the `PhyloSim` object contains
 multiple results, they can be accessed by the `which.result` argument in most
 functions. By default, the last result is used.
 
@@ -204,7 +213,7 @@ Often, users will want to run several simulations with different or equal
 parameters. For this purpose, the `runSimulationBatch` function allows running a
 list of parameter combinations. The function can make use of parallel computing
 and returns an object of class `PhylosimList`, which is essentially a list of
-`Phylosim` classes. In the following example, two slightly different parameter
+`PhyloSim` classes. In the following example, two slightly different parameter
 sets are created and processed using parallel computing on two cores.
 
 ```{r runbatch, results = 'hide'}
@@ -219,7 +228,7 @@ parmBatch <- list(par1, par2)
 simuBatch <- runSimulationBatch(parmBatch, parallel = 2)
 ```
 
-The `simuBatch` object contains two `Phylosim` objects saved in a list. You can
+The `simuBatch` object contains two `PhyloSim` objects saved in a list. You can
 easily access them separately by indexing. For example:
 
 ```{r batch-index}
@@ -229,7 +238,7 @@ simu1 <- simuBatch[[1]]
 An overview of the basic classes and functions to run simulations is provided
 below.
 
-```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single Phylosim object is needed."}
+```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
 knitr::include_graphics("runsimulation.svg")
 ```
 
@@ -237,7 +246,7 @@ knitr::include_graphics("runsimulation.svg")
 
 After the description of the simulation environment in the previous chapter, the
 present one explains plots and summary statistics that can be created from the
-`Phylosim` and `PhylosimList` objects.
+`PhyloSim` and `PhylosimList` objects.
 
 ## Plot functions
 
@@ -247,7 +256,7 @@ chapter.
 
 **`plotSpatialPhylo`:** the easiest way to get an overview of the results of one
 simulation is the `plotSpatialPhylo` function, which is also the default plot
-function for a `Phylosim` object.
+function for a `PhyloSim` object.
 
 ```{r plotspatialphylo, fig.width = 7, fig.height = 5, fig.cap = "The plotSpatialPhylo plot consists of three different figures: a phylogeny that shows the evolutionary history of the species, a trait plot that shows the trait values for each of the species (coded by size), and the spatial distribution of individuals, with colors matching the colors in the phylogeny. Which of these figures are plotted can be triggered with the arguments plot and plotTraits (see help)."}
 plotSpatialPhylo(simu, plot = "both", plotTraits = TRUE, which.result = NULL)
@@ -332,7 +341,7 @@ pValues <- nullModel(simu = simu, abundance = FALSE, localPlotSize = 10,
 
 **The `calculatePhylogeneticDispersion` function:** this and its associated plot
 functions are convenience functions for a rather specialized application -- the
-function calculates null models for all runs in a `PhyloBatch` object and for
+function calculates null models for all runs in a `PhylosimList` object and for
 different plot sizes. Which null model is used is determined by the `type`
 argument with the following options:
 

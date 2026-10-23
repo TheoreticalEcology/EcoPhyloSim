@@ -20,7 +20,7 @@ List of trait types containing vectors with trait values.
 Function to extract the traits of a species from a Phylosim object.
 }
 \details{
-The function extracts the environmental, competition and neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs in whichRun determines which run should be used.
+The function extracts the environmental, competition and neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs, whichRun determines which run should be used.
 }
 \examples{
 ## Define a parameter set

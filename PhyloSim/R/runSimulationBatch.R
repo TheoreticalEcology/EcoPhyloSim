@@ -51,7 +51,7 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
     }
    parallel::stopCluster(cl)
   } else {
-    cat("running ",nrow(pars), " batch simualations without parallelization", "\n")
+    cat("running ",length(pars), " batch simulations without parallelization", "\n")
     out <- foreach(i=1:length(pars), .packages = c("PhyloSim")) %do%{
       
       cat("running parameter", i , "\n")
@@ -62,15 +62,15 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
         name <- paste(pars[[i]]$scenario, ".RData", sep="", collapse="")
         save(OUT, file = name)
       }
-      if(! is.null(NULL)) {
+      if(! is.null(strip)) {
         if(strip == "summaries") OUT = OUT$Output[[1]]$summaries
-        else stop("Phylosim::runSimulationBatch unrecognized arguemtn to strip")
+        else stop("Phylosim::runSimulationBatch unrecognized argument to strip")
       }
       OUT
     }
   }
   
-  for (i in 1:length(pars)) names(out)[i] <- pars[i]$scenario
+  for (i in 1:length(pars)) names(out)[i] <- pars[[i]]$scenario
   
   if(is.null(strip)) {
     class(out) <- "PhylosimList"

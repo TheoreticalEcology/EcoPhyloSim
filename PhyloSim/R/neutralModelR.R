@@ -1,5 +1,5 @@
 #' @title Model of neutral community assembly
-#' @description Runs a simple model of species community assembly under neutral conditions as defined by Hubbel (2001). Usually called by \code{\link{runSimulation}}.
+#' @description Runs a simple model of species community assembly under neutral conditions as defined by Hubbell (2001). Usually called by \code{\link{runSimulation}}.
 #' @param xdim Integer, Dimension of the model landscape in x-direction
 #' @param ydim Integer, Dimension of the model landscape in y-direction
 #' @param specRate The speciation rate in total speciation events per generation

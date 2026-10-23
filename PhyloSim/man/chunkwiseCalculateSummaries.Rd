@@ -2,7 +2,7 @@
 % Please edit documentation in R/runPhylosimAnalysis.R
 \name{chunkwiseCalculateSummaries}
 \alias{chunkwiseCalculateSummaries}
-\title{Cunkwise summary statistics calculation}
+\title{Chunkwise summary statistics calculation}
 \usage{
 chunkwiseCalculateSummaries(dir = ".", nCores = "auto")
 }

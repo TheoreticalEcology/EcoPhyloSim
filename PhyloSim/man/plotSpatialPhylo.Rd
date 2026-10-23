@@ -14,10 +14,10 @@ plotSpatialPhylo(simu, plot = "both", plotTraits = T,
 
 \item{plotTraits}{logical, defines if the traits should be plotted}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \description{
-Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.
+Plots the phylogeny tree, the spatial abundance of the evolved species and their traits.
 }
 \details{
 The tiplabels of the phylogeny tree are colored in correspondency to the spatial abundance plot

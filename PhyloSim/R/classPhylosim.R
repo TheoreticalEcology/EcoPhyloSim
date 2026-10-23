@@ -4,7 +4,7 @@
 #plot.phylosim
 
 #' @title Plot objects of class PhyloSim
-#' @description Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.
+#' @description Plots the phylogeny tree ,the spatial abundance of the evolved species and their traits.
 #' @param x Simulation output of \code{\link{runSimulation}}
 #' @param ... further arguments, currently not used
 
