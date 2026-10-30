@@ -7,7 +7,7 @@
 chunkwiseCleanup(dir = ".", nCores = "auto")
 }
 \arguments{
-\item{dir}{Directory to which the results of chunkwiseCalculateSumaries and runPhylosimAnalysis were saved.}
+\item{dir}{Directory to which the results of chunkwiseCalculateSummaries and runPhylosimAnalysis were saved.}
 
 \item{nCores}{"auto" or number of parallel cores to use}
 }

@@ -7,21 +7,21 @@
 runSimulation(par)
 }
 \arguments{
-\item{par, }{a list of model parameters created with \link{createCompletePar}}
+\item{par}{a list of model parameters created with \link{createCompletePar}}
 }
 \value{
-An object of class "Phylosim". This objet contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phlogeny and the parameter settings of the simulation.
+An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation.
 }
 \description{
 A model of species community assembly under different assembly mechanisms.
 }
 \details{
-If your parameterset contains more than one runs argument, each interim step is saved in the Phylosim object. \cr\cr For larger simularions consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr If you are using \code{type="Rneutral"} only one runs argument can be processed.\cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcated tree. Setting \code{converToBinaryTree = TRUE} converts the generated phylogeny to a bifurcate one using \code{multi2di()} from the "ape" package.
+If your parameter set contains more than one runs argument, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr If you are using \code{type="Rneutral"} only one runs argument can be processed.\cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcated tree. Setting \code{convertToBinaryTree = TRUE} converts the generated phylogeny to a bifurcate one using \code{multi2di()} from the "ape" package.
 }
 \examples{
  library(PhyloSim)
 # Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000,
+par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = c(500, 1000),
         density = 0, environment = 0, specRate = 1, fission = 0, redQueen=0, redQueenStrength=0,
         protracted=0)
 
@@ -43,5 +43,5 @@ extantPhylogeny <- drop.fossil(phylogeny)
 plot(extantPhylogeny)
 
 #Look at the species area relation
-sac(simu, area = c(1,10,100,1000), rep = 100, plot= TRUE)
+sac(simu, size = c(1,10,30,50), rep = 100, plot= TRUE)
 }

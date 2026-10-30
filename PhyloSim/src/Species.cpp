@@ -170,5 +170,5 @@ unsigned long long Species::get_species_ID() {
 }
 
 void Species::printInfo() {
-    std::cout << "ID " << m_ID << " count " << m_Count;
+
 }

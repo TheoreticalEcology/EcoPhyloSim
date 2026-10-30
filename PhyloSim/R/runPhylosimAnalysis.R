@@ -9,18 +9,19 @@
 #' @param chunkSize Integer, specifying the number of simulations per save file. Choosing a very large chunkSize (>30,000) might deplete the RAM, leading to bad performance.
 #' @details variableParams must be list of functions. The idea behind this is to draw from a prior, so the functions should return a single value drawn from the corresponding parameter prior. However, the implementation allows the user to specify stateful function, instead of priors to perform analyses with variable Parameters that are not drawn from a prior, but follow a sequence e.g. run simulations with varying specRate.
 #' @examples 
+#' \dontrun{
 #' variableParams <- list(environment=function()return(runif(1)),
 #'                        specRate=function()return(runif(1, 1, 10)))
 #' fixedParams <- list(x=30, y=30,
 #'                     runs=1000,
 #'                     densityCut=1,
-#'                     calculateSummaries=TRUE
+#'                     calculateSummaries=TRUE)
 #' 
 #' runPhylosimAnalysis(variableParams,
 #'                     fixedParams,
 #'                     1000,
 #'                     "outDirName")
-#' 
+#' }
 #' @author Tankred Ott
 #' @export
 # TODO: Rename this
@@ -61,13 +62,14 @@ runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summ
   runSimulationChunkwise(fixedParamsList, variableParams, nRuns, chunkSize, outDir, summariesOnly, nCores)  
 }
 
-#' @title Cunkwise summary statistics calculation
+#' @title Chunkwise summary statistics calculation
 #' @description Calculates summary statistics for all "out_" files created with runPhylosimAnalysis and saves the results to "summary_" files in the same folder.
 #' @param dir Directory from which the "out_" files should be read and to which the "summary_" files will be saved.
 #' @param nCores "auto" or number of parallel cores.
 #' @author Tankred Ott
 #' @export
 chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
+  i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   simFiles <- getFileNames(path=dir)
   if (length(simFiles) == 0) stop(paste("No PhyloSim output files found in", if (dir == ".") getwd() else dir))
   
@@ -80,13 +82,12 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   cl <- parallel::makeCluster(nCores)
   doParallel::registerDoParallel(cl)
   
-  library(foreach)
   foreach(i=1:length(simFiles), .packages = c("PhyloSim")) %dopar% {
     loadLocal <- function(path) return(local(get(load(path))))
     joinPath <- function(x, sysName = "auto") {
       if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
       if(sysName == "Windows") return(paste(x, collapse = "\\"))
-      else if(sysName == "Linux") return(paste(x, collapse = "/"))
+      else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
       else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
     }
     
@@ -114,10 +115,11 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
 #' @title Clean up parameter and summary chunks
 #' @description Reads in summary files created with chunkwiseCalculateSummaries, and parameter files created with runPhylosimAnalysis and removes crashed simulations (those where summaries == NA). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
 #' @author Tankred Ott
-#' @param dir Directory to which the results of chunkwiseCalculateSumaries and runPhylosimAnalysis were saved.
+#' @param dir Directory to which the results of chunkwiseCalculateSummaries and runPhylosimAnalysis were saved.
 #' @param nCores "auto" or number of parallel cores to use
 #' @export
 chunkwiseCleanup <- function (dir=".", nCores="auto") {
+  i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
   doParallel::registerDoParallel(cl)
@@ -136,20 +138,23 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     dir.create(outDir)
   }
   
-  library(foreach)
   foreach(i=1:length(sumFiles), .packages = c("PhyloSim")) %dopar% {
     # loadLocal <- function(path) return(local(get(load(path))))
     # joinPath <- function(x, sysName = "auto") {
     #   if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
     #   if(sysName == "Windows") return(paste(x, collapse = "\\"))
-    #   else if(sysName == "Linux") return(paste(x, collapse = "/"))
+    #   else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
     #   else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
     # }
     
     # Load simulation chunk and parameter chunk
-    sumChunk <- PhyloSim:::loadLocal(joinPath(c(dir, sumFiles[i])))
-    parChunk <- PhyloSim:::loadLocal(joinPath(c(dir, parFiles[i])))
-    
+    sumChunk <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(dir, sumFiles[i])))
+    parChunk <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(dir, parFiles[i])))
+    # NOTE: do NOT remove the `PhyloSim:::` prefix below. loadLocal/joinPath are
+    # unexported internal functions, and this code runs inside a %dopar% worker
+    # that only has PhyloSim's EXPORTED namespace attached (via .packages=).
+    # Removing ::: here will not show up as an R CMD check error, but will break
+    # at runtime when chunkwiseCleanup() actually executes in parallel.
     # Find indices where summaries are NA and remove them
     naIndices <- which(is.na(sumChunk))
     naIndices <- c(naIndices, which(sapply(sumChunk, function (x) sum(is.na(x)) > 0)))
@@ -184,7 +189,7 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
 #' @param prefix Common file prefix. Possible to use RegEx like syntax here.
 #' @author Tankred Ott
 #' @export
-combineCunks <- function(dir=".", prefix) {
+combineChunks <- function(dir=".", prefix) {
   files <- getFileNames(path=dir, pattern=paste("^", prefix,".*", sep = ""))
   if (length(files) == 0) stop(paste("No files with prefix", prefix, "found in", if (dir == ".") getwd() else dir))
   out <- list()
@@ -271,14 +276,17 @@ runSimulationChunkwise <- function (fixedParamsList, variableParams, nRuns, chun
 #' @title Prepare for Analysis
 #' @description Reads the files generated by combineChunks and creates dataframe for later analysis.
 #' @param dir root directory of the analysis (as specified in runPhylosimAnalysis)
+#' @param variableParams A named list (or vector) whose names match the variable parameter names used in the corresponding \code{\link{runPhylosimAnalysis}} call. Only the names are used here to select which parameter columns to extract -- the values themselves do not need to match.
 #' @return Create a subfolder "analysis_ready" and write the files "parameters" (variable parameters), "summaries" and "summaries_scaled" containing data.frames with the corresponding data.
 #' @export
 #' @author Tankred Ott
-prepareForAnalysis <- function(dir=".") {
+
+
+prepareForAnalysis <- function(dir=".", variableParams) {
   # load Data
-  cleanedDir <- PhyloSim:::joinPath(c(dir,"cleaned_up"))
-  summaries <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(cleanedDir, "combined_summary_clean")))
-  pars <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(cleanedDir, "combined_param_clean")))
+  cleanedDir <- joinPath(c(dir,"cleaned_up"))
+  summaries <- loadLocal(joinPath(c(cleanedDir, "combined_summary_clean")))
+  pars <- loadLocal(joinPath(c(cleanedDir, "combined_param_clean")))
   
   # extract variable parameters' values
   pars_df <- PhyloSim::extractParams(pars, names(variableParams))
@@ -288,13 +296,13 @@ prepareForAnalysis <- function(dir=".") {
   summaries_sd <- apply(X = summaries_df, MARGIN = 2, FUN=sd)
   summaries_df_scaled <- as.data.frame(scale(summaries_df, scale = summaries_sd, center = F))
   
-  analysisDir <- PhyloSim:::joinPath(c(dir,"analysis_ready"))
+  analysisDir <- joinPath(c(dir,"analysis_ready"))
   if(!dir.exists(analysisDir)){
     dir.create(analysisDir)
   }
-  save(pars_df, file = PhyloSim:::joinPath(c(analysisDir, "parameters")))
-  save(summaries_df, file = PhyloSim:::joinPath(c(analysisDir, "summaries")))
-  save(summaries_df_scaled, file = PhyloSim:::joinPath(c(analysisDir, "summaries_scaled"))) 
+  save(pars_df, file = joinPath(c(analysisDir, "parameters")))
+  save(summaries_df, file = joinPath(c(analysisDir, "summaries")))
+  save(summaries_df_scaled, file = joinPath(c(analysisDir, "summaries_scaled"))) 
 }
 
 #' @author Tankred Ott
@@ -384,7 +392,7 @@ getValidatedChunkSize<- function (chunkSize, nRuns, maxChunkSize = 10000) {
 joinPath <- function(x, sysName = "auto") {
   if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
   if(sysName == "Windows") return(paste(x, collapse = "\\"))
-  else if(sysName == "Linux") return(paste(x, collapse = "/"))
+  else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
   else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
 }
 
@@ -424,7 +432,7 @@ getFileNames <- function(path=".", pattern="^out_[0-9]+-[0-9]+$") {
 #' @param p Path to a file containing the parameters in form of a data.frame/matrix, or a matrix/data.frame containing the parameters.
 #' @param s Path to a file containing the (scaled) summary statistics, or a matrix/data.frame containing the summaries.
 #' @param nDraws Number of ABC rejection sampling draws
-#' @param eQuantile Epsilon expressed as quantile. E.g. 0.025 are only the nearest 2.5\%.
+#' @param eQuantile Epsilon expressed as quantile. E.g. 0.025 are only the nearest 2.5%.
 #' @param nCores Number of parallel cores, or "auto".
 #' @param which vector of strings, determining which summary statistics reduction should be applied. Each supplied method will be applied separately. Possible options: "none", "saABC", "rf"
 #' @param sumFun Function to summarize the accepted simulated parameters, e.g. mean or median
@@ -438,13 +446,13 @@ rejectionSamplePhylosimAnalysis <- function (p, s, nDraws, eQuantile=0.025, nCor
   sums <- NULL
   
   if (is.character(p)) {
-    pars <- PhyloSim:::loadLocal(p)  
+    pars <- loadLocal(p)  
   } else {
     pars <- p
   }
   
   if (is.character(s)) {
-    sums <- PhyloSim:::loadLocal(s)  
+    sums <- loadLocal(s)  
   } else {
     sums <- s
   }
@@ -473,22 +481,22 @@ rejectionSamplePhylosimAnalysis <- function (p, s, nDraws, eQuantile=0.025, nCor
 
 #' @title Rejection Sampling
 #' @description Applies rejection sampling.
-#' @param pars A data.frame of the parameters (different parameters in colums)
-#' @param summaries A data.frame of the summary statistics (different summaries in colums)
+#' @param params A data.frame of the parameters (different parameters in columns)
+#' @param summaries A data.frame of the summary statistics (different summaries in columns)
 #' @param nDraws Number of ABC rejection sampling draws
-#' @param eQuantile Epsilon expressed as quantile. E.g. 0.025 are only the nearest 2.5\%.
+#' @param eQuantile Epsilon expressed as quantile. E.g. 0.025 are only the nearest 2.5%.
 #' @param nCores Number of parallel cores, or "auto".
 #' @param sumFun Function to summarize the accepted simulated parameters, e.g. mean or median
 #' @return A data.frame containing the true parameters postfixed with "_t" and the estimated parameters postfixed with "_e".
 #' @author Tankred Ott
 #' @export
 rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, nCores="auto", sumFun=median){
+  i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   # draw random samples
   drawIndices <- sample(1:nrow(params), nDraws)
   
   # initialize parallel cores
-  nCores <- PhyloSim:::getValidatedNCores(nCores)
-  library(foreach)
+  nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
   doParallel::registerDoParallel(cl)
   

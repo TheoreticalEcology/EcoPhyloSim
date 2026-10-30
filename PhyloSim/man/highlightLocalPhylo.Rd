@@ -12,19 +12,19 @@ highlightLocalPhylo(simu, which.result = NULL, size, n, subplot = NULL,
 
 \item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
-\item{size, }{size of the local plots.}
+\item{size}{size of the local plots.}
 
 \item{n}{The number of local communities. For each community a new plot is created. Needs to be greater than 1}
 
 \item{subplot}{if no simu object is given, a communitytable of a local community can be given here}
 
-\item{phylogeny}{if no simu object is ginve, an object of the class 'phylo' can be given here to describe the communites phylogeny}
+\item{phylogeny}{if no simu object is given, an object of the class 'phylo' can be given here to describe the community's phylogeny}
 }
 \description{
 Visualises the phylogenetic clades of a local community within a metacommunity.
 }
 \details{
-This function works with a single simu object (class "phylosim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and localc plots. Here the phylogeny represents the metacommunity wihtin which the local plots create the clades
+This function works with a single simu object (class "phylosim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and local plots. Here the phylogeny represents the metacommunity within which the local plots create the clades
 }
 \examples{
 
@@ -56,5 +56,5 @@ highlightLocalPhylo(simu.envcom.local, size = 50, n = 3)
 #increasing plot size
 par(mfrow=c(2,2))
 highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
-highlightLocalPhylo(simu.envcom.local, size = 1000, n =2)
+highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
 }

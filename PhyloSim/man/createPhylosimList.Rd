@@ -16,7 +16,7 @@ An object of type PhylosimList
 Creates an object of class "PhylosimList" from a list of "Phylosim" objects.
 }
 \details{
-The function is used to make functions for objets of type "PhylosimList" usable for objects of class "Phylosim". The function needs at least two objets to work.
+The function is used to make functions for objets of type "PhylosimList" usable for objects of class "Phylosim". The function needs at least two objects to work.
 }
 \examples{
 ## Create two objects of type Phylosim

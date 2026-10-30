@@ -4,10 +4,12 @@
 \alias{prepareForAnalysis}
 \title{Prepare for Analysis}
 \usage{
-prepareForAnalysis(dir = ".")
+prepareForAnalysis(dir = ".", variableParams)
 }
 \arguments{
 \item{dir}{root directory of the analysis (as specified in runPhylosimAnalysis)}
+
+\item{variableParams}{A named list (or vector) whose names match the variable parameter names used in the corresponding \code{\link{runPhylosimAnalysis}} call. Only the names are used here to select which parameter columns to extract -- the values themselves do not need to match.}
 }
 \value{
 Create a subfolder "analysis_ready" and write the files "parameters" (variable parameters), "summaries" and "summaries_scaled" containing data.frames with the corresponding data.

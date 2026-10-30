@@ -1,5 +1,5 @@
 #' @title Expected species richness
-#' @description Calculate the expected species richness in the equilibrium state as calculated by Hubbel (2001).
+#' @description Calculate the expected species richness in the equilibrium state as calculated by Hubbell (2001).
 #' @param specRate The speciation rate in speciations per generation
 #' @param dimensions The length of the grid edge
 #' @details This function is only valid for neutral models!

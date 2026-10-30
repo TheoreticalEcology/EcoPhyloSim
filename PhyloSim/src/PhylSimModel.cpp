@@ -25,11 +25,7 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
                            std::vector<double> soilmat) {
 
 #ifdef DEBUG
-    std::cout<<"Running simulation with \n";
-    std::cout<<"Dispersal "<< dispersal << "; cutoff " << dispersalCutoff <<  "\n";
-    std::cout<<"Competition "<< dens << "; strength " << compStrength <<  " cutoff " << densityCutoff << "\n";
-    std::cout<<"Environment "<< env << "; strength " << envStrength<<  "\n";
-    std::cout<<"\n---- debug message for development purposes, remove debug switch in debug.h for turning this off \n\n";
+
 #endif
 
     if (dispersal == 1) {
@@ -62,7 +58,7 @@ void PhylSimModel::update(unsigned int runs) {
 
 #ifdef DEBUG
         if(generation % 1000 == 0){
-          std::cout << "generation :" <<  generation << '/' << runs << '\n';
+         
         }
 #endif
 

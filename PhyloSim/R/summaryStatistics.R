@@ -1,9 +1,25 @@
 
 #' @title Summary Statistics
-#' @description Calculates the summary satistics for a simulation of class PhyloSim.
+#' @description Calculates the summary statistics for a simulation of class PhyloSim.
 #' @param simulation Simulation output of the class "Phylosim"
 #' @param strict Logical. If true the output of the function will be NA if at least one summary statistic could not be calculated.
-#' @details TODO: implement
+#' @details Computes the following summary statistics from a single simulation run:
+#' \describe{
+#'   \item{racAuc}{Area under the Rank Abundance Curve (see \code{\link{rac}}).}
+#'   \item{sacAuc}{Area under the Species Area Curve (see \code{\link{sac}}).}
+#'   \item{alphaDiversity}{Mean local (alpha) species richness.}
+#'   \item{betaDiversity}{Mean beta diversity (see \code{\link[vegan]{betadiver}}).}
+#'   \item{gammaDiversity}{Total species richness of the community.}
+#'   \item{imbalance}{Yule-normalized Colless index of phylogenetic imbalance.}
+#'   \item{dispersion}{Standardized phylogenetic dispersion (SES-MPD z-score).}
+#'   \item{gammaStatistics}{Gamma statistic (see \code{\link[ape]{gammaStat}}) testing for deviation from a constant diversification rate.}
+#'   \item{meanNodeAge}{Mean branch length of the phylogeny.}
+#'   \item{varPart_1}{Variance in community composition explained by environment (see \code{\link[vegan]{varpart}}).}
+#'   \item{varPart_2}{Variance in community composition explained by competition (see \code{\link[vegan]{varpart}}).}
+#'   \item{ce}{Clark-Evans index of spatial clustering.}
+#'   \item{nb8}{Index of local species clustering among neighbouring grid cells.}
+#'   \item{envIntercept, env, envSqr}{Coefficients relating species occurrence to the environmental value.}
+#' }
 #' @return A list containing the summary statistics.
 #' @example /inst/examples/summaryStatistics-help.R
 #' @export
@@ -72,53 +88,26 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   summaryStatistics$gammaDiversity <- gammaDiversity(simulation)
   
   # phylogenetic imbalance
-  # uses apTreeshape's colless function
-  
-  # phylo object must be converted to treeshape object
-  tsPhylogeny <- apTreeshape::as.treeshape.phylo(ape::drop.fossil(simulation$Output[[1]]$phylogeny))
-  
-  # apTreeshape::colless only works on trees with more than 2 tips
-  if(nrow(tsPhylogeny$merge) != 1) {
-    # more than 2 tips
-    # normalization of the colless index
-    # TODO: let the user chose the normalization
-    normalization = "yule"
-    #normalization = "pda"
-    #normalization = NULL
-    
-    summaryStatistics$imbalance <- apTreeshape::colless(tsPhylogeny,
-                                                        norm = normalization)
-  } else {
-    # less than 2 tips
-    # WARNING
-    # This does not seem to make sense
-    
-    # copied from apTreeshape::colless
-    # necessary, because apTreeshape does not implement colless for trees
-    # with only two tips
-    norm.yule <- function(ICN, tree) {
-      leaf_nb <- nrow(tree$merge) + 1
-      EICN <- leaf_nb * log(leaf_nb) + (0.57721566 - 1 - log(2)) * 
-        leaf_nb
-      IC <- (ICN - EICN)/(leaf_nb)
-      IC
-    }
-    
-    # TODO: implement pda and NULL normalization
-    summaryStatistics$imbalance <- norm.yule(0, tsPhylogeny)
-  }
-  
+  # Colless index (Yule-normalized), computed internally (see collessImbalance.R).
+  # Previously relied on apTreeshape, which was archived from CRAN.
+  summaryStatistics$imbalance <- .collessIndex(
+    ape::drop.fossil(simulation$Output[[1]]$phylogeny),
+    norm = "yule")
+
   # phylogenetic dispersion
-  # uses PhyloMeasures' implementation of the NRI
-  
-  # Commented code below causes error. Drop fossil seems to drop clades that are no real fossils?!
-  #summaryStatistics$dispersion <- mean(PhyloMeasures::mpd.query(ape::drop.fossil(simulation$Output[[1]]$phylogeny),
-  #                                                              plots$communityTable,
-  #                                                              standardize = TRUE))
-  
-  summaryStatistics$dispersion <- mean(PhyloMeasures::mpd.query(simulation$Output[[1]]$phylogeny,
-                                                                plots$communityTable,
-                                                                standardize = TRUE))
+  # standardized mean pairwise distance (z-score, analogous to -NRI).
+  # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
+  # picante::ses.mpd, which is maintained and already a dependency.
+  phylo <- simulation$Output[[1]]$phylogeny
+  comm  <- plots$communityTable
+  if (is.null(colnames(comm))) colnames(comm) <- phylo$tip.label
+  commonSpecies <- intersect(colnames(comm), phylo$tip.label)
+  comm  <- comm[, commonSpecies, drop = FALSE]
+  phylo <- ape::keep.tip(phylo, commonSpecies)
+
+  sesMpd <- picante::ses.mpd(comm, stats::cophenetic(phylo),
+                             null.model = "taxa.labels", runs = 999)
+  summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
   
   # gamma statistics
   # uses ape's implementation of the gammaStatistics
@@ -139,7 +128,7 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   mod <- vegan::varpart(plots$communityTable, env, comp)
   
   summaryStatistics$varPart_1 <- mod$part$fract$Adj.R.squared[1]
-  summaryStatistics$varPart_2 <- mod$part$fract$Adj.R.squared[1]
+  summaryStatistics$varPart_2 <- mod$part$fract$Adj.R.squared[2]
   
   
   # Clark Evans
@@ -211,8 +200,8 @@ clarkEvans <- function (mat, ...) {
     pos <- which(mat == ids[i])
     col <- ceiling(pos / nRow)
     row <- pos %% nCol
-    pp <- spatstat::ppp(x=col, y=row, window=spatstat::owin(xrange = c(0, nCol), yrange = c(0, nRow)))
-    ce <- spatstat::clarkevans(pp, ...)
+    pp <- spatstat.geom::ppp(x=col, y=row, window=spatstat.geom::owin(xrange = c(0, nCol), yrange = c(0, nRow)))
+    ce <- spatstat.explore::clarkevans(pp, ...)
     if (!is.infinite(ce) && !is.na(ce) && !is.nan(ce)) {
       ceSum <- ceSum + ce
       n <- n + 1

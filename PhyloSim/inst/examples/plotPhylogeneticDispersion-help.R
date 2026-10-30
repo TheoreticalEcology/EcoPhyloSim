@@ -21,14 +21,23 @@ scenarios <- paste(modes, " dens=", density, " env=", environment, sep = "")
 
 ## Now we can define a list of parameter sets.
 pars <- list()
-for (i in 1:length(scenarios)){pars[[i]] = createCompletePar(x = 20,y = 20, runs = 1000,scenario = scenarios[i], dispersal = dispersal[i],specRate = 2,density = density[i],environment = environment[i], fitnessBaseMortalityRatio = 5, densityCut = 1,seed = 1000)}
-
+for (i in 1:length(scenarios)){
+  pars[[i]] = createCompletePar(
+    x = 20, y = 20, runs = 1000,
+    scenario = scenarios[i], dispersal = dispersal[i],
+    specRate = 2, density = density[i],
+    environment = environment[i],
+    fitnessBaseMortalityRatio = 5, densityCut = 1,
+    seed = 1000)
+}
 ## Run the simulations
 simulationOut <- runSimulationBatch(pars, parallel = 2)
 
 ## Calculate null models. For each model run 9 plot sizes are tested. In the plot they are
 ## used to calculate the confidence interval for the results.
-nullMeta <- calculatePhylogeneticDispersion(simulationOut, plotlengths = c(2,3,4,5,6,7,8,9,10), reduce = TRUE)
+nullMeta <- calculatePhylogeneticDispersion(simulationOut, 
+                                            plotlengths = c(2,3,4,5,6,7,8,9,10), 
+                                            reduce = TRUE)
 
 ## Now we can define the positions and labels of the plots.
 ## Note that here the 28 simulations need to be covered in the right order.

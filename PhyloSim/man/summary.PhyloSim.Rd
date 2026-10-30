@@ -4,10 +4,12 @@
 \alias{summary.PhyloSim}
 \title{Summary for objects of class PhyloSim}
 \usage{
-\method{summary}{PhyloSim}(simu)
+\method{summary}{PhyloSim}(object, ...)
 }
 \arguments{
-\item{simu}{Simulation output of \code{\link{runSimulation}}}
+\item{object}{Simulation output of \code{\link{runSimulation}}}
+
+\item{...}{further arguments, currently not used}
 }
 \description{
 Gives summary about parameter settings, runtime and species Richness.

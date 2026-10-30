@@ -45,7 +45,6 @@ Individual::Individual() {
 // better change the overload below to deep copy
 Individual::Individual(const Individual &ind) {
 
-    std::cout << "CHECK IF THIS WORKS" << std::endl;
 
     this->m_Species = ind.m_Species;
     this->m_X_coordinate = ind.m_X_coordinate;
@@ -261,7 +260,7 @@ void Individual::reportBirth() {
 }
 
 void Individual::printInfo() {
-    std::cout << "Location: " << m_X_coordinate << m_Y_coordinate << " EnvTrait:" << m_Mean << " Spec "
-              << m_Species->m_ID << " mean" << m_Species->m_Mean << " ... \n";
+    
+
 }
 

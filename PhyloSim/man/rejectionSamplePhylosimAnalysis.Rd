@@ -15,7 +15,7 @@ rejectionSamplePhylosimAnalysis(p, s, nDraws, eQuantile = 0.025,
 
 \item{nDraws}{Number of ABC rejection sampling draws}
 
-\item{eQuantile}{Epsilon expressed as quantile. E.g. 0.025 are only the nearest 2.5\\%.}
+\item{eQuantile}{Epsilon expressed as quantile. E.g. 0.025 are only the nearest 2.5\%.}
 
 \item{nCores}{Number of parallel cores, or "auto".}
 

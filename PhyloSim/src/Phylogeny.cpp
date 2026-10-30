@@ -115,8 +115,6 @@ void Phylogeny::writePhylogeny(unsigned long long start, std::multimap<unsigned 
     //position[parent->ID] = 0 ;
 
 
-    std::cout << "Printing Phylogeny to file. Starting point is species " << start << '\n';
-    std::cout << "size of tree : " << phylogenyMap->size() << '\n';
 
 
     std::stringstream filename;
@@ -228,9 +226,7 @@ void Phylogeny::writePhylogeny(unsigned long long start, std::multimap<unsigned 
         }
     }
     tree.erase(tree.begin());
-    std::cout << phylogenyMap->find(1)->second->m_Date_of_Extinction << '\n';
-    std::cout << phylogenyMap->find(phylogenyMap->find(1)->second->m_Children.back())->second->m_Date_of_Emergence
-              << '\n';
+ 
     phylo << tree;
 }
 
@@ -239,7 +235,7 @@ std::string
 Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long long, Species *> *phylogenyMap) {
 
 #ifdef DEBUG
-    std::cout << "writePhylogenyR start" << std::endl;
+   
 #endif
 
     Species *focusSpecies = phylogenyMap->find(start)->second;
@@ -374,7 +370,7 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
 
     tree.erase(tree.begin());
 #ifdef DEBUG
-    std::cout << "writePhylogenyR end" << std::endl;
+   
 #endif
     return tree;
 }

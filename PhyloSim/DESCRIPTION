@@ -15,6 +15,8 @@ Description: This package is designed to simulate and analyse species community
     which allows the user to identify biogeographic or phylogenetic patterns
     exclusively correlated with a certain mechanism or combination of mechanisms.
 License: GPL (>= 3)
+Depends:
+    R (>= 2.10)
 Imports:
     Rcpp (>= 0.12.9),
     ape,
@@ -25,11 +27,17 @@ Imports:
     shape,
     foreach,
     MESS,
-    sf,
-    spatstat
+    spatstat.geom,
+    spatstat.explore,
+    vegan,
+    abctools,
+    ranger,
+    data.table,
+    gtools
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 LinkingTo: Rcpp
 RoxygenNote: 7.3.3
 Roxygen: list(old_usage = TRUE, markdown = TRUE)

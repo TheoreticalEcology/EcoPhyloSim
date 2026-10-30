@@ -1,13 +1,14 @@
 #' @title  Species Community Simulation
 #' @description A model of species community assembly under different assembly mechanisms.  
-#' @param par, a list of model parameters created with \link{createCompletePar}
-#' @return An object of class "Phylosim". This objet contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phlogeny and the parameter settings of the simulation. 
-#' @details If your parameterset contains more than one runs argument, each interim step is saved in the Phylosim object. \cr\cr For larger simularions consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr If you are using `type="Rneutral"` only one runs argument can be processed.\cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcated tree. Setting `converToBinaryTree = TRUE` converts the generated phylogeny to a bifurcate one using `multi2di()` from the "ape" package. 
+#' @param par a list of model parameters created with \link{createCompletePar}
+#' @return An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation. 
+#' @details If your parameter set contains more than one runs argument, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr If you are using `type="Rneutral"` only one runs argument can be processed.\cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcated tree. Setting `convertToBinaryTree = TRUE` converts the generated phylogeny to a bifurcate one using `multi2di()` from the "ape" package. 
 #' @importFrom adephylo distTips
 #' @import Rcpp
 #' @useDynLib PhyloSim, .registration = TRUE
 #' @export
 #' @example /inst/examples/runSimulation-help.R
+
 
 runSimulation <- function(par)
 {

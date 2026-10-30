@@ -1,6 +1,6 @@
  library(PhyloSim)
 # Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000,
+par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = c(500, 1000),
         density = 0, environment = 0, specRate = 1, fission = 0, redQueen=0, redQueenStrength=0,
         protracted=0)
 
@@ -22,4 +22,4 @@ extantPhylogeny <- drop.fossil(phylogeny)
 plot(extantPhylogeny)
 
 #Look at the species area relation
-sac(simu, area = c(1,10,100,1000), rep = 100, plot= TRUE)
+sac(simu, size = c(1,10,30,50), rep = 100, plot= TRUE)

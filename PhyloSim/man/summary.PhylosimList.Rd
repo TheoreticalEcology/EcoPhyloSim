@@ -2,13 +2,15 @@
 % Please edit documentation in R/classPhylosimList.R
 \name{summary.PhylosimList}
 \alias{summary.PhylosimList}
-\title{Prints summary for objects of class PhyloSim}
+\title{Summary for objects of class PhylosimList}
 \usage{
-\method{summary}{PhylosimList}(simu)
+\method{summary}{PhylosimList}(object, ...)
 }
 \arguments{
-\item{simu}{Simulation output of \code{\link{runSimulation}}}
+\item{object}{Simulation output of \code{\link{runSimulationBatch}}}
+
+\item{...}{further arguments, currently not used}
 }
 \description{
-Prints parameter settings, runtime and species Richness.
+Gives summary about parameter settings, runtime and species Richness.
 }
