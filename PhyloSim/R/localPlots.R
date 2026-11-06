@@ -13,6 +13,8 @@
 #' @export
 localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot = FALSE, nested = FALSE){
   
+  checkmate::assert_count(n, positive = TRUE)
+  if(community == T && length(size) != 1) stop("Community table only possible for same plot sizes")
   
   if(n ==1){
     n <- 2 
@@ -41,9 +43,7 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
   
   communityTable <- data.frame("species"= numeric())
   count <-0
-  
-  if(community == T && length(size) != 1) stop("Community table only possible for same plot sizes")
-  
+
   for(i in 1:n)
   {           
     if(nested == TRUE){
