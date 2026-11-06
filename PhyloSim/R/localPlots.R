@@ -16,15 +16,6 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
   checkmate::assert_count(n, positive = TRUE)
   if(community == T && length(size) != 1) stop("Community table only possible for same plot sizes")
   
-  if(n ==1){
-    n <- 2 
-    single = T
-  }else{
-    single=F
-  }
-  
-  if(community == T) communityTable <- data.frame("species"= numeric())
-  
   if (is.null(which.result)) which.result = length(simu$Output) 
   simu <- simu$Output[[which.result]]
   
@@ -40,8 +31,6 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
   envPlots <- list()
   compPlots <- list()
   positions <- list()
-  
-  communityTable <- data.frame("species"= numeric())
   count <-0
 
   for(i in 1:n)
@@ -93,35 +82,18 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
         plotmat[rsel, csel] <- 1
         
       }
-      
-      if(community == T)
-      {
-        
-        dataTable <- as.data.frame(table(subPlots[[count]]))
-        names(dataTable) <- c("species", paste("plot", i, collapse="", sep="")) 
-        communityTable <- merge(communityTable, dataTable , all=T, by="species")
-        communityTable[is.na(communityTable)] <- 0
-      } 
     }
   }
   
   
-  speciesNames <- character()
-  for(b in 1:length(communityTable$species))
-  {
-    speciesNames[b] <-  paste("s" ,communityTable$species[b], collapse="", sep="")
-  }
-  
   if(community == T)
   {
-    communityTable$species <- speciesNames
-    communityTable <- as.data.frame(t(communityTable), stringsAsFactors=F)
-    communityTable <- communityTable[-1,]
-    names(communityTable) <- speciesNames
-    communityTable <- as.data.frame(sapply(communityTable, as.numeric), row.names=row.names(communityTable))
+    plotID <- rep(seq_along(subPlots), times = lengths(subPlots))
+    communityTable <- as.data.frame.matrix(table(
+      factor(plotID, levels = seq_along(subPlots), labels = paste0("plot", seq_along(subPlots))),
+      factor(unlist(subPlots))))
+    names(communityTable) <- paste0("s", names(communityTable))
   }
-  
-  if(single ==T){communityTable <- communityTable[-2,]}
   
   if(plot == T){
     oldpar <- par()$mar
