@@ -115,7 +115,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
-    std::cout << "Writing parameters to debug.txt..." << ";" << std::endl;
+    Rcpp::Rcout << "Writing parameters to debug.txt...\n";
     debugFile << "int x = " << x << ";" << std::endl;
     debugFile << "int y = " << y << ";" << std::endl;
     debugFile << "int dispersal = " << dispersal << ";" << std::endl;
@@ -174,7 +174,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
         int curNGen = runs[step] - prevNGen;
 
 #ifdef DEBUG
-        std::cout << "Run model for" <<  curNGen << " generations\n";
+        Rcpp::Rcout << "Run model for " << curNGen << " generations\n";
 #endif
         phylSimModel.update(curNGen);
 
@@ -197,8 +197,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
             std::string phyloPass("\0");
 
 #ifdef DEBUG
-            std::cout << "before writePhylogenyR" << std::endl;
-            std::cout << prunePhylogeny << std::endl;
+            Rcpp::Rcout << "before writePhylogenyR\nprunePhylogeny: " << prunePhylogeny << "\n";
             // consistency checks -> length, etc
 #endif
             if (prunePhylogeny) {
@@ -209,7 +208,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                                                                                phylSimModel.m_Global->m_Phylogeny.m_FullPhylogeny);
             }
 #ifdef DEBUG
-            std::cout << "after writePhylogenyR" << std::endl;
+            Rcpp::Rcout << "after writePhylogenyR\n";
 #endif
             char *cstr = new char[phyloPass.length() + 1];
             std::strcpy(cstr, phyloPass.c_str());

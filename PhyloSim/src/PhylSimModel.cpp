@@ -6,6 +6,7 @@
  *              Betim Musa <musab@informatik.uni-freiburg.de>
  */
 
+#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -24,6 +25,13 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
                            double redQueen, double redQueenStrength, int protracted, std::vector<double> airmat,
                            std::vector<double> soilmat) {
 
+#ifdef DEBUG
+    Rcpp::Rcout << "Running simulation with\n";
+    Rcpp::Rcout << "Dispersal " << dispersal << "; cutoff " << dispersalCutoff << "\n";
+    Rcpp::Rcout << "Competition " << dens << "; strength " << compStrength << " cutoff " << densityCutoff << "\n";
+    Rcpp::Rcout << "Environment " << env << "; strength " << envStrength << "\n";
+    Rcpp::Rcout << "\n---- debug message for development purposes, remove debug switch in debug.h for turning this off\n\n";
+#endif
 
     if (dispersal == 1) {
         m_Global = new GlobalEnvironment(X, Y, dispersal, neutral, dens, env, mort, repro, simulationEnd, specRate,
@@ -53,6 +61,11 @@ void PhylSimModel::update(unsigned int runs) {
 
         // std::cout << "generation :" <<  generation << '/' << runs << '\n';
 
+#ifdef DEBUG
+        if(generation % 1000 == 0){
+            Rcpp::Rcout << "generation: " << generation << '/' << runs << "\n";
+        }
+#endif
 
         if (m_Dispersal == 1) {
             m_Global->increaseAge(timeStep + generation);
