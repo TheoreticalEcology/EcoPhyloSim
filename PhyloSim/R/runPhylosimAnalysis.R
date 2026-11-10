@@ -148,13 +148,8 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     # }
     
     # Load simulation chunk and parameter chunk
-    sumChunk <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(dir, sumFiles[i])))
-    parChunk <- PhyloSim:::loadLocal(PhyloSim:::joinPath(c(dir, parFiles[i])))
-    # NOTE: do NOT remove the `PhyloSim:::` prefix below. loadLocal/joinPath are
-    # unexported internal functions, and this code runs inside a %dopar% worker
-    # that only has PhyloSim's EXPORTED namespace attached (via .packages=).
-    # Removing ::: here will not show up as an R CMD check error, but will break
-    # at runtime when chunkwiseCleanup() actually executes in parallel.
+    sumChunk <- loadLocal(joinPath(c(dir, sumFiles[i])))
+    parChunk <- loadLocal(joinPath(c(dir, parFiles[i])))
     # Find indices where summaries are NA and remove them
     naIndices <- which(is.na(sumChunk))
     naIndices <- c(naIndices, which(sapply(sumChunk, function (x) sum(is.na(x)) > 0)))
@@ -177,8 +172,8 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     sumFileName <-  paste(c("summary_clean", suffix), collapse = "")
     parFileName <-  paste(c("param_clean", suffix), collapse = "")
     # save file
-    save(sumChunk, file = PhyloSim:::joinPath(c(outDir, sumFileName)))
-    save(parChunk, file = PhyloSim:::joinPath(c(outDir, parFileName)))
+    save(sumChunk, file = joinPath(c(outDir, sumFileName)))
+    save(parChunk, file = joinPath(c(outDir, parFileName)))
   }
   parallel::stopCluster(cl)
 }

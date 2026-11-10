@@ -1,6 +1,5 @@
-# These variables are referenced in the Leipzig branch of runSimulation()
-# (type = "Leipzig"), which is known non-functional legacy code awaiting
-# Florian's decision on whether to fix, keep, or remove. globalVariables()
-# here only silences the R CMD check NOTE — it does not make this code work.
+# Variables used in the type = "Leipzig" branch of runSimulation(), which is
+# currently not functional (see #112). Declared here only to avoid the
+# R CMD check NOTE about undefined global variables.
 utils::globalVariables(c("callLeipzig", "x", "y", "nSpec", 
                          "specRate", "runs", "densityStrength", "outVec"))
