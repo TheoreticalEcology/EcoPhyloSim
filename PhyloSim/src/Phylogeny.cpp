@@ -234,9 +234,6 @@ void Phylogeny::writePhylogeny(unsigned long long start, std::multimap<unsigned 
 std::string
 Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long long, Species *> *phylogenyMap) {
 
-#ifdef DEBUG
-   
-#endif
 
     Species *focusSpecies = phylogenyMap->find(start)->second;
     Species *ancestorSpecies = new Species(0, 0, 0, std::make_pair(0, 0), 0);
@@ -369,8 +366,5 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
     //std::cout << tree << std::endl;
 
     tree.erase(tree.begin());
-#ifdef DEBUG
-   
-#endif
     return tree;
 }

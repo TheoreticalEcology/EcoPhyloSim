@@ -24,9 +24,6 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
                            double redQueen, double redQueenStrength, int protracted, std::vector<double> airmat,
                            std::vector<double> soilmat) {
 
-#ifdef DEBUG
-
-#endif
 
     if (dispersal == 1) {
         m_Global = new GlobalEnvironment(X, Y, dispersal, neutral, dens, env, mort, repro, simulationEnd, specRate,
@@ -56,11 +53,6 @@ void PhylSimModel::update(unsigned int runs) {
 
         // std::cout << "generation :" <<  generation << '/' << runs << '\n';
 
-#ifdef DEBUG
-        if(generation % 1000 == 0){
-         
-        }
-#endif
 
         if (m_Dispersal == 1) {
             m_Global->increaseAge(timeStep + generation);

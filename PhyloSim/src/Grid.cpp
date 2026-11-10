@@ -253,9 +253,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
     if (m_Neutral && (m_redQueen == 0) && (m_redQueenStrength == 0)) {
 
 
-#ifdef DEBUG
-       
-#endif
 
         int x_coordinate, y_coordinate, x_parent, y_parent;
 
@@ -288,9 +285,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
     else
     {
 
-#ifdef DEBUG
-       
-#endif
 
         int x_parent = 0;
         int y_parent = 0;
@@ -320,9 +314,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         // IF FITNESS ACTS ON REPRODUCTION, calculate average fitness for lottery competition
         if (m_reproduction) {
 
-#ifdef DEBUG
-           
-#endif
 
             array_length = 0;
             for (int kernel_x = 0; kernel_x < m_Xdimensions; kernel_x++) {
@@ -591,9 +582,6 @@ LocalEnvironment::~LocalEnvironment() {
 
 void LocalEnvironment::reproduce(unsigned int generation) {
 
-#ifdef DEBUG
-  
-#endif
 
     int x_coordinate;
     int y_coordinate;
@@ -756,9 +744,6 @@ void Landscape::speciation(unsigned int generation) {
         int x = m_RandomGenerator.randomInt(0, m_Xdimensions - 1); // rand() % xdimensions;
         int y = m_RandomGenerator.randomInt(0, m_Ydimensions - 1); // rand() % ydimensions;
 
-#ifdef DEBUG
-       
-#endif
 
         // In every case the counter for the incipient ages set to zero.
         // This value is updated every time step. Which individuals are chosen is dependent on the
