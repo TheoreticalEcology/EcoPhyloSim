@@ -1,14 +1,15 @@
 Package: PhyloSim
 Type: Package
-Title: Analysis of Phylogenetic and Biogeographic patterns, inferring species
-    community assembly
+Title: Analysis of Phylogenetic and Biogeographic Patterns, Inferring Species
+    Community Assembly
 Version: 0.3.1
-Date: 2024-1-25
 Authors@R: c(person("Paul", "Bauche", role = "aut"),
     person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")),
     person("Christian", "Buschbeck", role = "ctb"),
-    person("Stefan", "Paul", role = "ctb"))
-Description: This package is designed to simulate and analyse species community
+    person("Stefan", "Paul", role = "ctb"),
+    person("Arseny", "Kapoulkine", role = c("ctb", "cph"), comment = "Author of the included pugixml library"),
+    person("Kristen", "Wegner", role = "cph", comment = "Author of the pugxml library on which pugixml is based"))
+Description: Simulates and analyses species community
     assembly processes. It allows the user to implement different mechanisms of
     community assembly such as environmental filtering, competitive exclusion or
     dispersal limitation. These mechanisms can be combined or activated separately,
