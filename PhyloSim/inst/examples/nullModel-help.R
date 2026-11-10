@@ -23,7 +23,7 @@ par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
 par <- list(par1,par2)
 
 ## Run the model
-simubatch <- runSimulationBatch(par, parallel=2)
+simubatch <- runSimulationBatch(par, parallel = FALSE)
 
 ## Compare results to null model
 nullModel(simubatch[[1]],localPlotSize = 50, numberOfPlots = 10, repetitions = 10)

@@ -214,7 +214,8 @@ parameters. For this purpose, the `runSimulationBatch` function allows running a
 list of parameter combinations. The function can make use of parallel computing
 and returns an object of class `PhylosimList`, which is essentially a list of
 `PhyloSim` classes. In the following example, two slightly different parameter
-sets are created and processed using parallel computing on two cores.
+sets are created and processed one after the other. For larger batches,
+`parallel = 2` runs them on two cores.
 
 ```{r runbatch, results = 'hide'}
 par1 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
@@ -225,7 +226,7 @@ par2 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
 
 parmBatch <- list(par1, par2)
 
-simuBatch <- runSimulationBatch(parmBatch, parallel = 2)
+simuBatch <- runSimulationBatch(parmBatch, parallel = FALSE)
 ```
 
 The `simuBatch` object contains two `PhyloSim` objects saved in a list. You can

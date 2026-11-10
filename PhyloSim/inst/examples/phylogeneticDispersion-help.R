@@ -9,7 +9,7 @@ par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
 par <- list(par1,par2)
 
 ## Run the model
-simu <- runSimulationBatch(par, parallel = 2)
+simu <- runSimulationBatch(par, parallel = FALSE)
 
 ## Calculate null model and compare the observed results against
 pValues <- calculatePhylogeneticDispersion(simu, plotlength = 20, plots = 20,
