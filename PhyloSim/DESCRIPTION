@@ -29,15 +29,15 @@ Imports:
     MESS,
     spatstat.geom,
     spatstat.explore,
-    vegan,
+    vegan
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat,
     abctools,
     ranger,
     data.table,
     gtools
-Suggests:
-    knitr,
-    rmarkdown,
-    testthat
 LinkingTo: Rcpp
 RoxygenNote: 7.3.3
 Roxygen: list(old_usage = TRUE, markdown = TRUE)

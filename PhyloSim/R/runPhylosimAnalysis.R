@@ -212,6 +212,7 @@ extractParams <- function(parList, params, outFormat="df") {
   out <- NA
   if (outFormat == "df") {
     # out <- as.data.frame(do.call(what = rbind, args = parList))
+    checkSuggested("data.table")
     out <- as.data.frame(data.table::rbindlist(parList))
     out <- out[, params]
   } else if (outFormat == "list") {
@@ -415,9 +416,15 @@ getValidatedNCores <- function (nCores) {
 #' @author Tankred Ott
 loadLocal <- function(path) return(local(get(load(path))))
 
+# stops with an informative error if a package listed in Suggests is missing
+checkSuggested <- function(pkg) {
+  if (!requireNamespace(pkg, quietly = TRUE)) stop("Package '", pkg, "' is required for this function. Please install it.", call. = FALSE)
+}
+
 #' @author Tankred Ott
 getFileNames <- function(path=".", pattern="^out_[0-9]+-[0-9]+$") {
   files <- list.files(path = path, pattern = pattern)
+  checkSuggested("gtools")
   files <- gtools::mixedsort(files)
   return(files)
 }
@@ -532,6 +539,7 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
 #' @return A list with two items. Item one contains the true parameters, item two contains the predicted parameters.
 #' @author Tankred Ott
 summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
+  checkSuggested("ranger")
   nCores <- getValidatedNCores(nCores)
   
   s <- as.data.frame(s)
@@ -573,6 +581,7 @@ summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
 #' @return Matrix of parameter predictions
 #' @author Tankred Ott
 summaryRedsaABC <- function (p, s, scale = TRUE, ...) {
+  checkSuggested("abctools")
   weights <- abctools::saABC(p, s, plot = FALSE)$B
   
   if (any(is.na(weights))) {
