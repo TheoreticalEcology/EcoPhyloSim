@@ -98,14 +98,9 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   # standardized mean pairwise distance (z-score, analogous to -NRI).
   # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
   # picante::ses.mpd, which is maintained and already a dependency.
-  phylo <- simulation$Output[[1]]$phylogeny
-  comm  <- plots$communityTable
-  if (is.null(colnames(comm))) colnames(comm) <- phylo$tip.label
-  commonSpecies <- intersect(colnames(comm), phylo$tip.label)
-  comm  <- comm[, commonSpecies, drop = FALSE]
-  phylo <- ape::keep.tip(phylo, commonSpecies)
-
-  sesMpd <- picante::ses.mpd(comm, stats::cophenetic(phylo),
+  # The species pool is the full phylogeny, as with mpd.query before.
+  sesMpd <- picante::ses.mpd(plots$communityTable,
+                             stats::cophenetic(simulation$Output[[1]]$phylogeny),
                              null.model = "taxa.labels", runs = 999)
   summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
   
