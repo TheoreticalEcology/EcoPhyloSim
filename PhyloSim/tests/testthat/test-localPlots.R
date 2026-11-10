@@ -20,6 +20,7 @@ test_that("localPlots returns the requested number of plots", {
   }
 })
 
+
 test_that("localPlots works without a community table", {
   simu <- runSimulation(createCompletePar(x = 30, y = 30, runs = 100, seed = 1))
   
@@ -31,6 +32,6 @@ test_that("localPlots works without a community table", {
 test_that("localPlots rejects invalid n", {
   simu <- runSimulation(createCompletePar(x = 30, y = 30, runs = 100, seed = 1))
   
-  expect_error(localPlots(simu, size = 5, n = 0))
-  expect_error(localPlots(simu, size = 5, n = 1.5))
+  expect_error(localPlots(simu, size = 5, n = 0), "Assertion on 'n' failed")
+  expect_error(localPlots(simu, size = 5, n = 1.5), "Assertion on 'n' failed")
 })
