@@ -80,6 +80,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   
   nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
+  parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
   doParallel::registerDoParallel(cl)
   
   foreach(i=1:length(simFiles), .packages = c("PhyloSim")) %dopar% {
@@ -122,6 +123,7 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
   i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
+  parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
   doParallel::registerDoParallel(cl)
   
   sumFiles <- getFileNames(path=dir, pattern="^summary_[0-9]+-[0-9]+$")
@@ -500,6 +502,7 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
   # initialize parallel cores
   nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
+  parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
   doParallel::registerDoParallel(cl)
   
   # for each draw do rejection sampling against all remaining samples
