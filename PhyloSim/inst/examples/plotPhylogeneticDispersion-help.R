@@ -30,6 +30,7 @@ for (i in 1:length(scenarios)){
     fitnessBaseMortalityRatio = 5, densityCut = 1,
     seed = 1000)
 }
+\donttest{
 ## Run the simulations
 simulationOut <- runSimulationBatch(pars, parallel = 2)
 
@@ -50,4 +51,5 @@ positions <- list(x= c(1:7),
 
 ## Now you can plot the results.
 plotPhylogeneticDispersion(pvalues = nullMeta, positions = positions, title = "Null Meta")
+}
 
