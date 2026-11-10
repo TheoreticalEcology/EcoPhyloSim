@@ -2,11 +2,11 @@
 #' @description Calculates the Colless' imbalance for a Phylogeny.
 #' @param simu An object of type "PhyloSim"
 #' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
-#' @param useApTreeshape Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility.
+#' @param useApTreeshape Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility. Note that \code{useApTreeshape = FALSE} previously returned the normalised index \code{2 * sum / ((n - 1) * (n - 2))}; this normalisation is no longer available.
 #' @param norm Normalization: Either NULL (raw Colless index), "yule" or "pda".
 #' @param dropFossils Boolean, if TRUE applies ape's drop.fossil on the phylogeny
 #' @return A numeric value for the Colless' Imbalance
-#' @details Multifurcations are randomly resolved with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees. If dropFossils == TRUE only extant species are included in the phylogeny.
+#' @details Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees. If dropFossils == TRUE only extant species are included in the phylogeny.
 #' @references Colless, D. H. "Review of phylogenetics: the theory and practice of phylogenetic systematics." Syst. Zool 31 (1982): 100-104.
 #' @export
 
@@ -35,7 +35,7 @@ collessImbalance <- function(simu, which.result = NULL, useApTreeshape = FALSE, 
     stop("object \"phy\" is not of class \"phylo\"")
 
   # The Colless index is only defined for binary trees: resolve polytomies.
-  phy <- ape::multi2di(phy)
+  phy <- ape::multi2di(phy, random = FALSE)
 
   n <- length(phy$tip.label)
   if (n < 2) return(NA_real_)
