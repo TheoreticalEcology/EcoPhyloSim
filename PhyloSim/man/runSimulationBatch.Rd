@@ -11,7 +11,7 @@ runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL)
 
 \item{parallel}{Integer, determining the number of cores used for parallel computing. If parallel = "auto", n-1 cores are used.}
 
-\item{backup}{Logical, determining whether the results of the individual scenario runs should be saved as a workspace image (advised if the simulation takes a long time, or if the individual scenarios vary greatly in runtime. Default is FALSE)}
+\item{backup}{Logical, determining whether the results of the individual scenario runs should be saved with saveRDS() as \emph{scenario}.rds in the working directory (advised if the simulation takes a long time, or if the individual scenarios vary greatly in runtime. Default is FALSE)}
 
 \item{strip}{NULL or "summaries", determining whether the whole simulation or only the summary statistics should be returned.}
 }
