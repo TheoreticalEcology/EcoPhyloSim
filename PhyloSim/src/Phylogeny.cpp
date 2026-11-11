@@ -364,7 +364,7 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
         //std::cout << "Counter: " << counter << " Size: " << phylogenyMap->size() << std::endl;
         //std::cout << "Position max: " << *std::max_element(position.begin(), position.end()) << std::endl;
 
-        if (counter > phylogenyMap->size()) break;
+        if (counter > 2 * phylogenyMap->size()) throw std::runtime_error("writePhylogenyR: tree traversal did not finish");
 
         if (focusSpecies->m_ID == 0) {
             go = false;
