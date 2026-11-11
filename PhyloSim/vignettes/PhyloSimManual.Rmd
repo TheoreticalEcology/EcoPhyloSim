@@ -30,19 +30,19 @@ knitr::include_graphics("PlotSpatial.png")
 ```
 
 Tutorial for the PhyloSim package. Comments and contact:
-[Florian Hartig](https://florianhartig.wordpress.com/) / University of Freiburg / Germany.
+Florian Hartig, Theoretical Ecology, University of Regensburg [website](https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig).
 
 **Warning for the user:** consider this package to be in a beta-stage.
 
-**To obtain the package:** the package is not officially released yet. You can
-install it by typing the following code in R.
+**To obtain the package:** the package is not on CRAN yet. Follow the
+instructions on <https://github.com/TheoreticalEcology/EcoPhyloSim> to install
+the development version, e.g.
 
 ```{r install, eval = FALSE}
-# install.packages(c("devtools", "Rcpp")) # in case you don't have them installed
-library(devtools)
-library(Rcpp)
-
-install_url("https://dl.dropboxusercontent.com/s/zkdof0b5b523qxt/PhyloSim_0.3.tar.gz")
+devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
+                         subdir = "PhyloSim",
+                         dependencies = TRUE,
+                         build_vignettes = TRUE)
 
 ?PhyloSim
 browseVignettes("PhyloSim")
