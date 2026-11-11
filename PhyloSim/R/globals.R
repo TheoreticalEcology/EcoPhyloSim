@@ -4,5 +4,6 @@
 utils::globalVariables(c("callLeipzig", "x", "y", "nSpec", 
                          "specRate", "runs", "densityStrength", "outVec"))
 
-# Loop variable of foreach() in runPhylosimAnalysis.R and runSimulationBatch.R.
+# Loop variable created by foreach(), which R CMD check cannot see.
+# Keep it when the Leipzig variables above are removed (#112).
 utils::globalVariables("i")
