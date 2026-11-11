@@ -71,7 +71,6 @@ runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summ
 #' @author Tankred Ott
 #' @export
 chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
-  i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   simFiles <- getFileNames(path=dir)
   if (length(simFiles) == 0) stop(paste("No PhyloSim output files found in", if (dir == ".") getwd() else dir))
   
@@ -123,7 +122,6 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
 #' @return None. Writes summary_clean_FROM-TO and param_clean_FROM-TO files to dir/cleaned_up.
 #' @export
 chunkwiseCleanup <- function (dir=".", nCores="auto") {
-  i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   nCores <- getValidatedNCores(nCores)
   cl <- parallel::makeCluster(nCores)
   parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
@@ -500,7 +498,6 @@ rejectionSamplePhylosimAnalysis <- function (p, s, nDraws, eQuantile=0.025, nCor
 #' @author Tankred Ott
 #' @export
 rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, nCores="auto", sumFun=median){
-  i <- NULL  # placeholder: 'i' is the foreach loop variable, bound at runtime by %dopar%; this avoids a false-positive R CMD check NOTE
   # draw random samples
   drawIndices <- sample(1:nrow(params), nDraws)
   

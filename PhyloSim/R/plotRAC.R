@@ -53,11 +53,11 @@ rac <- function(simu,which.result=NULL, plot="line", title="RAC"){
             xlab="Rank", main=title, lwd=2)
     }else{
       for(i in simulations){  
-        if(i ==1){
+        if(i == simulations[1]){
           plot(RAC[[i]]$Rank, RAC[[i]]$Abundance, type="l", log="y", ylab="Log Abundance", 
-                xlab="Rank", main=title, col=cols[i],xlim=c(0, max_rank), ylim=c(1, max_abundance)) 
+                xlab="Rank", main=title, col=cols[match(i, simulations)],xlim=c(0, max_rank), ylim=c(1, max_abundance)) 
         }else{
-          lines(RAC[[i]]$Rank, RAC[[i]]$Abundance, type="l", main=title, col=cols[i])
+          lines(RAC[[i]]$Rank, RAC[[i]]$Abundance, type="l", main=title, col=cols[match(i, simulations)])
         }
       }
     }
