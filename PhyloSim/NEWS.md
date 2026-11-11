@@ -23,6 +23,7 @@
 * `runSimulationBatch()`: `strip = "summaries"` was ignored without parallelization, and the results were not named after their scenarios (#106).
 * Installation from GitHub failed because `src/RcppExports.cpp` was missing (#102).
 * `createCompletePar()` and `runSimulation()`: a matrix passed as `airmat` was assigned to the wrong cells (and memory outside of it was read) if the grid is not square (`x != y`) (#122).
+* `runSimulation()`: the phylogeny was cut off, so that reading it failed, if `prunePhylogeny = FALSE`, for early values in `runs` or with `fission`; with `prunePhylogeny = FALSE` and several values in `runs`, R crashed (#82, #97, #105).
 
 ## Documentation
 

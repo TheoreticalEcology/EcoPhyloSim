@@ -364,6 +364,7 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
         //std::cout << "Counter: " << counter << " Size: " << phylogenyMap->size() << std::endl;
         //std::cout << "Position max: " << *std::max_element(position.begin(), position.end()) << std::endl;
 
+        // a complete walk takes 2 * N - 1 steps for N species (#105)
         if (counter > 2 * phylogenyMap->size()) throw std::runtime_error("writePhylogenyR: tree traversal did not finish");
 
         if (focusSpecies->m_ID == 0) {
@@ -372,6 +373,8 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
     }
     //std::cout << tree << std::endl;
 
+    phylogenyMap->erase(0); // fixes #105 (remove temporary root again)
+    delete ancestorSpecies;
     tree.erase(tree.begin());
 #ifdef DEBUG
     std::cout << "writePhylogenyR end" << std::endl;
