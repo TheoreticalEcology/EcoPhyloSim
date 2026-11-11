@@ -29,5 +29,5 @@
 
 * The vignette was converted from Sweave (PDF) to R Markdown (HTML).
 * Package help converted to roxygen; examples moved to `inst/examples/` (#87).
-* The help of `createCompletePar()` explains vectors in `runs` and the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85).
+* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), and the dimensions of `airmat` (#122).
 * Help pages and vignette revised: corrected trait-evolution formula in the vignette and return value of `sac()`, documented parameters of `callModel()`, and faster examples (#113).
