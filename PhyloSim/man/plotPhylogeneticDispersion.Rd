@@ -21,9 +21,9 @@ plotPhylogeneticDispersion(pvalues, positions = NULL, title = "P-values",
 
 \item{ymax}{Float, determines the plot limit (max) of the y axis.}
 
-\item{xmin}{Float, determines the plot limit (min) of the x axis.}
+\item{xmin}{Float, currently unused.}
 
-\item{ymin}{Float, determines the plot limit (min) of the y axis.}
+\item{ymin}{Float, currently unused.}
 
 \item{means}{Integer, determines the number of results which are used to average the results.}
 }
@@ -31,12 +31,12 @@ plotPhylogeneticDispersion(pvalues, positions = NULL, title = "P-values",
 Plotting function for the results of \code{\link{calculatePhylogeneticDispersion}}. It is used to compare different scenarios.
 }
 \details{
-In every subplot the x-axis represents the size of the subplots used in the null models. Hence, it is recommended to use a vector of plot sizes in your \code{\link{calculatePhylogeneticDispersion}} setup. \cr\cr The which.result argument here is used on the input list of p-values. Hence, which.result = 1 plots the first list slice of the input here. This is not necessarily the first time step of of your parameter settings in \code{\link{runSimulationBatch}}. \cr\cr For an further explanation please see the Examples section.
+In every subplot the x-axis represents the size of the subplots used in the null models. Hence, it is recommended to use a vector of plot sizes in your \code{\link{calculatePhylogeneticDispersion}} setup. \cr\cr The which.result argument here is used on the input list of p-values. Hence, which.result = 1 plots the first list slice of the input here. This is not necessarily the first time step of your parameter settings in \code{\link{runSimulationBatch}}. \cr\cr For a further explanation please see the Examples section.
 }
 \examples{
 ## First the experimental design has to be defined.
 ## In this example we will test seven different combinations of the parameters
-## 'density and 'environment' under four different dispersal distances.
+## 'density' and 'environment' under four different dispersal distances.
 ## This design leads to 28 experiments.
 
 dispOptions <- 4
@@ -70,17 +70,17 @@ for (i in 1:length(scenarios)){
 ## Run the simulations
 simulationOut <- runSimulationBatch(pars, parallel = 2)
 
-## Calculate null models. For each model run 9 plot sizes are tested. In the plot they are
-## used to calculate the confidence interval for the results.
+## Calculate null models. For each model run 9 plot sizes are tested. In the plot they form
+## the x-axis of each subplot.
 nullMeta <- calculatePhylogeneticDispersion(simulationOut, 
                                             plotlengths = c(2,3,4,5,6,7,8,9,10), 
                                             reduce = TRUE)
 
 ## Now we can define the positions and labels of the plots.
 ## Note that here the 28 simulations need to be covered in the right order.
-## In this example there will be 7 rows and 4 collumns to represent the 28 cases.
+## In this example there will be 4 rows and 7 columns to represent the 28 cases.
 positions <- list(x= c(1:7),
-   y = c(4, 1:3), # this is beacause dispersal = "global" is equal to dispersal = "0"
+   y = c(4, 1:3), # this is because dispersal = "global" is equal to dispersal = "0"
    zname = c("neutral", "1", "0.75", "0.5", "0.25", "0", "both"), # = environment
    yname = c("global", "0.5", "2", "4"),  # = dispersal
    xname=c("neutral", "0", "0.25", "0.5","0.75","1","both")) # = density

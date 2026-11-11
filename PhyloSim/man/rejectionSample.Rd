@@ -21,7 +21,7 @@ rejectionSample(params, summaries, nDraws = 10, eQuantile = 0.025,
 \item{sumFun}{Function to summarize the accepted simulated parameters, e.g. mean or median}
 }
 \value{
-A data.frame containing the true parameters postfixed with "_t" and the estimated parameters postfixed with "_e".
+A matrix containing the true parameters postfixed with "_true" and the estimated parameters postfixed with "_estimated".
 }
 \description{
 Applies rejection sampling.

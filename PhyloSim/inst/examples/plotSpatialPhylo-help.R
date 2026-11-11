@@ -29,7 +29,7 @@ simu <- simu.neutral.global
    plotSpatialPhylo(simu, plot = "both", plotTraits = TRUE)
 
 
- #evironment and competition model with local dispersal
+ #environment and competition model with local dispersal
  simu <- simu.envcom.local
    #phylogeny and traits
    plotSpatialPhylo(simu, plot = "phylogeny")

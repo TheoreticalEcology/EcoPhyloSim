@@ -7,7 +7,7 @@
 getSpeciesTraits(sim, speciesID, whichRun = 1)
 }
 \arguments{
-\item{sim}{Phylosim object}
+\item{sim}{PhyloSim object}
 
 \item{speciesID}{Integer, species ID}
 
@@ -17,10 +17,10 @@ getSpeciesTraits(sim, speciesID, whichRun = 1)
 List of trait types containing vectors with trait values.
 }
 \description{
-Function to extract the traits of a species from a Phylosim object.
+Function to extract the traits of a species from a PhyloSim object.
 }
 \details{
-The function extracts the environmental, competition and neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs, whichRun determines which run should be used.
+The function extracts the environmental, competition and neutral trait of the species with speciesID from the PhyloSim object. If there are multiple runs, whichRun determines which run should be used.
 }
 \examples{
 ## Define a parameter set

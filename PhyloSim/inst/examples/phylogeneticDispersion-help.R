@@ -11,6 +11,6 @@ par <- list(par1,par2)
 ## Run the model
 simu <- runSimulationBatch(par, parallel = FALSE)
 
-## Calculate null model and compare the observed results against
-pValues <- calculatePhylogeneticDispersion(simu, plotlength = 20, plots = 20,
+## Calculate null model and compare the observed results against it
+pValues <- calculatePhylogeneticDispersion(simu, plotlengths = 20, plots = 20,
                                            replicates = 20, type = "PhylMeta")

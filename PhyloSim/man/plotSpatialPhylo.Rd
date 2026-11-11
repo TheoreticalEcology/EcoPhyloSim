@@ -8,9 +8,9 @@ plotSpatialPhylo(simu, plot = "both", plotTraits = T,
   which.result = NULL)
 }
 \arguments{
-\item{simu}{Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least the spatial species matrix ($specMat) and the phylogeny ($phylogeny)}
+\item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the spatial species matrix ($specMat) and the phylogeny ($phylogeny)}
 
-\item{plot}{defines what to plot."spatial" plots the spatial abundance, "phylogeny" the phylogeny tree. "both" plots both of them side by side}
+\item{plot}{defines what to plot. "spatial" plots the spatial abundance, "phylogeny" the phylogeny tree. "both" plots both of them side by side}
 
 \item{plotTraits}{logical, defines if the traits should be plotted}
 
@@ -20,7 +20,7 @@ plotSpatialPhylo(simu, plot = "both", plotTraits = T,
 Plots the phylogeny tree, the spatial abundance of the evolved species and their traits.
 }
 \details{
-The tiplabels of the phylogeny tree are colored in correspondency to the spatial abundance plot
+The tip labels of the phylogeny tree are colored according to the spatial abundance plot.
 }
 \examples{
 
@@ -54,7 +54,7 @@ simu <- simu.neutral.global
    plotSpatialPhylo(simu, plot = "both", plotTraits = TRUE)
 
 
- #evironment and competition model with local dispersal
+ #environment and competition model with local dispersal
  simu <- simu.envcom.local
    #phylogeny and traits
    plotSpatialPhylo(simu, plot = "phylogeny")

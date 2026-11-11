@@ -9,7 +9,7 @@ Authors@R: c(person("Paul", "Bauche", role = "aut"),
     person("Stefan", "Paul", role = "ctb"),
     person("Arseny", "Kapoulkine", role = c("ctb", "cph"), comment = "Author of the included pugixml library"),
     person("Kristen", "Wegner", role = "cph", comment = "Author of the pugxml library on which pugixml is based"))
-Description: Simulates and analyses species community
+Description: Simulates and analyzes species community
     assembly processes. It allows the user to implement different mechanisms of
     community assembly such as environmental filtering, competitive exclusion or
     dispersal limitation. These mechanisms can be combined or activated separately,

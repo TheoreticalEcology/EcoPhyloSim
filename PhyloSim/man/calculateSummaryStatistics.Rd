@@ -7,12 +7,12 @@
 calculateSummaryStatistics(simulation, strict = TRUE)
 }
 \arguments{
-\item{simulation}{Simulation output of the class "Phylosim"}
+\item{simulation}{Simulation output of the class "PhyloSim"}
 
 \item{strict}{Logical. If true the output of the function will be NA if at least one summary statistic could not be calculated.}
 }
 \value{
-A list containing the summary statistics.
+A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
 }
 \description{
 Calculates the summary statistics for a simulation of class PhyloSim.
@@ -32,7 +32,7 @@ Computes the following summary statistics from a single simulation run:
 \item{varPart_1}{Variance in community composition explained by environment (see \code{\link[vegan]{varpart}}).}
 \item{varPart_2}{Variance in community composition explained by competition (see \code{\link[vegan]{varpart}}).}
 \item{ce}{Clark-Evans index of spatial clustering.}
-\item{nb8}{Index of local species clustering among neighbouring grid cells.}
+\item{nb8}{Index of local species clustering among neighboring grid cells.}
 \item{envIntercept, env, envSqr}{Coefficients relating species occurrence to the environmental value.}
 }
 }

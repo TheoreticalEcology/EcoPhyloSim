@@ -6,7 +6,8 @@
 #' @param seed The random seed (do not change this option if you previously set the seed!)
 #' @param runs The number of generations the model runs through
 #' @references Hubbell, Stephen P. The unified neutral theory of biodiversity and biogeography (MPB-32). Vol. 32. Princeton University Press, 2001.
-#' @details This model is to be seen only for test and teaching purpose. However, if you want to use the results for further analysis please call the model with \code{\link{runSimulation}}. \cr\cr  Be careful with the dimensions you choose. Large grids and many generations may take very long to compute. You can assume to have reached the equilibrium state of the model after dim^2/2.  
+#' @details This model is to be seen only for testing and teaching purposes. However, if you want to use the results for further analysis please call the model with \code{\link{runSimulation}}. \cr\cr  Be careful with the dimensions you choose. Large grids and many generations may take very long to compute. You can assume to have reached the equilibrium state of the model after dim^2/2.  
+#' @return A matrix of species IDs with \code{xdim} rows and \code{ydim} columns.
 #' @example /inst/examples/neutralModelR-help.R
 
 #' @export

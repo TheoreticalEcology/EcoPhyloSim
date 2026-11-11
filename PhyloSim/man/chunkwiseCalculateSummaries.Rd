@@ -11,6 +11,9 @@ chunkwiseCalculateSummaries(dir = ".", nCores = "auto")
 
 \item{nCores}{"auto" or number of parallel cores.}
 }
+\value{
+None. Writes summary_FROM-TO files to dir.
+}
 \description{
 Calculates summary statistics for all "out_" files created with runPhylosimAnalysis and saves the results to "summary_" files in the same folder.
 }

@@ -1,7 +1,7 @@
 #' @title Rank Abundance Curve
 #' @description Plots the Rank Abundance Curve for a given community. 
-#' @param simu Simulation output of the class "Phylosim", usually consisting out of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)
-#' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details).
+#' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details').
 #' @param plot determining whether to plot the RAC as "line"(default) or "bar".
 #' @param title String, determining the title of the plot.
 #' @details Each species is given a rank according to their abundance (highest = rank 1). Then the species' abundance is plotted in dependency of their rank. It can be used as an indicator for the amount of equally abundant species a community can support. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).

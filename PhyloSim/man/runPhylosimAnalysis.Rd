@@ -18,15 +18,18 @@ runPhylosimAnalysis(variableParams, fixedParams, nRuns, outDir,
 
 \item{summariesOnly}{Boolean, specifying whether only the summary statistics should be saved.}
 
-\item{nCores}{Integer or "auto", number of parallel cores to use for simulations}
+\item{nCores}{Integer or "auto", number of parallel cores to use for simulations. "auto" uses all detected cores minus one.}
 
-\item{chunkSize}{Integer, specifying the number of simulations per save file. Choosing a very large chunkSize (>30,000) might deplete the RAM, leading to bad performance.}
+\item{chunkSize}{Integer or "auto" (default), specifying the number of simulations per save file. Values above 10,000 give a warning, as they might deplete the RAM.}
+}
+\value{
+None. Writes paramOverview.txt and the files param_FROM-TO and out_FROM-TO to outDir.
 }
 \description{
 This function is used to perform many (>1000) PhyloSim simulations in parallel with only one function call. The user can specify parameters that are fixed across all simulations and parameters that are variable. The results are saved to a specified folder.
 }
 \details{
-variableParams must be list of functions. The idea behind this is to draw from a prior, so the functions should return a single value drawn from the corresponding parameter prior. However, the implementation allows the user to specify stateful function, instead of priors to perform analyses with variable Parameters that are not drawn from a prior, but follow a sequence e.g. run simulations with varying specRate.
+variableParams must be a list of functions. The idea behind this is to draw from a prior, so the functions should return a single value drawn from the corresponding parameter prior. However, the implementation allows the user to specify stateful functions instead of priors to perform analyses with variable parameters that are not drawn from a prior, but follow a sequence e.g. run simulations with varying specRate.
 }
 \examples{
 \dontrun{

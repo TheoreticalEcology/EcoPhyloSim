@@ -1,7 +1,7 @@
 #' @title Phylogeny Reconstruction
 #' @description reconstructs a phylogeny from a neutral trait matrix as returned by \code{\link{runSimulation}}
-#' @param simu A object of class Phylosim
-#' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param simu An object of class PhyloSim
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @param ...  Additional arguments to be passed to function \code{\link{hclust}}
 #' @return An object of class 'phylo'
 #' @example /inst/examples/reconstructPhylogeny-help.R

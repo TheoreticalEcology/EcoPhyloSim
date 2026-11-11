@@ -10,9 +10,9 @@ collessImbalance(simu, which.result = NULL, useApTreeshape = FALSE,
 \arguments{
 \item{simu}{An object of type "PhyloSim"}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
-\item{useApTreeshape}{Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility. Note that \code{useApTreeshape = FALSE} previously returned the normalised index \code{2 * sum / ((n - 1) * (n - 2))}; this normalisation is no longer available.}
+\item{useApTreeshape}{Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility. Note that \code{useApTreeshape = FALSE} previously returned the normalized index \code{2 * sum / ((n - 1) * (n - 2))}; this normalization is no longer available.}
 
 \item{norm}{Normalization: Either NULL (raw Colless index), "yule" or "pda".}
 

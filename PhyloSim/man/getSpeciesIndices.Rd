@@ -7,7 +7,7 @@
 getSpeciesIndices(sim, speciesID, whichRun = 1)
 }
 \arguments{
-\item{sim}{Phylosim object}
+\item{sim}{PhyloSim object}
 
 \item{speciesID}{Integer, species ID}
 
@@ -17,10 +17,10 @@ getSpeciesIndices(sim, speciesID, whichRun = 1)
 Vector of indices
 }
 \description{
-Function to get the indices (positions) of a species on the Phylosim grid
+Function to get the indices (positions) of a species on the PhyloSim grid
 }
 \details{
-The function extracts the environmental, competition and neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs in
+The function returns the positions of all individuals of the species with speciesID in the species matrix of the run selected by whichRun.
 }
 \author{
 Tankred Ott

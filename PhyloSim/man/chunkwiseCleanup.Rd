@@ -11,6 +11,9 @@ chunkwiseCleanup(dir = ".", nCores = "auto")
 
 \item{nCores}{"auto" or number of parallel cores to use}
 }
+\value{
+None. Writes summary_clean_FROM-TO and param_clean_FROM-TO files to dir/cleaned_up.
+}
 \description{
 Reads in summary files created with chunkwiseCalculateSummaries, and parameter files created with runPhylosimAnalysis and removes crashed simulations (those where summaries == NA). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
 }

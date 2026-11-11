@@ -17,25 +17,25 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{y}{Integer, Dimension of the model landscape in y-direction}
 
-\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal all integers >=1 set the dispersal distance.}
+\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance.}
 
 \item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details).}
 
-\item{specRate}{Integer, Number of Individuals introduced to the community in each generation}
+\item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution)}
 
 \item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence.}
 
 \item{environment}{Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.}
 
-\item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both"}
+\item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both"; "reproduction" and "both" are currently rejected by \code{createCompletePar}.}
 
 \item{fitnessBaseMortalityRatio}{Integer, determines the fitness based mortality ratio. Must be greater than or equal to 1.}
 
 \item{densityCut}{Integer, defines the effective range of the competition (ignored if density = 0)}
 
-\item{seed}{Numeric, sets the random seed}
+\item{seed}{Numeric, sets the random seed. If NULL (default), a random seed is drawn.}
 
-\item{type}{Character, determining which model should be used. "base" is running the default model. Other possibilities are "Leipzig" and "Rneutral" which will run a neutral model purely in R.}
+\item{type}{Character, determining which model should be used. "base" is running the default model. Other possibilities are "Leipzig" (currently not functional) and "Rneutral", which runs a neutral model purely in R.}
 
 \item{fission}{Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual becomes part of new species) and 2 (population is geographically split in two parts).}
 
@@ -53,7 +53,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{convertToBinaryTree}{Logical, determining if the phylogeny should be converted into a binary tree}
 
-\item{prunePhylogeny}{Logical, determining whether the phylogeny should be pruned by the internal pruning function}
+\item{prunePhylogeny}{Logical, determining whether the phylogeny should be pruned by the internal pruning function (FALSE currently fails, see #105)}
 }
 \value{
 A List with parameters
@@ -62,11 +62,11 @@ A List with parameters
 Function to create a list of parameters for biogeographical simulations with \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
 }
 \details{
-If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}. \cr\cr If type = "Rneutral" the model will run entirely in R. This model is to be seen only for testing and teaching purpose. To be used in practice it is far too slow. Also the output is reduced. Only the species landscape and the parameter settings will be displayed in the output.
+If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}. \cr\cr If type = "Rneutral" the model will run entirely in R. This model is to be seen only for testing and teaching purposes. To be used in practice it is far too slow. Also the output is reduced. Only the species landscape and the parameter settings will be displayed in the output.
 }
 \examples{
 ## Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = FALSE , runs = c(500,1000),
+par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
         density = 1, environment = 0.5, specRate = 1)
 
 ## Run the model

@@ -12,5 +12,5 @@
 \item{...}{further arguments, currently not used}
 }
 \description{
-Gives summary about parameter settings, runtime and species Richness.
+Gives a summary of parameter settings, species richness, Colless' imbalance and Gamma for each simulation.
 }

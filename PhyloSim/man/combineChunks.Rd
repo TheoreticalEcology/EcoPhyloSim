@@ -11,8 +11,11 @@ combineChunks(dir = ".", prefix)
 
 \item{prefix}{Common file prefix. Possible to use RegEx like syntax here.}
 }
+\value{
+None. Writes the combined list to the file combined_PREFIX in dir.
+}
 \description{
-Combines files with a common prefix to a combined files and saves the files as combined_PREFIX.
+Combines files with a common prefix into a combined file and saves it as combined_PREFIX.
 }
 \author{
 Tankred Ott

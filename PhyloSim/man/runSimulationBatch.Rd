@@ -9,20 +9,20 @@ runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL)
 \arguments{
 \item{pars}{A list of parameter sets as created by \code{\link{createCompletePar}}}
 
-\item{parallel}{Integer, determining the number of cores used for parallel computing. If parallel = "auto", n-1 cores are used.}
+\item{parallel}{FALSE (default) for sequential runs, or an integer giving the number of cores used for parallel computing. If parallel = TRUE or "auto", n-1 cores are used.}
 
 \item{backup}{Logical, determining whether the results of the individual scenario runs should be saved with saveRDS() as \emph{scenario}.rds in the working directory (advised if the simulation takes a long time, or if the individual scenarios vary greatly in runtime. Default is FALSE)}
 
-\item{strip}{NULL or "summaries", determining whether the whole simulation or only the summary statistics should be returned.}
+\item{strip}{NULL or "summaries", determining whether the whole simulation or only the summary statistics should be returned. Summary statistics are only available if \code{calculateSummaries = TRUE} in \code{\link{createCompletePar}}.}
 }
 \value{
-An object of class "PhylosimList".
+An object of class "PhylosimList", or, if strip = "summaries", a plain list of the summary statistics of each scenario.
 }
 \description{
 A model of species community assembly under different assembly mechanisms, using parallel computing to make use of multi core CPUs and clusters in order to reduce computation time. The function is an extension to \link{runSimulation} in order to accelerate the simulation of multiple scenarios.
 }
 \details{
-The "PhylosimList" object is a list of "Phylosim" objects. They can be accessed by indexing (see Example).\cr\cr This function uses the \pkg{foreach} and \pkg{doParallel} packages to compute the model scenarios parallel on several cores. \cr\cr The phylogeny is passed to R in the newick format and parsed to an object of class "phylo" with the function \code{\link[ape]{read.tree}} from the \pkg{ape} package.
+The "PhylosimList" object is a list of "PhyloSim" objects. They can be accessed by indexing (see Example).\cr\cr This function uses the \pkg{foreach} and \pkg{doParallel} packages to compute the model scenarios in parallel on several cores. \cr\cr The phylogeny is passed to R in the newick format and parsed to an object of class "phylo" with the function \code{\link[ape]{read.tree}} from the \pkg{ape} package.
 }
 \examples{
 ## Define two parameter sets
@@ -31,7 +31,7 @@ par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
 par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
         density = 1, environment = 0.5, specRate = 1)
 
-## Merge the parameter sets. It is important to note, that the function
+## Merge the parameter sets. It is important to note that the function
 ## needs a list of parameter sets.
 par <- list(par1,par2)
 
@@ -39,7 +39,7 @@ par <- list(par1,par2)
 simu <- runSimulationBatch(par, parallel = 2)
 
 
-## Compare the results, here the SAC is shown exemplarily.
+## Compare the results, here the SAC is shown as an example.
 par(mfrow=c(1,2))
 sac(simu[[1]])
 sac(simu[[2]])

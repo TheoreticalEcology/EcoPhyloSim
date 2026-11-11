@@ -2,21 +2,22 @@
 % Please edit documentation in R/data-documentation.R
 \name{simu.neutral.global}
 \alias{simu.neutral.global}
-\title{Simulation output of community assembly with global dispersion under neutral conditions}
+\title{Simulation output of community assembly with global dispersal under neutral conditions}
 \format{
 A list containing two lists: The model output and the model input. The model output is described here
 \describe{
-\item{specMat}{species matrix, a matrix representing the species abundance}
-\item{traitMat}{trait matrix, a matrix containing the environmental trait for each species (corresponding to the species matrix)}
+\item{specMat}{species matrix, a matrix containing the species ID of the individual in each cell}
+\item{traitMat}{trait matrix, a matrix containing the environmental trait of the individual in each cell (corresponding to the species matrix)}
 \item{envMat}{environment matrix, contains the environmental conditions for each cell}
 \item{compMat}{competition matrix, contains the competition attribute for each cell}
 \item{neutMat}{neutral matrix, contains the neutral traits}
-\item{phylogeny}{phylogeny of the community stored in a list}
+\item{phylogeny}{phylogeny of the community, an object of class 'phylo'}
+\item{phyloTXT}{the phylogeny in Newick format}
 }
 }
 \source{
 created with \code{\link{runSimulation}}
 }
 \description{
-Simulation output of community assembly with global dispersion under neutral conditions
+Simulation output of community assembly with global dispersal under neutral conditions
 }

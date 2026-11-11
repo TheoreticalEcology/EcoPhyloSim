@@ -61,16 +61,16 @@ Attribution-NonCommercial-NoDerivatives 4.0 International License.
 
 ## Overview
 
-The PhyloSim package is a modelling environment for neutral and non-neutral biogeographic simulations. It generates a) spatial distribution and diversity metrics, b) phylogeny and c) traits from four basic processes: i) dispersal, ii) (adaptive) environmental preferences, iii) (adaptive) competitive traits, and iv) speciation in a stochastic simulation.
+The PhyloSim package is a modeling environment for neutral and non-neutral biogeographic simulations. It generates a) spatial distribution and diversity metrics, b) phylogeny and c) traits from four basic processes: i) dispersal, ii) (adaptive) environmental preferences, iii) (adaptive) competitive traits, and iv) speciation in a stochastic simulation.
 
-The package permits to choose between a number of options for each of these processes, and provides functions for analyzing the results, including standard biogeographic and phylogenetic summaries such as species-area curves, rank-abundance curves or phylogenetic balance and diversity.
+The package allows the user to choose between a number of options for each of these processes, and provides functions for analyzing the results, including standard biogeographic and phylogenetic summaries such as species-area curves, rank-abundance curves or phylogenetic balance and diversity.
 
 ## State variables
 
 **The grid:** the simulation runs on a spatially discrete grid. Each cell is
 occupied by one individual at any time. Additionally an environmental gradient
 can be included. To avoid boundary effects the boundaries of the grid are
-warped.
+wrapped.
 
 **Individuals:** each individual has three traits: an environmental trait, a
 competition trait, and a neutral trait. The properties of these traits are
@@ -102,7 +102,7 @@ increase the computational speed, there is a dispersal cutoff at $2\delta$,
 meaning that individuals disperse only within a distance of $2\delta$.
 
 **2. Evolution.** The second step in the simulation of one generation is trait
-evolution. Trait evolution is modelled by a small uniformly distributed random
+evolution. Trait evolution is modeled by a small uniformly distributed random
 value that is added on top of the parental trait values. In addition to the
 random step, a directed attraction towards the species' mean value is
 implemented:
@@ -213,7 +213,7 @@ Often, users will want to run several simulations with different or equal
 parameters. For this purpose, the `runSimulationBatch` function allows running a
 list of parameter combinations. The function can make use of parallel computing
 and returns an object of class `PhylosimList`, which is essentially a list of
-`PhyloSim` classes. In the following example, two slightly different parameter
+`PhyloSim` objects. In the following example, two slightly different parameter
 sets are created and processed one after the other. For larger batches,
 `parallel = 2` runs them on two cores.
 
@@ -352,14 +352,14 @@ argument with the following options:
 - `"SamplePool"`: uses `picante::ses.mpd` with `null.model = "sample.pool"`.
 
 ```{r calcphyldis, eval = FALSE}
-pValuesBatch <- calculatePhylogeneticDispersion(simuBatch, plotlength = 3,
+pValuesBatch <- calculatePhylogeneticDispersion(simuBatch, plotlengths = 3,
                                                 plots = 20, replicates = 20,
                                                 type = "PhylMeta")
 ```
 
 The result can be visualized with the `plotPhylogeneticDispersion` function:
 
-```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "Different combinations of dispersal limitation (y-axis), environmental trait (upper x-axis) and density dependence (lower x-axis). The colour shows the phylogenetic pattern (over- or underdispersed)."}
+```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "Different combinations of dispersal limitation (y-axis), environmental trait (upper x-axis) and density dependence (lower x-axis). The color shows the phylogenetic pattern (over- or underdispersed)."}
 data("pPD.pvalues")
 data("pPD.positions")
 

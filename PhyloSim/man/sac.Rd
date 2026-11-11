@@ -8,11 +8,11 @@ sac(simu, which.result = NULL, size = NULL, rep = 50, plot = T,
   title = "SAC", nested = FALSE)
 }
 \arguments{
-\item{simu}{Simulation output of the class "Phylosim", usually consisting out of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
+\item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details).}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details').}
 
-\item{size}{a single value or a vector determining the edge length of the subplots. If not provided, 10 logarithmic plotsizes will be used.}
+\item{size}{a single value or a vector determining the edge length of the subplots. If not provided, up to 10 logarithmically spaced plot sizes will be used.}
 
 \item{rep}{The number of repetitions per size to calculate the mean}
 
@@ -23,13 +23,13 @@ sac(simu, which.result = NULL, size = NULL, rep = 50, plot = T,
 \item{nested}{Logical, determining whether nested subplots should be used.}
 }
 \value{
-A data frame containing the mean species richness for each size and the respective 5\% and 95\% quantile confidence interval. If which.result = "all" only the plot will be returned.
+A data frame with the plot area (size^2), the mean species richness and its 5\% and 95\% quantiles. If which.result = "all", the plot is drawn and NULL is returned.
 }
 \description{
 Plots the species area curve for a given community.
 }
 \details{
-Displays the accumulated species richness as a function of plot size or the amount of equally sized plots. It serves as an indicator for the clustering of a species community. A positively bent curve usually indicates clustering since an increase in plot size or number leads to an increase in species richness while a negatively bent curve indicates a more neutral distribution of species within the community. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
+Displays the accumulated species richness as a function of plot size. It serves as an indicator for the clustering of a species community. A positively bent curve usually indicates clustering since an increase in plot size leads to an increase in species richness while a negatively bent curve indicates a more neutral distribution of species within the community. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
 }
 \examples{
 
@@ -40,31 +40,31 @@ data(simu.envcom.local)
 
 
 
-#Plot SAC curve for neutral model and global dispersion
+#Plot SAC curve for neutral model and global dispersal
 
 sac(simu = simu.neutral.global)
 
 
 
-#Plot SAC curve for neutral model and local dispersion
+#Plot SAC curve for neutral model and local dispersal
 
 sac(simu = simu.neutral.local)
 
 
 
-#Plot SAC curve for environment and competition model and local dispersion
+#Plot SAC curve for environment and competition model and local dispersal
 
 sac(simu = simu.envcom.local)
 
 
 
-#Plot SAC curve with random plotsize
+#Plot SAC curve with random plot size
 
 sac(simu=simu.envcom.local, size = sort(sample(c(10:100), size = 10)))
 
 
 
-#Plot SAC curve with different repititions
+#Plot SAC curve with repetitions
 simu <- simu.envcom.local
 par(mfrow=c(3,1))
 sac(simu=simu.envcom.local, rep = 3)

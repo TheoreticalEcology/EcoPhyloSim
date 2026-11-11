@@ -1,7 +1,7 @@
 #' @title Get Average Traits
 #' @description calculates the arithmetic mean of the trait values for each species. 
-#' @param simu Simulation output of the class "PhyloSim", usually consisting out of several lists. Needs to contain at least the spatial species matrix ($specMat) the environment matrix ($envMat) and the three different trait matrices ($traitMat,$compMat, $neutMat)    
-#' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the spatial species matrix ($specMat) the environment matrix ($envMat) and the three different trait matrices ($traitMat,$compMat, $neutMat). With orderPhylo = TRUE, the phylogeny ($phylogeny) is also needed.    
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @param orderPhylo Logical, determines whether species in the output are ordered according to the tips of the phylogeny (useful for aligning trait values with a phylogeny plot), rather than in the order returned by the species matrix. Default is TRUE.
 #' @return A matrix containing the means of env trait, comp trait, neutral trait, and the environment for each species
 #' @export

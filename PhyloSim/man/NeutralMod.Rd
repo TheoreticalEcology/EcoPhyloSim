@@ -18,20 +18,23 @@ NeutralMod(xdim = 100, ydim = 100, specRate = 2, seed = NULL,
 
 \item{runs}{The number of generations the model runs through}
 }
+\value{
+A matrix of species IDs with \code{xdim} rows and \code{ydim} columns.
+}
 \description{
 Runs a simple model of species community assembly under neutral conditions as defined by Hubbell (2001). Usually called by \code{\link{runSimulation}}.
 }
 \details{
-This model is to be seen only for test and teaching purpose. However, if you want to use the results for further analysis please call the model with \code{\link{runSimulation}}. \cr\cr  Be careful with the dimensions you choose. Large grids and many generations may take very long to compute. You can assume to have reached the equilibrium state of the model after dim^2/2.
+This model is to be seen only for testing and teaching purposes. However, if you want to use the results for further analysis please call the model with \code{\link{runSimulation}}. \cr\cr  Be careful with the dimensions you choose. Large grids and many generations may take very long to compute. You can assume to have reached the equilibrium state of the model after dim^2/2.
 }
 \examples{
 # Run the model
 metaCom <- NeutralMod(xdim=20, ydim=20, specRate=2, seed=1500, runs=500)
 image(metaCom)
 
-# Usually the function is called by the runSimualtion function
+# Usually the function is called by the runSimulation function
 # Define a parameter set
-parNeut <- createCompletePar(x = 20, y = 20, dispersal = FALSE , runs = 500,
+parNeut <- createCompletePar(x = 20, y = 20, dispersal = "global", runs = 500,
         density = 1, environment = 0.5, specRate = 1, type="Rneutral")
 
 # Run the model

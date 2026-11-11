@@ -8,23 +8,26 @@ highlightLocalPhylo(simu, which.result = NULL, size, n, subplot = NULL,
   phylogeny = NULL)
 }
 \arguments{
-\item{simu}{Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least the phylogeny ($phylogeny) and species matrix ($specMat). The species matrix is used as metacommunity}
+\item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the phylogeny ($phylogeny) and species matrix ($specMat). The species matrix is used as metacommunity}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
-\item{size}{size of the local plots.}
+\item{size}{edge length of the local plots.}
 
-\item{n}{The number of local communities. For each community a new plot is created. Needs to be greater than 1}
+\item{n}{The number of local communities. For each community a new plot is created.}
 
-\item{subplot}{if no simu object is given, a communitytable of a local community can be given here}
+\item{subplot}{if no simu object is given, a community table of a local community can be given here}
 
 \item{phylogeny}{if no simu object is given, an object of the class 'phylo' can be given here to describe the community's phylogeny}
 }
+\value{
+None; the function is called for its plots.
+}
 \description{
-Visualises the phylogenetic clades of a local community within a metacommunity.
+Visualizes the phylogenetic clades of a local community within a metacommunity.
 }
 \details{
-This function works with a single simu object (class "phylosim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and local plots. Here the phylogeny represents the metacommunity within which the local plots create the clades
+This function works with a single simu object (class "PhyloSim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and local plots. Here the phylogeny represents the metacommunity within which the local plots create the clades
 }
 \examples{
 
@@ -47,14 +50,14 @@ highlightLocalPhylo(simu.neutral.local, size = 50, n = 3)
 
 
 
-#Plot clades for environment and competition model with global dispersal with three subplots
+#Plot clades for environment and competition model with local dispersal with three subplots
 par(mfrow=c(1,3))
 highlightLocalPhylo(simu.envcom.local, size = 50, n = 3)
 
 
 
-#increasing plot size
+#compare different plot sizes
 par(mfrow=c(2,2))
-highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
+highlightLocalPhylo(simu.envcom.local, size = 10, n =2)
 highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
 }

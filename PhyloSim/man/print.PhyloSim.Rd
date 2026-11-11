@@ -12,5 +12,5 @@
 \item{...}{further arguments, currently not used}
 }
 \description{
-Prints parameter settings, runtime and species Richness.
+Prints parameter settings and runtime.
 }

@@ -14,17 +14,18 @@ callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
 
 \item{y}{Integer, dimension of the model landscape in y-direction.}
 
-\item{dispersal}{Integer, dispersal mode/distance. 0 sets global dispersal (offspring
-may colonize any cell in the lattice with equal probability); integers >= 1 set local
-dispersal with a characteristic distance (delta) for an exponential dispersal kernel
-(see \code{dispersalCutoff}).}
+\item{dispersal}{Integer, dispersal type: 1 = global dispersal (offspring may colonize
+any cell in the lattice with equal probability), 3 = local dispersal with an exponential
+kernel whose characteristic distance is \code{dispersalCutoff / 2}; 2 = nearest-neighbor dispersal (not used by
+\code{\link{runSimulation}}).
+\code{\link{runSimulation}} uses 1 for \code{dispersal = "global"} or 0, and 3 otherwise.}
 
 \item{runs}{Integer vector, the generation(s) at which the simulation state is saved.
 The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
 intermediate states are saved at each value as well.}
 
-\item{specRate}{Numeric, number of new individuals/species introduced to the community
-in each generation (speciation rate).}
+\item{specRate}{Numeric, speciation rate: mean number of speciation events per generation
+(the realized number is drawn from a Poisson distribution).}
 
 \item{dens}{Logical, whether density dependence is active. If \code{FALSE}, density
 dependence is disabled (together with \code{env = FALSE} this yields the neutral
@@ -34,11 +35,11 @@ model). The strength of density dependence is set by \code{compStrength}.}
 environmental filtering is disabled (together with \code{dens = FALSE} this yields
 the neutral model). The strength of environmental filtering is set by \code{envStrength}.}
 
-\item{neutral}{Logical, whether the neutral trait (returned as \code{NeutralTrait} /
-\code{neutMat}) is tracked and evolved during the simulation. This is independent of
-\code{dens}/\code{env} -- it does not switch the model into or out of the neutral
-model, it only controls whether this additional, selectively neutral marker trait is
-computed.}
+\item{neutral}{Logical, whether the neutral model is used: if TRUE (and \code{redQueen}
+and \code{redQueenStrength} are 0), each death is replaced by the offspring of a random
+parent without fitness differences. Only used for global dispersal (\code{dispersal = 1}).
+\code{\link{runSimulation}} sets it to TRUE when density and environment are both 0.
+The neutral trait is computed in every case.}
 
 \item{mort}{Logical, whether fitness differences among individuals are expressed via
 differential mortality. Corresponds to \code{fitnessActsOn = "mortality"} (or
@@ -54,8 +55,9 @@ differential reproductive output. Corresponds to \code{fitnessActsOn = "reproduc
 (or \code{"both"}, together with \code{mort = TRUE}) in \code{\link{createCompletePar}}.}
 
 \item{dispersalCutoff}{Integer, cutoff distance for the local dispersal kernel (ignored
-if \code{dispersal = 0}); individuals only disperse within this distance, typically
-set to 2x the dispersal distance, to limit computation.}
+if \code{dispersal = 1}); individuals only disperse within this distance. The
+characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
+sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).}
 
 \item{densityCutoff}{Integer, defines the effective spatial range of the competition /
 density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
@@ -95,9 +97,10 @@ cell but not currently read by any fitness or dispersal calculation, so it has n
 effect on simulation output. Retained for potential future use; not currently
 exposed as a separate argument in \code{createCompletePar}.}
 
-\item{prunePhylogeny}{Logical, whether the returned phylogeny is pruned to extant
-(non-fossil) tips by the internal pruning function, or the full phylogeny (including
-extinct lineages) is returned.}
+\item{prunePhylogeny}{Logical, whether the phylogeny is pruned by the internal pruning
+function, which removes extinct terminal lineages; the result can still contain extinct
+tips (use \code{ape::drop.fossil} to keep only extant species). If FALSE, the full
+phylogeny should be returned, but this currently fails (#105).}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw
@@ -106,7 +109,7 @@ cell), \code{EnvTrait} (environmental trait per individual), \code{NeutralTrait}
 (neutral trait per individual), \code{CompetitionTrait} (competition trait per
 individual), \code{Environment} (environmental value per grid cell) and
 \code{Phylogeny} (Newick string). \code{\link{runSimulation}} reshapes and renames
-these into the final \code{Phylosim} object (\code{specMat}, \code{traitMat},
+these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 }
 \description{
@@ -114,5 +117,5 @@ Low-level engine that runs the actual PhyloSim simulation. This function is call
 internally by \code{\link{runSimulation}} and is not normally called directly by the
 user -- most parameters correspond directly to the (user-facing) arguments of
 \code{\link{createCompletePar}}, but several categorical/continuous parameters there
-are split here into separate on/off switches and strength values (see Details below).
+are split here into separate on/off switches and strength values (see the parameter descriptions below).
 }

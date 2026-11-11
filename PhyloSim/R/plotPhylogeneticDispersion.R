@@ -6,10 +6,10 @@
 #' @param which.result Integer, determines which result should be used. By default (NULL), the last result is used.
 #' @param xmax Float, determines the plot limit (max) of the x axis.
 #' @param ymax Float, determines the plot limit (max) of the y axis.
-#' @param xmin Float, determines the plot limit (min) of the x axis.
-#' @param ymin Float, determines the plot limit (min) of the y axis.
+#' @param xmin Float, currently unused.
+#' @param ymin Float, currently unused.
 #' @param means Integer, determines the number of results which are used to average the results.
-#' @details In every subplot the x-axis represents the size of the subplots used in the null models. Hence, it is recommended to use a vector of plot sizes in your \code{\link{calculatePhylogeneticDispersion}} setup. \cr\cr The which.result argument here is used on the input list of p-values. Hence, which.result = 1 plots the first list slice of the input here. This is not necessarily the first time step of of your parameter settings in \code{\link{runSimulationBatch}}. \cr\cr For an further explanation please see the Examples section. 
+#' @details In every subplot the x-axis represents the size of the subplots used in the null models. Hence, it is recommended to use a vector of plot sizes in your \code{\link{calculatePhylogeneticDispersion}} setup. \cr\cr The which.result argument here is used on the input list of p-values. Hence, which.result = 1 plots the first list slice of the input here. This is not necessarily the first time step of your parameter settings in \code{\link{runSimulationBatch}}. \cr\cr For a further explanation please see the Examples section. 
 #' @example /inst/examples/plotPhylogeneticDispersion-help.R
 #' @export
 #' 

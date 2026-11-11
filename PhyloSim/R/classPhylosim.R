@@ -4,11 +4,11 @@
 #plot.phylosim
 
 #' @title Plot objects of class PhyloSim
-#' @description Plots the phylogeny tree ,the spatial abundance of the evolved species and their traits.
+#' @description Plots the phylogeny tree, the spatial abundance of the evolved species and their traits.
 #' @param x Simulation output of \code{\link{runSimulation}}
 #' @param ... further arguments, currently not used
 
-#' @details The tiplabels of the phylogeny tree are colored in correspondency to the spatial abundance plot
+#' @details The tip labels of the phylogeny tree are colored according to the spatial abundance plot.
 
 #' @export
 
@@ -20,7 +20,7 @@ plot.PhyloSim <- function(x, ...){
 #summary.phylosim
 
 #' @title Summary for objects of class PhyloSim
-#' @description Gives summary about parameter settings, runtime and species Richness.
+#' @description Gives a summary of parameter settings, runtime and species richness.
 #' @param object Simulation output of \code{\link{runSimulation}}
 #' @param ... further arguments, currently not used
 #' @export
@@ -52,7 +52,7 @@ summary.PhyloSim <- function(object, ...){
 
 #print.phylosim 
 #' @title Prints summary for objects of class PhyloSim
-#' @description Prints parameter settings, runtime and species Richness.
+#' @description Prints parameter settings and runtime.
 #' @param x Simulation output of \code{\link{runSimulation}}
 #' @param ... further arguments, currently not used
 #' @export

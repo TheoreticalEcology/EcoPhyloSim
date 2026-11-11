@@ -1,12 +1,12 @@
 #' @title Get Recent Species
-#' @description Function to extract the recent species of a Phylosim object
-#' @param sim Phylosim object
-#' @details The function extracts the IDs of the recent species of the grid in the Phylosim object.
+#' @description Function to extract the recent species of a PhyloSim object
+#' @param sim PhyloSim object
+#' @details The function extracts the IDs of the recent species of the grid in the PhyloSim object.
 #' @return List of vectors containing the species IDs.
 #' @author Tankred Ott
 #' @examples 
 #' ## Define a parameter set
-#' par <- createCompletePar(x = 50, y = 50, dispersal = FALSE , runs = c(500,1000),
+#' par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
 #'         density = 1, environment = 0.5, specRate = 1)
 #'
 #' ## Run the model
@@ -27,12 +27,12 @@ getSpecies <- function (sim) {
 }
 
 #' @title Get Species Trait
-#' @description Function to extract the traits of a species from a Phylosim object.
-#' @param sim Phylosim object
+#' @description Function to extract the traits of a species from a PhyloSim object.
+#' @param sim PhyloSim object
 #' @param speciesID Integer, species ID
-#' @param trait String, determining which trait should be returned ("environment", "competition", "neutral").
+#' @param trait String, determining which trait should be returned ("environment", "competition", "neutral"). Default is "neutral".
 #' @param whichRun Integer, specifying from which run the data should be collected.
-#' @details The function extracts the environmental, competition or neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs, whichRun determines which run should be used.
+#' @details The function extracts the environmental, competition or neutral trait of the species with speciesID from the PhyloSim object. If there are multiple runs, whichRun determines which run should be used.
 
 #' @return Vector, containing the trait values
 #' @author Tankred Ott
@@ -71,11 +71,11 @@ getSpeciesTrait <- function (sim, speciesID, trait="neutral", whichRun = 1) {
 }
 
 #' @title Get Species Traits
-#' @description Function to extract the traits of a species from a Phylosim object.
-#' @param sim Phylosim object
+#' @description Function to extract the traits of a species from a PhyloSim object.
+#' @param sim PhyloSim object
 #' @param speciesID Integer, species ID
 #' @param whichRun Integer, specifying from which run the data should be collected.
-#' @details The function extracts the environmental, competition and neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs, whichRun determines which run should be used.
+#' @details The function extracts the environmental, competition and neutral trait of the species with speciesID from the PhyloSim object. If there are multiple runs, whichRun determines which run should be used.
 #' @return List of trait types containing vectors with trait values.
 #' @author Tankred Ott
 #' @examples 
@@ -114,11 +114,11 @@ getSpeciesTraits <- function (sim, speciesID, whichRun = 1) {
 
 
 #' @title Get Species Indices
-#' @description Function to get the indices (positions) of a species on the Phylosim grid
-#' @param sim Phylosim object
+#' @description Function to get the indices (positions) of a species on the PhyloSim grid
+#' @param sim PhyloSim object
 #' @param speciesID Integer, species ID
 #' @param whichRun Integer, specifying from which run the data should be collected.
-#' @details The function extracts the environmental, competition and neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs in 
+#' @details The function returns the positions of all individuals of the species with speciesID in the species matrix of the run selected by whichRun.
 #' @return Vector of indices
 #' @author Tankred Ott
 getSpeciesIndices <- function (sim, speciesID, whichRun=1) {

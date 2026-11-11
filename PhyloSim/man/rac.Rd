@@ -7,9 +7,9 @@
 rac(simu, which.result = NULL, plot = "line", title = "RAC")
 }
 \arguments{
-\item{simu}{Simulation output of the class "Phylosim", usually consisting out of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
+\item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details).}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details').}
 
 \item{plot}{determining whether to plot the RAC as "line"(default) or "bar".}
 
@@ -33,21 +33,21 @@ data(simu.envcom.local)
 
 
 
-#Plot RAC curve for neutral model and global dispersion
+#Plot RAC curve for neutral model and global dispersal
 
 rac(simu = simu.neutral.global)
 rac(simu = simu.neutral.global, plot ="bar")
 
 
 
-#Plot RAC curve for neutral model and local dispersion
+#Plot RAC curve for neutral model and local dispersal
 
 rac(simu = simu.neutral.local)
 rac(simu = simu.neutral.local, plot ="bar")
 
 
 
-#Plot RAC curve for environment and competition model and local dispersion
+#Plot RAC curve for environment and competition model and local dispersal
 
 rac(simu = simu.envcom.local)
 rac(simu = simu.envcom.local, plot ="bar")

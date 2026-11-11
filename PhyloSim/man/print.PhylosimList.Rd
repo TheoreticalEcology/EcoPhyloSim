@@ -7,10 +7,10 @@
 \method{print}{PhylosimList}(x, ...)
 }
 \arguments{
-\item{x}{Simulation output of \code{\link{runSimulation}}}
+\item{x}{Simulation output of \code{\link{runSimulationBatch}}}
 
 \item{...}{further arguments, currently not used}
 }
 \description{
-Prints parameter settings, runtime and species Richness.
+Prints parameter settings, species richness and number of generations for each simulation.
 }
