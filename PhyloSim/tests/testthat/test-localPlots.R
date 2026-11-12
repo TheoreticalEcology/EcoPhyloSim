@@ -1,7 +1,3 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})
-
 test_that("localPlots returns the requested number of plots", {
   simu <- runSimulation(createCompletePar(x = 30, y = 30, runs = 100, seed = 1))
   
