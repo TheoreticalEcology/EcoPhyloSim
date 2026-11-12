@@ -18,6 +18,8 @@
 * The archived packages kulife, apTreeshape and PhyloMeasures are no longer needed: the Colless index is computed internally, and the phylogenetic dispersion uses `picante::ses.mpd()` with 999 randomizations, so the `dispersion` statistic of `calculateSummaryStatistics()` is stochastic and slower than before. The `useApTreeshape` argument of `collessImbalance()` is deprecated; `useApTreeshape = FALSE` no longer returns the normalized index (#89).
 * spatstat.geom, spatstat.explore and vegan were added to Imports; rmarkdown, testthat, abctools, ranger, data.table and gtools to Suggests (the last four are only needed for `runPhylosimAnalysis()`, its helper functions and the rejection sampling functions) (#113).
 * License changed from GPL (>= 2) to GPL (>= 3).
+* PhyloSim now requires R (>= 4.1.0), as required by its dependencies vegan and MESS (#113).
+* The `plot()`, `print()` and `summary()` methods for `PhyloSim` and `PhylosimList` objects use the argument names of the generics (`x`, `object`), so calls such as `plot(simu = s)` no longer work (#113).
 
 ## Bug fixes
 
@@ -27,6 +29,8 @@
 * `createCompletePar()` and `runSimulation()`: a matrix passed as `airmat` was assigned to the wrong cells (and memory outside of it was read) if the grid is not square (`x != y`) (#122).
 * `calculateSummaryStatistics()`: `varPart_2` returned the same value as `varPart_1` instead of the fraction explained by competition (#113).
 * `rac()`: a vector in `which.result` gave an error, and the bar plot had no rank labels (#113).
+* `sac()` with a single result (including the default, the last result) computed the curve from the first result; this also affected the `sacAuc` statistic of `calculateSummaryStatistics()` (#113).
+* `summary()` of a `PhylosimList` printed the column headers for the number of species and the number of runs in the wrong order (#113).
 * `getAverageTraits()` did not accept the output of `runSimulation()` (#113); the bundled data sets are still affected (#128).
 
 ## Documentation

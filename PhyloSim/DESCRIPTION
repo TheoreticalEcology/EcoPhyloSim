@@ -17,7 +17,7 @@ Description: Simulates and analyzes species community
     exclusively correlated with a certain mechanism or combination of mechanisms.
 License: GPL (>= 3)
 Depends:
-    R (>= 2.10)
+    R (>= 4.1.0)
 Imports:
     Rcpp (>= 0.12.9),
     ape,

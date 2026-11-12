@@ -16,7 +16,7 @@ rac(simu, which.result = NULL, plot = "line", title = "RAC")
 \item{title}{String, determining the title of the plot.}
 }
 \value{
-A dataframe containing the ranked abundances, sorted by ascending rank. If which.result = "all" only the plot will be returned.
+A dataframe containing the ranked abundances, sorted by ascending rank. If which.result = "all" or several results, only the plot is drawn and NULL is returned.
 }
 \description{
 Plots the Rank Abundance Curve for a given community.

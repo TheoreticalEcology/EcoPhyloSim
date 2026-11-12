@@ -5,7 +5,7 @@
 #' @param plot determining whether to plot the RAC as "line"(default) or "bar".
 #' @param title String, determining the title of the plot.
 #' @details Each species is given a rank according to their abundance (highest = rank 1). Then the species' abundance is plotted in dependency of their rank. It can be used as an indicator for the amount of equally abundant species a community can support. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
-#' @return A dataframe containing the ranked abundances, sorted by ascending rank. If which.result = "all" only the plot will be returned.
+#' @return A dataframe containing the ranked abundances, sorted by ascending rank. If which.result = "all" or several results, only the plot is drawn and NULL is returned.
 #' @example inst/examples/plotRAC-help.R
 #' @export
 
@@ -18,6 +18,7 @@ rac <- function(simu,which.result=NULL, plot="line", title="RAC"){
       if(plot=="bar")stop("Argument 'bar' not possible for which.result='all'")
       simulations <- c(1:length(simu$Output))
     }else{
+      if(plot=="bar" && length(which.result) > 1) stop("Argument 'bar' only possible for a single result")
       simulations<-which.result
     } 
   }

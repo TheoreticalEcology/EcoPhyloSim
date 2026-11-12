@@ -39,6 +39,7 @@ sac <- function(simu, which.result = NULL, size = NULL, rep=50, plot=T, title="S
     simu_t <- simu$Output[[t]]
     matrix <- simu_t$specMat
     
+    res <- t # result to use; t is reset to 1 for a single result
     if(length(simulations)==1) t<-1
     
     landscapeDim = dim(matrix)
@@ -50,7 +51,7 @@ sac <- function(simu, which.result = NULL, size = NULL, rep=50, plot=T, title="S
     
      meanSpeciesRichness <- numeric()
 
-      subPlots <- localPlots(size=size, n = rep, simu=simu, which.result = t, nested = nested)$subPlots
+      subPlots <- localPlots(size=size, n = rep, simu=simu, which.result = res, nested = nested)$subPlots
 
       speciesRichness <- sapply(subPlots, SR)
       speciesRichnesslist <-list()
