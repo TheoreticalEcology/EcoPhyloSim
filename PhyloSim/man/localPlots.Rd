@@ -14,7 +14,7 @@ localPlots(simu, which.result = NULL, size, n, community = FALSE,
 
 \item{size}{A single value (or a vector) determining the edge length(s) of the generated subplots}
 
-\item{n}{The number of subplots to be generated for each element of size (n = 1 is currently treated as n = 2, but the community table keeps only the first plot)}
+\item{n}{The number of subplots to be generated for each element of size}
 
 \item{community}{Logical, determining whether to generate a community table or not. default is FALSE}
 

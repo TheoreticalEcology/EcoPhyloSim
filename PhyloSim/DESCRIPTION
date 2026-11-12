@@ -30,7 +30,8 @@ Imports:
     MESS,
     spatstat.geom,
     spatstat.explore,
-    vegan
+    vegan,
+    checkmate
 Suggests:
     knitr,
     rmarkdown,

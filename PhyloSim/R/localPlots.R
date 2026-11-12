@@ -3,7 +3,7 @@
 #' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least a species matrix ($specMat)
 #' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.
 #' @param size A single value (or a vector) determining the edge length(s) of the generated subplots
-#' @param n The number of subplots to be generated for each element of size (n = 1 is currently treated as n = 2, but the community table keeps only the first plot)
+#' @param n The number of subplots to be generated for each element of size
 #' @param community Logical, determining whether to generate a community table or not. default is FALSE
 #' @param plot Logical, determining whether the results should be shown graphically. Default is FALSE.
 #' @param nested Logical, determining whether the subplots should be nested (see Details).
@@ -13,15 +13,8 @@
 #' @export
 localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot = FALSE, nested = FALSE){
   
-  
-  if(n ==1){
-    n <- 2 
-    single = T
-  }else{
-    single=F
-  }
-  
-  if(community == T) communityTable <- data.frame("species"= numeric())
+  checkmate::assert_count(n, positive = TRUE)
+  if(community == T && length(size) != 1) stop("Community table only possible for same plot sizes")
   
   if (is.null(which.result)) which.result = length(simu$Output) 
   simu <- simu$Output[[which.result]]
@@ -38,12 +31,8 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
   envPlots <- list()
   compPlots <- list()
   positions <- list()
-  
-  communityTable <- data.frame("species"= numeric())
   count <-0
-  
-  if(community == T && length(size) != 1) stop("Community table only possible for same plot sizes")
-  
+
   for(i in 1:n)
   {           
     if(nested == TRUE){
@@ -93,35 +82,18 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
         plotmat[rsel, csel] <- 1
         
       }
-      
-      if(community == T)
-      {
-        
-        dataTable <- as.data.frame(table(subPlots[[count]]))
-        names(dataTable) <- c("species", paste("plot", i, collapse="", sep="")) 
-        communityTable <- merge(communityTable, dataTable , all=T, by="species")
-        communityTable[is.na(communityTable)] <- 0
-      } 
     }
   }
   
   
-  speciesNames <- character()
-  for(b in 1:length(communityTable$species))
-  {
-    speciesNames[b] <-  paste("s" ,communityTable$species[b], collapse="", sep="")
-  }
-  
   if(community == T)
   {
-    communityTable$species <- speciesNames
-    communityTable <- as.data.frame(t(communityTable), stringsAsFactors=F)
-    communityTable <- communityTable[-1,]
-    names(communityTable) <- speciesNames
-    communityTable <- as.data.frame(sapply(communityTable, as.numeric), row.names=row.names(communityTable))
+    plotID <- rep(seq_along(subPlots), times = lengths(subPlots))
+    communityTable <- as.data.frame.matrix(table(
+      factor(plotID, levels = seq_along(subPlots), labels = paste0("plot", seq_along(subPlots))),
+      factor(unlist(subPlots))))
+    names(communityTable) <- paste0("s", names(communityTable))
   }
-  
-  if(single ==T){communityTable <- communityTable[-2,]}
   
   if(plot == T){
     oldpar <- par()$mar
