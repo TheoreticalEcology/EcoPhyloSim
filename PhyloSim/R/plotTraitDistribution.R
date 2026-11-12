@@ -1,8 +1,8 @@
 #' @title Trait plots
 #' @description Plots trait-histograms, trait ~ Environment relationship and the spatial distribution of the different traits
-#' @param simu Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least the three trait matrices ($traitMat;$compMat;$neutMat) and the environment matrix ($envMat) 
-#' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
-#' @param type defines wether the histogram should be plotted standalone or with the trait ~ Environment relationship and the spatial distribution. Latter is done by type = "all". Default is "hist"
+#' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the three trait matrices ($traitMat;$compMat;$neutMat) and the environment matrix ($envMat) 
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param type defines whether the histograms should be plotted standalone or with the trait ~ Environment relationship and the spatial distribution. The latter is done by type = "all". Default is "hist"
 #' @example /inst/examples/plotTraitDistribution-help.R
 #' 
 
@@ -15,7 +15,6 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   if (is.null(which.result)) which.result = length(simu$Output) 
   dat <- simu$Output[[which.result]]
   
-  names <- unique(as.numeric(dat$specMat))
   names <- unique(as.numeric(dat$specMat))
   p   <- seq(from = 0, to = 1 ,length.out = length(names))
   red <- sample(p, size = length(names))

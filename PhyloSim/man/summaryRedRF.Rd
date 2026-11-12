@@ -15,7 +15,7 @@ summaryRedRF(p, s, nCores = "auto", nTrees = 500, scale = TRUE, ...)
 
 \item{nTrees}{number of trees to construct}
 
-\item{scale}{logical, determining whether the resulting predictions should be scaled by their variance}
+\item{scale}{logical, determining whether the resulting predictions should be scaled by their standard deviation}
 
 \item{...}{further arguments passed to ranger::ranger}
 }

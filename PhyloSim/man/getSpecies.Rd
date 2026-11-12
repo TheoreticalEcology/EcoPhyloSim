@@ -7,20 +7,20 @@
 getSpecies(sim)
 }
 \arguments{
-\item{sim}{Phylosim object}
+\item{sim}{PhyloSim object}
 }
 \value{
 List of vectors containing the species IDs.
 }
 \description{
-Function to extract the recent species of a Phylosim object
+Function to extract the recent species of a PhyloSim object
 }
 \details{
-The function extracts the IDs of the recent species of the grid in the Phylosim object.
+The function extracts the IDs of the recent species of the grid in the PhyloSim object.
 }
 \examples{
 ## Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = FALSE , runs = c(500,1000),
+par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
         density = 1, environment = 0.5, specRate = 1)
 
 ## Run the model

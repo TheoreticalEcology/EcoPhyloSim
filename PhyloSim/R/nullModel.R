@@ -1,12 +1,12 @@
 #' @title Null Model
-#' @description Generates a null model and compares the observed results against.
-#' @param simu an object of class "phylosim" as created by \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
-#' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
-#' @param abundance Logical, determining wheather the null model should be based on the abundance distribution of the sample plots. Default is FALSE.
-#' @param localPlotSize number of grid cells of the plots drawn within the metacommunity
+#' @description Generates a null model and compares the observed results against it.
+#' @param simu an object of class "PhyloSim" as created by \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param abundance Logical, determining whether the null model should be based on the abundance distribution of the sample plots. Default is FALSE.
+#' @param localPlotSize edge length (in grid cells) of the square plots drawn within the metacommunity
 #' @param numberOfPlots number of plots drawn within the metacommunity
 #' @param repetitions number of generated null model plots
-#' @param fun String, phylogenetic measure that is used. Possible inputs are "mpd" (\code{\link[picante]{mpd}}) and "pd" (\code{\link[picante]{pd}}). Only used if abundance = FALSE.  
+#' @param fun String, phylogenetic measure that is used. Possible inputs are "mpd" (\code{\link[picante]{mpd}}) and "pd" (\code{\link[picante]{pd}}). 
 #' @return A numeric vector with pValues for each plot in the observed metacommunity
 #' @example /inst/examples/nullModel-help.R
  

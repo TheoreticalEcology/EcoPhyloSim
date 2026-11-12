@@ -2,7 +2,7 @@
 % Please edit documentation in R/runPhylosimAnalysis.R
 \name{chunkwiseCalculateSummaries}
 \alias{chunkwiseCalculateSummaries}
-\title{Cunkwise summary statistics calculation}
+\title{Chunkwise summary statistics calculation}
 \usage{
 chunkwiseCalculateSummaries(dir = ".", nCores = "auto")
 }
@@ -10,6 +10,9 @@ chunkwiseCalculateSummaries(dir = ".", nCores = "auto")
 \item{dir}{Directory from which the "out_" files should be read and to which the "summary_" files will be saved.}
 
 \item{nCores}{"auto" or number of parallel cores.}
+}
+\value{
+None. Writes summary_FROM-TO files to dir.
 }
 \description{
 Calculates summary statistics for all "out_" files created with runPhylosimAnalysis and saves the results to "summary_" files in the same folder.

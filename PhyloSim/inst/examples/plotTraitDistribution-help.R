@@ -16,7 +16,7 @@ plotTraitDistribution(simu=simu.neutral.local, type = "all")
 
 
 
-#evironment and competition model with local dispersal
+#environment and competition model with local dispersal
 plotTraitDistribution(simu=simu.envcom.local)
 plotTraitDistribution(simu=simu.envcom.local, type = "all")
 

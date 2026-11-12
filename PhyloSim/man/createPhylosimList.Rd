@@ -7,16 +7,16 @@
 createPhylosimList(simu)
 }
 \arguments{
-\item{simu}{List of objects of type Phylosim as created by \code{\link{runSimulation}}}
+\item{simu}{List of objects of type PhyloSim as created by \code{\link{runSimulation}}}
 }
 \value{
 An object of type PhylosimList
 }
 \description{
-Creates an object of class "PhylosimList" from a list of "Phylosim" objects.
+Creates an object of class "PhylosimList" from a list of "PhyloSim" objects.
 }
 \details{
-The function is used to make functions for objets of type "PhylosimList" usable for objects of class "Phylosim". The function needs at least two objets to work.
+The function is used to make functions for objects of type "PhylosimList" usable for objects of class "PhyloSim". The function needs at least two objects to work.
 }
 \examples{
 ## Create two objects of type Phylosim

@@ -9,28 +9,30 @@ calculatePhylogeneticDispersion(simu, plotlengths = 10, plots = 200,
   reduce = FALSE, fun = "mpd")
 }
 \arguments{
-\item{simu}{A list of Phylosim objects}
+\item{simu}{A PhyloSim object or a list of PhyloSim objects}
 
-\item{plotlengths}{Integer or vectr of integers, size(s) of the sample plots used in the null models.}
+\item{plotlengths}{Integer or vector of integers, edge length(s) of the sample plots used in the null models.}
 
 \item{plots}{Integer, number of sample plots}
 
-\item{replicates}{Integer, number of replicate}
+\item{replicates}{Integer, number of replicates}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose a particular result, a vector of results, or use all result with which.result = "all".}
+\item{type}{String, determines which null model should be created. Possible inputs are "PhylMeta" (default), "PhylSample", "PhylPool", "SamplePool" (see details).}
 
-\item{fun}{String, determines which function should be used to calculate the phylogenetic diversity in the sample plot. Possible inputs are "mpd" or "pd" (see details).}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose a particular result, or use all results with which.result = "all".}
 
-\item{types}{String, determines which null model should be created. Possible inputs are "PhylMeta" (default), "PhylSample", "PhylPool", "SamplePool" (see details).}
+\item{reduce}{Logical, currently not used by this function (reserved for a future implementation; has no effect on the output).}
+
+\item{fun}{String, currently not used by this function; MPD is always used.}
 }
 \value{
-A list with pValues for each plot in the observed metacommunity. If you have calculated multiple scenarios, the results can be visualized by \code{\link{plotPhylogeneticDisperion}}.
+A list with pValues for each plot in the observed metacommunity. If you have calculated multiple scenarios, the results can be visualized by \code{\link{plotPhylogeneticDispersion}}.
 }
 \description{
-Generates a null models for a list of Phylosim objects as created by \code{\link{runSimulationBatch}} and compares the observed results against.
+Generates null models for a list of PhyloSim objects as created by \code{\link{runSimulationBatch}} and compares the observed results against them.
 }
 \details{
-In the types argument "PhylMeta" is equivalent to \code{\link{nullModel}} with abundance = FALSE, "PhylSample" is equivalent to the same function with abundance = TRUE, wheras the two other option use \code{\link[picante]{ses.mpd}}. "PhylPool" uses the argument null.model = "phylogeny.pool", "SamplePool" is setting null.model to "sample.pool". \cr\cr The fun argument is only used if types="PhylSample". For more information see \code{\link{nullModel}}. \cr \cr If yu choose which.result = NULL (default), the length of the output corresponds to the length of the 'runs' argument in your parameter definition. Otherwise the length of the list corresponds to the length of your which.result argument. \cr\cr The structure of the output is organitzed as follows with \code{output[[n]]} you will get the results for the scenario 'n'. With \code{output[[n]][[t]]} you will get the results for \code{n} at timestep \code{t}. \code{output[[n]][[t]]} is a list that contains one vector with p values for each element in the plotlengths argument.
+In the type argument "PhylMeta" is equivalent to \code{\link{nullModel}} with abundance = FALSE, "PhylSample" is equivalent to the same function with abundance = TRUE, whereas the two other options use \code{\link[picante]{ses.mpd}}. "PhylPool" uses the argument null.model = "phylogeny.pool", "SamplePool" is setting null.model to "sample.pool". \cr\cr For more information see \code{\link{nullModel}}. \cr\cr If you choose which.result = NULL (default), the length of the output corresponds to the length of the 'runs' argument in your parameter definition. Otherwise the list has length max(which.result); elements of results not requested are NULL. \cr\cr The structure of the output is organized as follows: with \code{output[[t]]} you will get the results for result (time step) 't'. With \code{output[[t]][[n]]} you will get the results for scenario 'n' at 't'. \code{output[[t]][[n]]} is a list that contains one vector with p values for each element in the plotlengths argument.
 }
 \examples{
 
@@ -44,8 +46,9 @@ par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
 par <- list(par1,par2)
 
 ## Run the model
-simu <- runSimulationBatch(par, parallel = 2)
+simu <- runSimulationBatch(par, parallel = FALSE)
 
-## Calculate null model and compare the observed results against
-pValues <- calculatePhylogeneticDispersion(simu, plotlength=20, plots=20, replicates=20, type="PhylMeta")
+## Calculate null model and compare the observed results against it
+pValues <- calculatePhylogeneticDispersion(simu, plotlengths = 20, plots = 20,
+                                           replicates = 20, type = "PhylMeta")
 }

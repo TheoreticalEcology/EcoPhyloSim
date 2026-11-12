@@ -7,11 +7,11 @@
 plotTraitDistribution(simu, type = "hist", which.result = NULL)
 }
 \arguments{
-\item{simu}{Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least the three trait matrices ($traitMat;$compMat;$neutMat) and the environment matrix ($envMat)}
+\item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the three trait matrices ($traitMat;$compMat;$neutMat) and the environment matrix ($envMat)}
 
-\item{type}{defines wether the histogram should be plotted standalone or with the trait ~ Environment relationship and the spatial distribution. Latter is done by type = "all". Default is "hist"}
+\item{type}{defines whether the histograms should be plotted standalone or with the trait ~ Environment relationship and the spatial distribution. The latter is done by type = "all". Default is "hist"}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \description{
 Plots trait-histograms, trait ~ Environment relationship and the spatial distribution of the different traits
@@ -35,7 +35,7 @@ plotTraitDistribution(simu=simu.neutral.local, type = "all")
 
 
 
-#evironment and competition model with local dispersal
+#environment and competition model with local dispersal
 plotTraitDistribution(simu=simu.envcom.local)
 plotTraitDistribution(simu=simu.envcom.local, type = "all")
 

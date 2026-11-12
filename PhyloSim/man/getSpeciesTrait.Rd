@@ -7,11 +7,11 @@
 getSpeciesTrait(sim, speciesID, trait = "neutral", whichRun = 1)
 }
 \arguments{
-\item{sim}{Phylosim object}
+\item{sim}{PhyloSim object}
 
 \item{speciesID}{Integer, species ID}
 
-\item{trait}{String, determining which trait should be returned ("evironment", "competition", "neutral").}
+\item{trait}{String, determining which trait should be returned ("environment", "competition", "neutral"). Default is "neutral".}
 
 \item{whichRun}{Integer, specifying from which run the data should be collected.}
 }
@@ -19,10 +19,10 @@ getSpeciesTrait(sim, speciesID, trait = "neutral", whichRun = 1)
 Vector, containing the trait values
 }
 \description{
-Function to extract the traits of a species from a Phylosim object.
+Function to extract the traits of a species from a PhyloSim object.
 }
 \details{
-The function extracts the environmental, competition or neutral trait of the species with speciesID from the Phylosim object. If there are multiple runs in whichRun determines which run should be used.
+The function extracts the environmental, competition or neutral trait of the species with speciesID from the PhyloSim object. If there are multiple runs, whichRun determines which run should be used.
 }
 \examples{
 ## Define a parameter set
@@ -36,7 +36,7 @@ simu <- runSimulation(par)
 speciesIDs <- getSpecies(simu)
 
 ## Get Species Traits of a species
-envTraits <- PhyloSim:::getSpeciesTrait(simu, speciesIDs[[1]][1], "environment", 1)
+envTraits <- getSpeciesTrait(simu, speciesIDs[[1]][1], "environment", 1)
 
 hist(envTraits)
 
