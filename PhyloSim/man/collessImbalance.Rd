@@ -5,7 +5,7 @@
 \title{Colless' imbalance}
 \usage{
 collessImbalance(simu, which.result = NULL, useApTreeshape = FALSE,
-  norm = NULL, dropFossils = FALSE)
+  norm = NULL, dropFossils = TRUE)
 }
 \arguments{
 \item{simu}{An object of type "PhyloSim"}
@@ -16,7 +16,7 @@ collessImbalance(simu, which.result = NULL, useApTreeshape = FALSE,
 
 \item{norm}{Normalization: Either NULL (raw Colless index), "yule" or "pda".}
 
-\item{dropFossils}{Boolean, if TRUE applies ape's drop.fossil on the phylogeny}
+\item{dropFossils}{Logical, if TRUE (default), extinct lineages are removed with \code{ape::drop.fossil} before the index is computed.}
 }
 \value{
 A numeric value for the Colless' Imbalance
