@@ -362,7 +362,7 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
         //std::cout << "Position max: " << *std::max_element(position.begin(), position.end()) << std::endl;
 
         // a complete walk takes 2 * N - 1 steps for N species (#105)
-        if (counter > 2 * phylogenyMap->size()) throw std::runtime_error("writePhylogenyR: tree traversal did not finish");
+        if (counter > 2 * phylogenyMap->size()) Rcpp::stop("writePhylogenyR: tree traversal did not finish");
 
         if (focusSpecies->m_ID == 0) {
             go = false;

@@ -32,7 +32,7 @@
 * `sac()` with a single result (including the default, the last result) computed the curve from the first result; this also affected the `sacAuc` statistic of `calculateSummaryStatistics()` (#113).
 * `summary()` of a `PhylosimList` printed the column headers for the number of species and the number of runs in the wrong order (#113).
 * `getAverageTraits()` did not accept the output of `runSimulation()` (#113); the bundled data sets are still affected (#128).
-* `runSimulation()`: the phylogeny was cut off, so that reading it failed, if `prunePhylogeny = FALSE`, for early values in `runs` or with `fission`; with `prunePhylogeny = FALSE` and several values in `runs`, R crashed (#82, #97, #105).
+* `runSimulation()`: the phylogeny was cut off, so that reading it failed, with `prunePhylogeny = FALSE`, for early values in `runs`, or with `fission`; with `prunePhylogeny = FALSE` and several values in `runs`, R crashed (#82, #97, #105).
 
 ## Documentation
 
