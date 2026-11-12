@@ -6,7 +6,7 @@
  *              Betim Musa <musab@informatik.uni-freiburg.de>
  */
 
-
+#include <Rcpp.h>
 #include <cfloat>
 #include <cmath>
 #include <iostream>
@@ -252,9 +252,8 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
     // NEUTRAL CASE
     if (m_Neutral && (m_redQueen == 0) && (m_redQueenStrength == 0)) {
 
-
 #ifdef DEBUG
-        std::cout << "In global neutral \n";
+        Rcpp::Rcout << "In global neutral\n";
 #endif
 
         int x_coordinate, y_coordinate, x_parent, y_parent;
@@ -289,7 +288,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
     {
 
 #ifdef DEBUG
-        std::cout << "In global non-neutral \n";
+        Rcpp::Rcout << "In global non-neutral\n";
 #endif
 
         int x_parent = 0;
@@ -321,7 +320,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         if (m_reproduction) {
 
 #ifdef DEBUG
-            std::cout << "In global non-neutral, reproduction fitness \n";
+            Rcpp::Rcout << "In global non-neutral, reproduction fitness\n";
 #endif
 
             array_length = 0;
@@ -453,7 +452,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             // only if env and dens affect reproduction
             if (m_reproduction) {
 
-                std::cout << "REPRODUCTION AT THE MOMENT NOT IMPLEMENTED";
+              Rcpp::Rcout << "REPRODUCTION AT THE MOMENT NOT IMPLEMENTED\n";
 
 //        #ifdef DEBUG
 //        std::cout<<"In global non-neutral, reproduction fitness \n";
@@ -592,7 +591,7 @@ LocalEnvironment::~LocalEnvironment() {
 void LocalEnvironment::reproduce(unsigned int generation) {
 
 #ifdef DEBUG
-    std::cout << "In local \n";
+    Rcpp::Rcout << "In local\n";
 #endif
 
     int x_coordinate;
@@ -757,8 +756,7 @@ void Landscape::speciation(unsigned int generation) {
         int y = m_RandomGenerator.randomInt(0, m_Ydimensions - 1); // rand() % ydimensions;
 
 #ifdef DEBUG
-        std::cout << "new species at:" << std::endl;
-        std::cout << "x: " << x << "; y: " << y << std::endl;
+        Rcpp::Rcout << "new species at:\nx: " << x << "; y: " << y << "\n";
 #endif
 
         // In every case the counter for the incipient ages set to zero.

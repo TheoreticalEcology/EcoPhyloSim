@@ -6,6 +6,7 @@
  *              Betim Musa <musab@informatik.uni-freiburg.de>
  */
 
+#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -25,11 +26,11 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
                            std::vector<double> soilmat) {
 
 #ifdef DEBUG
-    std::cout<<"Running simulation with \n";
-    std::cout<<"Dispersal "<< dispersal << "; cutoff " << dispersalCutoff <<  "\n";
-    std::cout<<"Competition "<< dens << "; strength " << compStrength <<  " cutoff " << densityCutoff << "\n";
-    std::cout<<"Environment "<< env << "; strength " << envStrength<<  "\n";
-    std::cout<<"\n---- debug message for development purposes, remove debug switch in debug.h for turning this off \n\n";
+    Rcpp::Rcout << "Running simulation with\n";
+    Rcpp::Rcout << "Dispersal " << dispersal << "; cutoff " << dispersalCutoff << "\n";
+    Rcpp::Rcout << "Competition " << dens << "; strength " << compStrength << " cutoff " << densityCutoff << "\n";
+    Rcpp::Rcout << "Environment " << env << "; strength " << envStrength << "\n";
+    Rcpp::Rcout << "\n---- debug message for development purposes, remove debug switch in debug.h for turning this off\n\n";
 #endif
 
     if (dispersal == 1) {
@@ -62,7 +63,7 @@ void PhylSimModel::update(unsigned int runs) {
 
 #ifdef DEBUG
         if(generation % 1000 == 0){
-          std::cout << "generation :" <<  generation << '/' << runs << '\n';
+            Rcpp::Rcout << "generation: " << generation << '/' << runs << "\n";
         }
 #endif
 

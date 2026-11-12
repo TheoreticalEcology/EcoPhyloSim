@@ -1,5 +1,6 @@
 context("run Simulation")
 test_that("Model outputs are  as expected",{
+  skip("reference data PhyloSimTestData is missing")
   # Here are the model runs that created the .RData files
 #   
 #   sacVal1<-sacVal2<-sacVal3<-sacVal4<-sacVal5<-sacVal6<-matrix(0,10,100)
@@ -58,7 +59,7 @@ test_that("Model outputs are  as expected",{
     
     parList<-list(par1,par2,par3,par4,par5,par6)
     
-    simu<-runSimulationBatch(parList, parallel = "auto")
+    simu<-runSimulationBatch(parList, parallel = 2)
     
     
     

@@ -1,8 +1,6 @@
 #PKG_CPPFLAGS = -I. -I"C:/Users/hiwi0101/phylosim/PhylGeo/src/Utils"
 #PKG_CFLAGS = -I. -I"C:/Users/hiwi0101/phylosim/PhylGeo/src/Utils"
 #PKG_CXXFLAGS = -I. -I"C:/Users/hiwi0101/phylosim/PhylGeo/src/Utils"
-# Use Cpp11
-CXX_STD = CXX11
 
 #compileSubFolders:
 									#g++ -m64 -std=c++0x -O2 -Wall -c ./Utils/RandomGen.cpp #-o ./Utils/RandomGen.o

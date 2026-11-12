@@ -4,19 +4,19 @@
 \alias{collessImbalance}
 \title{Colless' imbalance}
 \usage{
-collessImbalance(simu, which.result = NULL, useApTreeshape = TRUE,
+collessImbalance(simu, which.result = NULL, useApTreeshape = FALSE,
   norm = NULL, dropFossils = FALSE)
 }
 \arguments{
 \item{simu}{An object of type "PhyloSim"}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
-\item{useApTreeshape}{Boolean, if TRUE uses apTreeshape's colless function}
+\item{useApTreeshape}{Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility. Note that \code{useApTreeshape = FALSE} previously returned the normalized index \code{2 * sum / ((n - 1) * (n - 2))}; this normalization is no longer available.}
 
-\item{norm}{Normalization: Either NULL, "yule" or "pda"}
+\item{norm}{Normalization: Either NULL (raw Colless index), "yule" or "pda".}
 
-\item{dropFossil}{Boolean, if TRUE applies ape's drop.fossil on the phylogeny}
+\item{dropFossils}{Boolean, if TRUE applies ape's drop.fossil on the phylogeny}
 }
 \value{
 A numeric value for the Colless' Imbalance
@@ -25,7 +25,7 @@ A numeric value for the Colless' Imbalance
 Calculates the Colless' imbalance for a Phylogeny.
 }
 \details{
-If useApTreeshape is set to TRUE the phylogeny of simu must be bifurcate.\cr\cr If dropFossils==TRUE only extant species are included in the phylogeny
+Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees. If dropFossils == TRUE only extant species are included in the phylogeny.
 }
 \references{
 Colless, D. H. "Review of phylogenetics: the theory and practice of phylogenetic systematics." Syst. Zool 31 (1982): 100-104.

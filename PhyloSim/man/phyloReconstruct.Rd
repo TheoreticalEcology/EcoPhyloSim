@@ -7,9 +7,9 @@
 phyloReconstruct(simu, which.result = NULL, ...)
 }
 \arguments{
-\item{simu}{A object of class Phylosim}
+\item{simu}{An object of class PhyloSim}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
 \item{...}{Additional arguments to be passed to function \code{\link{hclust}}}
 }

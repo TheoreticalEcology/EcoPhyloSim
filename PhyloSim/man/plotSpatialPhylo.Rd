@@ -8,19 +8,19 @@ plotSpatialPhylo(simu, plot = "both", plotTraits = T,
   which.result = NULL)
 }
 \arguments{
-\item{simu}{Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least the spatial species matrix ($specMat) and the phylogeny ($phylogeny)}
+\item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the spatial species matrix ($specMat) and the phylogeny ($phylogeny)}
 
-\item{plot}{defines what to plot."spatial" plots the spatial abundance, "phylogeny" the phylogeny tree. "both" plots both of them side by side}
+\item{plot}{defines what to plot. "spatial" plots the spatial abundance, "phylogeny" the phylogeny tree. "both" plots both of them side by side}
 
 \item{plotTraits}{logical, defines if the traits should be plotted}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \description{
-Plots the phylogeny tree ,the spatially abundance of the evolved species and their traits.
+Plots the phylogeny tree, the spatial abundance of the evolved species and their traits.
 }
 \details{
-The tiplabels of the phylogeny tree are colored in correspondency to the spatial abundance plot
+The tip labels of the phylogeny tree are colored according to the spatial abundance plot.
 }
 \examples{
 
@@ -54,7 +54,7 @@ simu <- simu.neutral.global
    plotSpatialPhylo(simu, plot = "both", plotTraits = TRUE)
 
 
- #evironment and competition model with local dispersal
+ #environment and competition model with local dispersal
  simu <- simu.envcom.local
    #phylogeny and traits
    plotSpatialPhylo(simu, plot = "phylogeny")
@@ -67,7 +67,10 @@ simu <- simu.neutral.global
 
 #Set simulation run with which.result
 #Here, two simulation runs are stored in simu (one with 500 timesteps, one with 1000)
-par <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = c(500,1000), density = 1, environment = 0.5, specRate = 1)
+  par <- createCompletePar(
+     x = 50, y = 50, dispersal = 1,
+     runs = c(500,1000), density = 1,
+     environment = 0.5, specRate = 1)
 simu <- runSimulation(par)
 
 #Choose to take the first simulation run (default is the last)
