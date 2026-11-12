@@ -25,7 +25,7 @@ A numeric value for the Colless' Imbalance
 Calculates the Colless' imbalance for a Phylogeny.
 }
 \details{
-Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees. If dropFossils == TRUE only extant species are included in the phylogeny.
+Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees.
 }
 \references{
 Colless, D. H. "Review of phylogenetics: the theory and practice of phylogenetic systematics." Syst. Zool 31 (1982): 100-104.
