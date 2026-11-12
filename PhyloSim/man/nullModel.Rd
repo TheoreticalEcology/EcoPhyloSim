@@ -8,37 +8,39 @@ nullModel(simu, which.result = NULL, abundance = FALSE, localPlotSize,
   numberOfPlots, repetitions, fun = "mpd")
 }
 \arguments{
-\item{simu}{an object of class "phylosim" as created by \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}}
+\item{simu}{an object of class "PhyloSim" as created by \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
-\item{abundance}{Logical, determining wheather the null model should be based on the abundance distribution of the sample plots. Default is FALSE.}
+\item{abundance}{Logical, determining whether the null model should be based on the abundance distribution of the sample plots. Default is FALSE.}
 
-\item{localPlotSize}{number of grid cells of the plots drawn within the metacommunity}
+\item{localPlotSize}{edge length (in grid cells) of the square plots drawn within the metacommunity}
 
 \item{numberOfPlots}{number of plots drawn within the metacommunity}
 
 \item{repetitions}{number of generated null model plots}
 
-\item{fun}{String, phylogenetic measure that is used. Possible inputs are "mpd" (\code{\link[picante]{mpd}}) and "pd" (\code{\link[picante]{pd}}). Only used if abundance = FALSE.}
+\item{fun}{String, phylogenetic measure that is used. Possible inputs are "mpd" (\code{\link[picante]{mpd}}) and "pd" (\code{\link[picante]{pd}}).}
 }
 \value{
 A numeric vector with pValues for each plot in the observed metacommunity
 }
 \description{
-Generates a null model and compares the observed results against.
+Generates a null model and compares the observed results against it.
 }
 \examples{
 
 ### Usage with runSimulation
 ## Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000), density = 1, environment = 0.5, specRate = 1)
+par <- createCompletePar(x = 50, y = 50, dispersal = 0,
+                         runs = c(500,1000), density = 1,
+                         environment = 0.5, specRate = 1)
 
 ## Run Model
 simu <- runSimulation(par)
 
 ## Compare to null model
-nullModel(simu, abundance= FALSE, localPlotSize = 100, numberOfPlots = 10, repetitions = 10)
+nullModel(simu, abundance= FALSE, localPlotSize = 50, numberOfPlots = 10, repetitions = 10)
 
 ## Usage with runSimulationBatch
 ## Define two (or multiple) parameter sets
@@ -47,14 +49,14 @@ par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
 par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
         density = 2, environment = 0.5, specRate = 1)
 
-## Merge the parameter sets. It is important to note, that the funktion
+## Merge the parameter sets. It is important to note that the function
 ## needs a list of parameter sets.
 par <- list(par1,par2)
 
 ## Run the model
-simubatch <- runSimulationBatch(par, parallel=2)
+simubatch <- runSimulationBatch(par, parallel = FALSE)
 
 ## Compare results to null model
-nullModel(simubatch[[1]],localPlotSize = 100, numberOfPlots = 10, repetitions = 10)
-nullModel(simubatch[[2]],localPlotSize = 100, numberOfPlots = 10, repetitions = 10)
+nullModel(simubatch[[1]],localPlotSize = 50, numberOfPlots = 10, repetitions = 10)
+nullModel(simubatch[[2]],localPlotSize = 50, numberOfPlots = 10, repetitions = 10)
 }

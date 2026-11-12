@@ -11,7 +11,10 @@ extractParams(parList, params, outFormat = "df")
 
 \item{params}{Vector of parameter names to extract}
 
-\item{outFormat}{Type of output that should be returned. "df" for dataframe or "list" for list.}
+\item{outFormat}{Type of output that should be returned. Only "df" (data frame) is implemented; "list" gives an error.}
+}
+\value{
+A data frame with one column per parameter in params.
 }
 \description{
 Extracts parameters from a list of PhyloSim parameter objects.

@@ -13,7 +13,7 @@ export(callModel)
 export(chunkwiseCalculateSummaries)
 export(chunkwiseCleanup)
 export(collessImbalance)
-export(combineCunks)
+export(combineChunks)
 export(createCompletePar)
 export(createPhylosimList)
 export(es)
@@ -21,6 +21,7 @@ export(extractParams)
 export(getAverageTraits)
 export(getMortalityData)
 export(getSpecies)
+export(getSpeciesTrait)
 export(getSpeciesTraits)
 export(highlightLocalPhylo)
 export(localPlots)
@@ -41,4 +42,42 @@ export(specRich)
 import(Rcpp)
 import(ape)
 importFrom(adephylo,distTips)
+importFrom(foreach,
+  "%do%",
+  "%dopar%",
+  foreach
+)
+importFrom(grDevices,
+  colorRampPalette,
+  dev.size,
+  grey,
+  rainbow,
+  rgb
+)
+importFrom(graphics,
+  barplot,
+  hist,
+  image,
+  layout,
+  lines,
+  mtext,
+  par,
+  plot.new,
+  polygon,
+  text,
+  title
+)
+importFrom(stats,
+  binomial,
+  cophenetic,
+  density,
+  dist,
+  ecdf,
+  glm,
+  median,
+  na.omit,
+  quantile,
+  rmultinom,
+  sd
+)
 useDynLib(PhyloSim, .registration = TRUE)

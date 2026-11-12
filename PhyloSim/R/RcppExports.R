@@ -2,6 +2,91 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' Core phylosim model
+#'
+#' Low-level engine that runs the actual PhyloSim simulation. This function is called
+#' internally by \code{\link{runSimulation}} and is not normally called directly by the
+#' user -- most parameters correspond directly to the (user-facing) arguments of
+#' \code{\link{createCompletePar}}, but several categorical/continuous parameters there
+#' are split here into separate on/off switches and strength values (see the parameter descriptions below).
+#'
+#' @param x Integer, dimension of the model landscape in x-direction.
+#' @param y Integer, dimension of the model landscape in y-direction.
+#' @param dispersal Integer, dispersal type: 1 = global dispersal (offspring may colonize
+#'   any cell in the lattice with equal probability), 3 = local dispersal with an exponential
+#'   kernel whose characteristic distance is \code{dispersalCutoff / 2}; 2 = nearest-neighbor dispersal (not used by
+#'   \code{\link{runSimulation}}).
+#'   \code{\link{runSimulation}} uses 1 for \code{dispersal = "global"} or 0, and 3 otherwise.
+#' @param runs Integer vector, the generation(s) at which the simulation state is saved.
+#'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
+#'   intermediate states are saved at each value as well.
+#' @param specRate Numeric, speciation rate: mean number of speciation events per generation
+#'   (the realized number is drawn from a Poisson distribution).
+#' @param dens Logical, whether density dependence is active. If \code{FALSE}, density
+#'   dependence is disabled (together with \code{env = FALSE} this yields the neutral
+#'   model). The strength of density dependence is set by \code{compStrength}.
+#' @param env Logical, whether environmental filtering is active. If \code{FALSE},
+#'   environmental filtering is disabled (together with \code{dens = FALSE} this yields
+#'   the neutral model). The strength of environmental filtering is set by \code{envStrength}.
+#' @param neutral Logical, whether the neutral model is used: if TRUE (and \code{redQueen}
+#'   and \code{redQueenStrength} are 0), each death is replaced by the offspring of a random
+#'   parent without fitness differences. Only used for global dispersal (\code{dispersal = 1}).
+#'   \code{\link{runSimulation}} sets it to TRUE when density and environment are both 0.
+#'   The neutral trait is computed in every case.
+#' @param mort Logical, whether fitness differences among individuals are expressed via
+#'   differential mortality. Corresponds to \code{fitnessActsOn = "mortality"} (or
+#'   \code{"both"}, together with \code{repro = TRUE}) in \code{\link{createCompletePar}}.
+#' @param mortStrength Integer, the fitness-based mortality ratio (must be >= 1); the
+#'   higher the value, the stronger fitness differences translate into mortality
+#'   differences. Corresponds to \code{fitnessBaseMortalityRatio} in
+#'   \code{\link{createCompletePar}}.
+#' @param repro Logical, whether fitness differences among individuals are expressed via
+#'   differential reproductive output. Corresponds to \code{fitnessActsOn = "reproduction"}
+#'   (or \code{"both"}, together with \code{mort = TRUE}) in \code{\link{createCompletePar}}.
+#' @param dispersalCutoff Integer, cutoff distance for the local dispersal kernel (ignored
+#'   if \code{dispersal = 1}); individuals only disperse within this distance. The
+#'   characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
+#'   sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
+#' @param densityCutoff Integer, defines the effective spatial range of the competition /
+#'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
+#'   \code{densityCut} in \code{\link{createCompletePar}}.
+#' @param seed Integer, sets the random seed.
+#' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
+#'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
+#'   influence of the environment on individual fitness. Corresponds to \code{environment}
+#'   in \code{\link{createCompletePar}}.
+#' @param compStrength Numeric between 0 and 1, strength of the density-dependence /
+#'   competition effect (ignored if \code{dens = FALSE}); the higher the value, the
+#'   stronger the influence of trait-based competition on individual fitness. Corresponds
+#'   to \code{density} in \code{\link{createCompletePar}}.
+#' @param fission Integer, which fission (speciation) type to use: 0 = none (default),
+#'   1 = every second individual of a species becomes part of a new species, 2 = the
+#'   population is geographically split into two parts, one of which becomes a new species.
+#' @param redQueen Numeric, strength of the fitness decline of an aging species.
+#' @param redQueenStrength Numeric, strength of the Red Queen effect; values > 0 give a
+#'   newly formed species a fitness boost due to its novelty, which vanishes over time.
+#' @param protracted Integer, number of generations a new species stays 'incipient' before
+#'   turning into a 'good' species (protracted speciation). Default is 0 (point speciation).
+#' @param airmatR Numeric vector, the environmental values of the grid, flattened
+#'   column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} in
+#'   \code{\link{createCompletePar}}.
+#' @param soilmatR Numeric vector, a second, optional environmental grid, flattened
+#'   column-major (length x*y), analogous to \code{airmatR}. Stored internally per grid
+#'   cell but not currently read by any fitness or dispersal calculation, so it has no
+#'   effect on simulation output. Retained for potential future use; not currently
+#'   exposed as a separate argument in \code{createCompletePar}.
+#' @param prunePhylogeny Logical, whether the phylogeny is pruned by the internal pruning
+#'   function, which removes extinct terminal lineages; the result can still contain extinct
+#'   tips (use \code{ape::drop.fossil} to keep only extant species). If FALSE, the full
+#'   phylogeny should be returned, but this currently fails (#105).
+#'
+#' @return A list with one element per entry in \code{runs}, each containing the raw
+#'   simulation output for that generation: \code{Species} (species identity per grid
+#'   cell), \code{EnvTrait} (environmental trait per individual), \code{NeutralTrait}
+#'   (neutral trait per individual), \code{CompetitionTrait} (competition trait per
+#'   individual), \code{Environment} (environmental value per grid cell) and
+#'   \code{Phylogeny} (Newick string). \code{\link{runSimulation}} reshapes and renames
+#'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
+#'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 #' @export
 callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny) {
     .Call(`_PhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny)

@@ -15,7 +15,7 @@ es(specRate, dimensions)
 A float value for the expected species richness
 }
 \description{
-Calculate the expected species richness in the equilibrium state as calculated by Hubbel (2001).
+Calculate the expected species richness in the equilibrium state as calculated by Hubbell (2001).
 }
 \details{
 This function is only valid for neutral models!

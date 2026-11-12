@@ -1,14 +1,14 @@
 #' @title Create Subplots
 #' @description Generates subplots from a metacommunity, simulating field conditions
-#' @param simu Simulation output of the class "Phylosim", usually consisting out of several lists. Needs to contain at least a species matrix ($specMat)
-#' @param which.result Integer, determines which result should be used. This argument is only usefull if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.
+#' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least a species matrix ($specMat)
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.
 #' @param size A single value (or a vector) determining the edge length(s) of the generated subplots
-#' @param n The number of subplots to be generated
+#' @param n The number of subplots to be generated for each element of size (n = 1 is currently treated as n = 2, but the community table keeps only the first plot)
 #' @param community Logical, determining whether to generate a community table or not. default is FALSE
 #' @param plot Logical, determining whether the results should be shown graphically. Default is FALSE.
 #' @param nested Logical, determining whether the subplots should be nested (see Details).
-#' @return A list of subplots and (if coomunity = T) a community table with plots in rows and species in collumns
-#' @details If nested == TRUE the subplots are poduced in a sequential order. That means if your 'size' argument has the length 5 and your 'n' argument has the size 2 you will get ten subplots. The first five will be one group of nested plots and the last five the second group of nested plots.
+#' @return A list with the species matrices of the subplots (subPlots), the corresponding environment (envPlots) and competition trait (compPlots) matrices, the subplot centers (positions) and, if community = TRUE, a community table (communityTable) with plots in rows and species in columns.
+#' @details If nested == TRUE the subplots are produced in a sequential order. That means if your 'size' argument has the length 5 and your 'n' argument is 2 you will get ten subplots. The first five will be one group of nested plots and the last five the second group of nested plots.
 #' @example inst/examples/localPlots-help.R
 #' @export
 localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot = FALSE, nested = FALSE){

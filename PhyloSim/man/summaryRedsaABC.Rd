@@ -11,9 +11,9 @@ summaryRedsaABC(p, s, scale = TRUE, ...)
 
 \item{s}{matrix or dataframe containing the summary statistics as columns}
 
-\item{scale}{logical, determining whether the resulting predictions should be scaled by their variance}
+\item{scale}{logical, determining whether the resulting predictions should be scaled by their standard deviation}
 
-\item{...}{further arguments passed to abctools::saABC}
+\item{...}{currently ignored}
 }
 \value{
 Matrix of parameter predictions

@@ -92,7 +92,7 @@ PhyloSim is an R package with a simulation model in C++ (via Rcpp); the package 
 
 - The simulation model is in `PhyloSim/src/`. Print with `Rcpp::Rcout` (and `Rcpp::Rcerr`), never with `std::cout`, `std::cerr` or `printf`; signal errors with `Rcpp::stop()`, never with `exit()` or `abort()`.
 - `PhyloSim/src/RcppExports.cpp` and `PhyloSim/R/RcppExports.R` are generated: after changing an `// [[Rcpp::export]]` function, run `Rcpp::compileAttributes("PhyloSim")`. `PhyloSim/src/RcppExportsIni.c` registers `callModel` and is maintained by hand: if the number of arguments of `callModel` changes, update both the `SEXP` declaration and the count in `CallEntries`.
-- `pugixml.cpp`, `pugixml.hpp` and `pugiconfig.hpp` are bundled third-party code; do not modify them.
+- `pugixml.cpp`, `pugixml.h` and `pugiconfig.h` are bundled third-party code; change them only where `R CMD check` requires it (as for the `.h` file names and `snprintf()` instead of `sprintf()`).
 - Changes to the model that change simulation results, even for the default parameters, must be stated in the pull request description (and, as every user-visible change, in `NEWS.md`).
 
 ### Tests and checks

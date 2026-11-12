@@ -18,13 +18,13 @@ highlightLocalPhylo(simu.neutral.local, size = 50, n = 3)
 
 
 
-#Plot clades for environment and competition model with global dispersal with three subplots
+#Plot clades for environment and competition model with local dispersal with three subplots
 par(mfrow=c(1,3))
 highlightLocalPhylo(simu.envcom.local, size = 50, n = 3)
 
 
 
-#increasing plot size
+#compare different plot sizes
 par(mfrow=c(2,2))
+highlightLocalPhylo(simu.envcom.local, size = 10, n =2)
 highlightLocalPhylo(simu.envcom.local, size = 50, n =2)
-highlightLocalPhylo(simu.envcom.local, size = 1000, n =2)
