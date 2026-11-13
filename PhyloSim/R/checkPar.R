@@ -12,7 +12,7 @@ checkPar <- function(par) {
     coll$push("Variable 'dispersal': Must be 'global', 0 or a number >= 0.5.")
   }
   checkmate::assert_number(par[["specRate"]], lower = 0, finite = TRUE, .var.name = "specRate", add = coll)
-  checkmate::assert_number(par[["density"]], lower = 0, .var.name = "density", add = coll)
+  checkmate::assert_number(par[["density"]], lower = 0, upper = 1, .var.name = "density", add = coll)
   checkmate::assert_number(par[["environment"]], lower = 0, upper = 1, .var.name = "environment", add = coll)
   checkmate::assert_choice(par[["fitnessActsOn"]], c("mortality", "reproduction", "both"),
                            .var.name = "fitnessActsOn", add = coll)

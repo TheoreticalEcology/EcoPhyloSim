@@ -23,7 +23,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution)}
 
-\item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence.}
+\item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence. Density value must be between 0 and 1.}
 
 \item{environment}{Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.}
 

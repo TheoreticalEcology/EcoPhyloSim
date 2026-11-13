@@ -16,6 +16,7 @@ test_that("createCompletePar() rejects invalid single parameters", {
   expect_error(smallPar(dispersal = 0.3), "dispersal")
   expect_error(smallPar(dispersal = "local"), "dispersal")
   expect_error(smallPar(specRate = -1), "specRate")
+  expect_error(smallPar(density = 1.2), "density") # #96
   expect_error(smallPar(environment = -0.1), "environment")
   expect_error(smallPar(fitnessActsOn = "birth"), "fitnessActsOn")
   expect_error(smallPar(fitnessBaseMortalityRatio = 0), "fitnessBaseMortalityRatio") # #94
@@ -50,6 +51,7 @@ test_that("runSimulation() checks parameter lists changed after createCompletePa
   p2 <- p; p2$runs <- c(5, 2);      expect_error(runSimulation(p2), "runs")
   p2 <- p; p2$runs <- numeric(0);   expect_error(runSimulation(p2), "runs")
   p2 <- p; p2$fitnessBaseMortalityRatio <- 0; expect_error(runSimulation(p2), "fitnessBaseMortalityRatio")
+  p2 <- p; p2$density <- 2;         expect_error(runSimulation(p2), "density")
 })
 
 test_that("callModel() stops on input that would crash R (#13)", {
