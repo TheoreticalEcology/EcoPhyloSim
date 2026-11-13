@@ -6,7 +6,7 @@
 local_edition(3)
 
 snapshotSimulation <- function(...) {
-  set.seed(1) # R-side randomness in runSimulation() and sac(), see #135
+  set.seed(1) # random plots in sac()
   simu <- quietSimulation(x = 30, y = 30, runs = 200, seed = 1, ...)
   out <- simu$Output[[1]]
   list(abundances = sort(as.vector(table(out$specMat)), decreasing = TRUE),

@@ -28,7 +28,7 @@ test_that("sac counts every cell as a new species if all cells differ", {
   expect_equal(out$sr.Mean, (1:4)^2)
 })
 
-test_that("es gives the expected richness of the Ewens sampling formula (formula check skipped, #124)", {
+test_that("es gives one species for one individual and increases with specRate", {
   expect_equal(es(3, 1), 1) # a single individual is a single species
   expect_gt(es(2, 10), es(1, 10))
   skip("es() uses theta = 2 * specRate, see #124")
@@ -36,11 +36,11 @@ test_that("es gives the expected richness of the Ewens sampling formula (formula
 })
 
 test_that("createCompletePar rejects invalid parameters", {
-  expect_error(createCompletePar(runs = c(100, 50)))
-  expect_error(createCompletePar(x = 10, y = 20, airmat = matrix(0.5, 10, 10)))
-  expect_error(createCompletePar(airmat = 2))
-  expect_error(createCompletePar(environment = 2))
-  expect_error(createCompletePar(fitnessBaseMortalityRatio = 0.5))
+  expect_error(createCompletePar(runs = c(100, 50)), "largest")
+  expect_error(createCompletePar(x = 10, y = 20, airmat = matrix(0.5, 10, 10)), "do not match")
+  expect_error(createCompletePar(airmat = 2), "between 0 and 1")
+  expect_error(createCompletePar(environment = 2), "between 0 and 1")
+  expect_error(createCompletePar(fitnessBaseMortalityRatio = 0.5), "greater than or equal to 1")
 })
 
 test_that("runSimulation rejects invalid dispersal", {
