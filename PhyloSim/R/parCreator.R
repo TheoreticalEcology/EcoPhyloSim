@@ -7,7 +7,7 @@
 #' @param specRate Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution)
 #' @param density Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence. Density value must be between 0 and 1.
 #' @param environment Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.
-#' @param fitnessActsOn Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both"; "reproduction" and "both" are currently rejected by \code{createCompletePar}.
+#' @param fitnessActsOn Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both". With global dispersal, "reproduction" and "both" are only implemented if environment, density, redQueen and redQueenStrength are 0.
 #' @param fitnessBaseMortalityRatio Integer, determines the fitness based mortality ratio. Must be greater than or equal to 1.
 #' @param densityCut Integer >= 1, defines the effective range of the competition (ignored if density = 0); must not exceed min(x, y)
 #' @param fission Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual becomes part of new species) and 2 (population is geographically split in two parts).
@@ -51,11 +51,6 @@ createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, 
              redQueen = redQueen, redQueenStrength = redQueenStrength, protracted = protracted,
              airmatR = airmat, soilmatR=soilmat, calculateSummaries=calculateSummaries,
              convertToBinaryTree = convertToBinaryTree, prunePhylogeny = prunePhylogeny)
-  
-  if (par$fitnessActsOn %in% c("both", "reproduction") && par$environment >= 0) {
-    stop(paste0("Incompatible settings: fitnessActsOn = 'both' and environment = ", par$environment,
-                ". This will result in R crashing. Either set environment = 0 or set fitnessActsOn back to default."))
-  }
   
   checkPar(par)
 

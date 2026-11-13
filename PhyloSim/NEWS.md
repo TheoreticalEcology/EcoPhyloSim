@@ -12,7 +12,7 @@
 
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `environment` or the values of `airmat` are outside [0, 1], or if `fitnessBaseMortalityRatio < 1` (#85).
-* `createCompletePar()` stops with an error if `fitnessActsOn` is `"reproduction"` or `"both"`, because these settings crashed R (#98, #101).
+* `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
 * `createCompletePar()` and `runSimulation()` check all parameters with checkmate, also in parameter lists changed by hand: among others, `density` must be in [0, 1] (#96), `runs` must not decrease, `airmat` must be a single value or have `x * y` values, `2 * dispersal` and `densityCut` must not exceed `min(x, y)`, and parameters documented as integers must be whole numbers (#118).
 * The `Model` element of the output of `runSimulation()` keeps the numeric values of `density` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).

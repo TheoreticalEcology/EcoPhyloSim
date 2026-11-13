@@ -39,6 +39,17 @@ test_that("createCompletePar() checks combinations of parameters", {
   expect_error(smallPar(densityCut = 11), "densityCut")
 })
 
+test_that("fitnessActsOn = 'reproduction' is rejected only where it is not implemented (#98)", {
+  for (f in c("reproduction", "both")) {
+    expect_error(smallPar(fitnessActsOn = f, environment = 0.5), "not implemented")
+    expect_error(smallPar(fitnessActsOn = f, density = 0.5), "not implemented")
+    expect_error(smallPar(fitnessActsOn = f, redQueen = 0.5), "not implemented")
+    expect_silent(smallPar(fitnessActsOn = f))
+    p <- smallPar(fitnessActsOn = f, dispersal = 1, environment = 0.5, density = 0.5)
+    expect_s3_class(suppressWarnings(runSimulation(p)), "PhyloSim")
+  }
+})
+
 test_that("runSimulation() checks parameter lists changed after createCompletePar()", {
   p <- smallPar()
   # wrong airmat lengths read memory outside the vector, length 0 crashed R (#118)

@@ -48,5 +48,13 @@ checkPar <- function(par) {
     stop("densityCut = ", par[["densityCut"]], " must not exceed min(x, y) = ", min(x, y), ".",
          call. = FALSE)
   }
+  # fixes #98 (reproduction fitness is not implemented in the non-neutral global model)
+  if (!local && par[["fitnessActsOn"]] != "mortality" &&
+      (par[["environment"]] > 0 || par[["density"]] > 0 || par[["redQueen"]] != 0 ||
+       par[["redQueenStrength"]] != 0)) {
+    stop("fitnessActsOn = '", par[["fitnessActsOn"]], "' is not implemented for global dispersal ",
+         "with environment, density, redQueen or redQueenStrength > 0. ",
+         "Use local dispersal (dispersal >= 0.5) or fitnessActsOn = 'mortality'.", call. = FALSE)
+  }
   invisible(par)
 }
