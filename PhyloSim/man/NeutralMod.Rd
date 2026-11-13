@@ -13,7 +13,7 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{y}{Integer, dimension of the landscape in y-direction}
 
-\item{dispersal}{\code{"global"}, or a function with one argument \code{n} that returns \code{n} dispersal distances in cells (see Details)}
+\item{dispersal}{\code{"global"}, or a function with one argument \code{n} that returns \code{n} non-negative dispersal distances in cells (see Details)}
 
 \item{runs}{Integer or increasing vector of integers, number of generations. If a vector, the species matrix is also saved at the intermediate generations, as in \code{\link{createCompletePar}}.}
 
@@ -21,9 +21,9 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{density}{Numeric between 0 and 1, strength of conspecific negative density dependence. 0 (default) gives a neutral model.}
 
-\item{densityCut}{Integer, radius of the neighborhood for density dependence}
+\item{densityCut}{Integer, radius of the neighborhood for density dependence. If \code{density > 0}, at most \code{(min(x, y) - 1) / 2}, so that no cell is counted twice.}
 
-\item{seed}{Integer, random seed. If NULL (default), a seed is drawn.}
+\item{seed}{Integer, random seed. If NULL (default), a seed is drawn. Apart from this draw, the random number stream of the R session is not changed.}
 
 \item{verbose}{Logical, if TRUE, reports progress every 100 generations and the runtime}
 }
@@ -34,9 +34,9 @@ An object of class \code{PhyloSim}, see \code{\link{runSimulation}}. Each elemen
 A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is independent of the C++ model of \code{\link{runSimulation}} and returns an object of class \code{PhyloSim} with a species matrix only.
 }
 \details{
-The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. The parent is a random cell, possibly the dead cell itself (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid; draws that land on the dead cell itself are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula (Hubbell 2001) with \eqn{\theta} approximately equal to \code{specRate}, if \code{specRate} is much smaller than \code{x * y}.
+The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. The parent is a random cell, possibly the dead cell itself (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid; draws that land on the dead cell itself are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate / (1 - specRate / (x y))}{theta = specRate / (1 - specRate / (x * y))} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
 
-With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn (at most 10 times; the last recruit is accepted). Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
+With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn; at most 10 parents are drawn, and the last recruit is accepted. Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
 
 The model is slow and only suitable for small landscapes. The output contains the species matrix (\code{specMat}) and the parameters (\code{Model}), so that functions that only need the species matrix, such as \code{\link{specRich}} and \code{\link{rac}}, can be used (\code{\link{sac}} and \code{\link{localPlots}} currently only on square grids). There is no phylogeny and there are no traits, so functions that need them (e.g. \code{plot()} and \code{summary()}) do not work.
 }
