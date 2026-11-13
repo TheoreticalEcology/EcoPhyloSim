@@ -74,10 +74,10 @@
 #'   cell but not currently read by any fitness or dispersal calculation, so it has no
 #'   effect on simulation output. Retained for potential future use; not currently
 #'   exposed as a separate argument in \code{createCompletePar}.
-#' @param prunePhylogeny Logical, whether the phylogeny is pruned by the internal pruning
-#'   function, which removes extinct terminal lineages; the result can still contain extinct
-#'   tips (use \code{ape::drop.fossil} to keep only extant species). If FALSE, the full
-#'   phylogeny should be returned, but this currently fails (#105).
+#' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the
+#'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
+#'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
+#'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
 #'
 #' @return A list with one element per entry in \code{runs}, each containing the raw
 #'   simulation output for that generation: \code{Species} (species identity per grid

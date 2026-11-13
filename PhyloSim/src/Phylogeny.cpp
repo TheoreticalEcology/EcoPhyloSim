@@ -9,6 +9,7 @@
 #include "StringConversion.h"
 
 #include <Rcpp.h>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -18,23 +19,14 @@
 #include <utility>
 
 Phylogeny::Phylogeny() {
-    m_PrunedPhylo = new std::multimap<unsigned long long, Species*>();
     m_FullPhylogeny = new std::multimap<unsigned long long, Species*>();
+    m_PruneDuringRun = false;
+    m_PruneThreshold = 1000;
 }
 
 Phylogeny::~Phylogeny() {
-
-    for (unsigned int i = 1; i < m_FullPhylogeny->size(); i++) {
-        delete m_FullPhylogeny->find(i)->second;
-    }
-    m_FullPhylogeny->clear();
+    for (auto &entry : *m_FullPhylogeny) delete entry.second;
     delete m_FullPhylogeny;
-
-    for (unsigned int i = 1; i < m_PrunedPhylo->size(); i++) {
-        delete m_PrunedPhylo->find(i)->second;
-    }
-    m_PrunedPhylo->clear();
-    delete m_PrunedPhylo;
 }
 
 void Phylogeny::updatePhylogeny(Species *spec) {
@@ -56,43 +48,30 @@ void Phylogeny::writeSpeciesData() {
 }
 
 
-void Phylogeny::prunePhylogeny(int current) {
-//  std::cout << "Prune Phylogeny" << std::endl;
-    m_PrunedPhylo->clear();
-
-    // Create deep copy
-    // TODO -> I tried the deep copy of multimap, but it doesn't work ... sort this out!!!
-    for (unsigned long long i = 1; i <= m_FullPhylogeny->size(); i++) {
-        Species *specp = new Species(*m_FullPhylogeny->find(i)->second);
-        if (specp->m_Date_of_Extinction > current) specp->m_Date_of_Extinction = current;
-        m_PrunedPhylo->insert(std::pair <unsigned long long, Species*> (specp->m_ID, specp));
-    }
-
-
-    /* TODO - I somehow don't understand 100% why this works .. we go through the phylogeny size, erase things inbetween,
-     * why don't we get into trouble for trying to access indices that have already been erase? */
-
-    for (unsigned long long i = 1; i <= m_PrunedPhylo->size(); i++) {
-        Species *father = m_PrunedPhylo->find(i)->second;
-
-        for (int i = 0; i < 10; i++) {
-            if (!(father->m_Children.empty())) {
-                for (unsigned int j = 0; j < father->m_Children.size(); j++) {
-                    Species *child = m_PrunedPhylo->find(father->m_Children[j])->second;
-                    if (child->m_Children.empty() && child->m_Count == 0) {
-                        father->m_Children.erase(father->m_Children.begin() + j);
-                    }
-                    //				 else if(!(child->children.empty()) && child->count==0)
-                    //				 {
-                    //					 father->children.erase(father->children.begin()+j);
-                    //					 father->children.insert(father->children.end(), child->children.begin(), child->children.end());
-                    //				 }
-                }
-            }
+// Removes and deletes all species without living individuals and without remaining
+// descendants, i.e. lineages that went extinct completely. Must be called between
+// generations, when no individual points to a species with m_Count == 0 (#140).
+void Phylogeny::prunePhylogeny() {
+    // children have higher IDs than their parents, so one pass in descending ID order suffices
+    for (auto it = m_FullPhylogeny->end(); it != m_FullPhylogeny->begin();) {
+        --it;
+        std::vector<unsigned long long> &children = it->second->m_Children;
+        children.erase(std::remove_if(children.begin(), children.end(), [this](unsigned long long id) {
+            return m_FullPhylogeny->find(id) == m_FullPhylogeny->end();
+        }), children.end());
+        if (it->second->m_Count == 0 && children.empty() && it->first != 1) {
+            delete it->second;
+            it = m_FullPhylogeny->erase(it);
         }
-        // std::cout << father->children.size() << '\n';
     }
-    // std::cout <<"phylosize : " << prunedPhylo.size() << '\n';
+}
+
+// Prunes during the run each time the phylogeny has doubled in size, so that memory
+// does not grow with the number of species created between censuses
+void Phylogeny::pruneIfLarge() {
+    if (!m_PruneDuringRun || m_FullPhylogeny->size() < m_PruneThreshold) return;
+    prunePhylogeny();
+    m_PruneThreshold = std::max<size_t>(1000, 2 * m_FullPhylogeny->size());
 }
 
 void Phylogeny::writePhylogeny(unsigned long long start, std::multimap<unsigned long long, Species *> *phylogenyMap,
@@ -233,7 +212,8 @@ void Phylogeny::writePhylogeny(unsigned long long start, std::multimap<unsigned 
 
 
 std::string
-Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long long, Species *> *phylogenyMap) {
+Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long long, Species *> *phylogenyMap,
+                           unsigned long long current) {
 
 #ifdef DEBUG
     Rcpp::Rcout << "writePhylogenyR start\n";
@@ -247,8 +227,9 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
     int branchLength = 0;
 
     std::string tree = ";";
-    std::vector <size_t> position(phylogenyMap->size(), 0);
-    std::vector <size_t> paranthesis(phylogenyMap->size(), 0);
+    // indexed by species ID, which has gaps after pruning (#140)
+    std::vector <size_t> position(phylogenyMap->rbegin()->first + 1, 0);
+    std::vector <size_t> paranthesis(phylogenyMap->rbegin()->first + 1, 0);
     int counter = 1;
 
     bool go = true;
@@ -263,7 +244,8 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
             if (position[focusSpecies->m_ID] != 0)
                 throw std::runtime_error("unexpected value for position value in a leaf");
             // TODO: unsigned long long assigned to int!
-            branchLength = focusSpecies->m_Date_of_Extinction - focusSpecies->m_Date_of_Emergence;
+            branchLength = std::min<unsigned long long>(focusSpecies->m_Date_of_Extinction, current) -
+                           focusSpecies->m_Date_of_Emergence;
             tree.insert(0, to_string(branchLength));
             tree.insert(0, ":");
             tree.insert(0, to_string(focusSpecies->m_ID));
@@ -278,7 +260,7 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
         else if (position[focusSpecies->m_ID] == focusSpecies->m_Children.size()) {
 
             // TODO: unsigned long long assigned to int!
-            branchLength = focusSpecies->m_Date_of_Extinction -
+            branchLength = std::min<unsigned long long>(focusSpecies->m_Date_of_Extinction, current) -
                            phylogenyMap->find(focusSpecies->m_Children.back())->second->m_Date_of_Emergence;
 
             tree.insert(0, to_string(branchLength));

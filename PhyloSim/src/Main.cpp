@@ -91,11 +91,10 @@ int main() {
     Model.update(runs);
 
     if (prunePhylogeny) {
-        Model.m_Global->m_Phylogeny.prunePhylogeny(runs);
-        Model.m_Global->m_Phylogeny.writePhylogenyR(1, Model.m_Global->m_Phylogeny.m_PrunedPhylo);
+        Model.m_Global->m_Phylogeny.prunePhylogeny();
     }
 
-    Model.m_Global->m_Phylogeny.writePhylogenyR(1, Model.m_Global->m_Phylogeny.m_FullPhylogeny);
+    Model.m_Global->m_Phylogeny.writePhylogenyR(1, Model.m_Global->m_Phylogeny.m_FullPhylogeny, runs);
 
 //	Model.get_data();
 //	Model.getclimate();
