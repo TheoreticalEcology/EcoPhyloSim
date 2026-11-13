@@ -4,13 +4,13 @@
 #' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @param useApTreeshape Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility. Note that \code{useApTreeshape = FALSE} previously returned the normalized index \code{2 * sum / ((n - 1) * (n - 2))}; this normalization is no longer available.
 #' @param norm Normalization: Either NULL (raw Colless index), "yule" or "pda".
-#' @param dropFossils Boolean, if TRUE applies ape's drop.fossil on the phylogeny
+#' @param dropFossils Logical, if TRUE (default), extinct lineages are removed with \code{ape::drop.fossil} before the index is computed.
 #' @return A numeric value for the Colless' Imbalance
-#' @details Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees. If dropFossils == TRUE only extant species are included in the phylogeny.
+#' @details Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees.
 #' @references Colless, D. H. "Review of phylogenetics: the theory and practice of phylogenetic systematics." Syst. Zool 31 (1982): 100-104.
 #' @export
 
-collessImbalance <- function(simu, which.result = NULL, useApTreeshape = FALSE, norm = NULL, dropFossils = FALSE){
+collessImbalance <- function(simu, which.result = NULL, useApTreeshape = FALSE, norm = NULL, dropFossils = TRUE){
   if (is.null(which.result)) which.result = length(simu$Output)
   phylo <- simu$Output[[which.result]]$phylogeny
 

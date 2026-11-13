@@ -5,7 +5,7 @@
 \title{Colless' imbalance}
 \usage{
 collessImbalance(simu, which.result = NULL, useApTreeshape = FALSE,
-  norm = NULL, dropFossils = FALSE)
+  norm = NULL, dropFossils = TRUE)
 }
 \arguments{
 \item{simu}{An object of type "PhyloSim"}
@@ -16,7 +16,7 @@ collessImbalance(simu, which.result = NULL, useApTreeshape = FALSE,
 
 \item{norm}{Normalization: Either NULL (raw Colless index), "yule" or "pda".}
 
-\item{dropFossils}{Boolean, if TRUE applies ape's drop.fossil on the phylogeny}
+\item{dropFossils}{Logical, if TRUE (default), extinct lineages are removed with \code{ape::drop.fossil} before the index is computed.}
 }
 \value{
 A numeric value for the Colless' Imbalance
@@ -25,7 +25,7 @@ A numeric value for the Colless' Imbalance
 Calculates the Colless' imbalance for a Phylogeny.
 }
 \details{
-Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees. If dropFossils == TRUE only extant species are included in the phylogeny.
+Multifurcations are resolved deterministically (\code{random = FALSE}) with \code{\link[ape]{multi2di}} before the index is computed, because the Colless index is only defined for binary trees.
 }
 \references{
 Colless, D. H. "Review of phylogenetics: the theory and practice of phylogenetic systematics." Syst. Zool 31 (1982): 100-104.

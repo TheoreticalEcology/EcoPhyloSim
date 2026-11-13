@@ -13,3 +13,12 @@ test_that("internal Colless index gives known values", {
   expect_equal(PhyloSim:::.collessIndex(caterpillar, norm = "pda"), 0.928078, tolerance = 1e-6)
   expect_error(PhyloSim:::.collessIndex(caterpillar, norm = "other"))
 })
+
+test_that("collessImbalance() uses only extant species by default", {
+  simu <- runSimulation(createCompletePar(x = 20, y = 20, runs = 1000, seed = 1,
+                                          prunePhylogeny = FALSE))
+  phylo <- simu$Output[[1]]$phylogeny
+  expect_gt(ape::Ntip(phylo), ape::Ntip(ape::drop.fossil(phylo)))
+  expect_equal(collessImbalance(simu),
+               PhyloSim:::.collessIndex(ape::drop.fossil(phylo)))
+})
