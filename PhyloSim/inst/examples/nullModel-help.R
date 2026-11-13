@@ -16,7 +16,7 @@ nullModel(simu, abundance= FALSE, localPlotSize = 50, numberOfPlots = 10, repeti
 par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
         density = 1, environment = 0.5, specRate = 1)
 par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
-        density = 2, environment = 0.5, specRate = 1)
+        density = 0, environment = 0.5, specRate = 1)
 
 ## Merge the parameter sets. It is important to note that the function
 ## needs a list of parameter sets.

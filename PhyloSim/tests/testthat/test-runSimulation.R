@@ -11,7 +11,7 @@ test_that("Simulation is running correctly",{
 
 test_that("SimulationBatch is running correctly",{
   par1<-createCompletePar(x=50, y=50, dispersal="global",density=1)
-  par2<-createCompletePar(x=50, y=50, dispersal="global",density=2)
+  par2<-createCompletePar(x=50, y=50, dispersal="global",density=0.5)
   parlist<-list(par1,par2)
   simuBatch<-runSimulationBatch(parlist)
 
