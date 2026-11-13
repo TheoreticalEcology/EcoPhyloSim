@@ -22,6 +22,7 @@
 * License changed from GPL (>= 2) to GPL (>= 3).
 * PhyloSim now requires R (>= 4.1.0), as required by its dependencies vegan and MESS (#113).
 * The `plot()`, `print()` and `summary()` methods for `PhyloSim` and `PhylosimList` objects use the argument names of the generics (`x`, `object`), so calls such as `plot(simu = s)` no longer work (#113).
+* `collessImbalance()` and `summary()` use only extant species by default (`dropFossils = TRUE`), as `calculateSummaryStatistics()` already did (#117).
 
 ## Bug fixes
 
