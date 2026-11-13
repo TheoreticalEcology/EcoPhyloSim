@@ -96,10 +96,10 @@ using namespace Rcpp;
 //'   cell but not currently read by any fitness or dispersal calculation, so it has no
 //'   effect on simulation output. Retained for potential future use; not currently
 //'   exposed as a separate argument in \code{createCompletePar}.
-//' @param prunePhylogeny Logical, whether the phylogeny is pruned by the internal pruning
-//'   function, which removes extinct terminal lineages; the result can still contain extinct
-//'   tips (use \code{ape::drop.fossil} to keep only extant species). If FALSE, the full
-//'   phylogeny should be returned, but this currently fails (#105).
+//' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the
+//'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
+//'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
+//'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -162,6 +162,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
                               dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
                               redQueenStrength, protracted, airmat, soilmat);
+    if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
+    else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
 
 
     for (int step = 0; step < nRuns; step++) {
@@ -196,20 +198,16 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                     indCounter++;
                 }
             }
-            phylSimModel.m_Global->m_Phylogeny.prunePhylogeny(prevNGen);
+            if (prunePhylogeny) phylSimModel.m_Global->m_Phylogeny.prunePhylogeny();
             std::string phyloPass("\0");
 
 #ifdef DEBUG
             Rcpp::Rcout << "before writePhylogenyR\nprunePhylogeny: " << prunePhylogeny << "\n";
             // consistency checks -> length, etc
 #endif
-            if (prunePhylogeny) {
-                phyloPass = phylSimModel.m_Global->m_Phylogeny.writePhylogenyR(1,
-                                                                               phylSimModel.m_Global->m_Phylogeny.m_PrunedPhylo);
-            } else {
-                phyloPass = phylSimModel.m_Global->m_Phylogeny.writePhylogenyR(1,
-                                                                               phylSimModel.m_Global->m_Phylogeny.m_FullPhylogeny);
-            }
+            phyloPass = phylSimModel.m_Global->m_Phylogeny.writePhylogenyR(1,
+                                                                           phylSimModel.m_Global->m_Phylogeny.m_FullPhylogeny,
+                                                                           prevNGen);
 #ifdef DEBUG
             Rcpp::Rcout << "after writePhylogenyR\n";
 #endif
@@ -229,17 +227,13 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                     indCounter++;
                 }
             }
-            phylSimModel.m_Local->m_Phylogeny.prunePhylogeny(prevNGen);
+            if (prunePhylogeny) phylSimModel.m_Local->m_Phylogeny.prunePhylogeny();
 
             std::string phyloPass("\0");
 
-            if (prunePhylogeny) {
-                phyloPass = phylSimModel.m_Local->m_Phylogeny.writePhylogenyR(1,
-                                                                              phylSimModel.m_Local->m_Phylogeny.m_PrunedPhylo);
-            } else {
-                phyloPass = phylSimModel.m_Local->m_Phylogeny.writePhylogenyR(1,
-                                                                              phylSimModel.m_Local->m_Phylogeny.m_FullPhylogeny);
-            }
+            phyloPass = phylSimModel.m_Local->m_Phylogeny.writePhylogenyR(1,
+                                                                          phylSimModel.m_Local->m_Phylogeny.m_FullPhylogeny,
+                                                                          prevNGen);
 
             char *cstr = new char[phyloPass.length() + 1];
             std::strcpy(cstr, phyloPass.c_str());
