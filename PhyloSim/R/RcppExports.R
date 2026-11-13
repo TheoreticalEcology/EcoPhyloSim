@@ -13,8 +13,7 @@
 #' @param y Integer, dimension of the model landscape in y-direction.
 #' @param dispersal Integer, dispersal type: 1 = global dispersal (offspring may colonize
 #'   any cell in the lattice with equal probability), 3 = local dispersal with an exponential
-#'   kernel whose characteristic distance is \code{dispersalCutoff / 2}; 2 = nearest-neighbor dispersal (not used by
-#'   \code{\link{runSimulation}}).
+#'   kernel whose characteristic distance is \code{dispersalCutoff / 2}. Other values give an error.
 #'   \code{\link{runSimulation}} uses 1 for \code{dispersal = "global"} or 0, and 3 otherwise.
 #' @param runs Integer vector, the generation(s) at which the simulation state is saved.
 #'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
@@ -67,10 +66,12 @@
 #' @param protracted Integer, number of generations a new species stays 'incipient' before
 #'   turning into a 'good' species (protracted speciation). Default is 0 (point speciation).
 #' @param airmatR Numeric vector, the environmental values of the grid, flattened
-#'   column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} in
+#'   column-major (length x*y), scaled between 0 and 1, or a single value for the default
+#'   gradient. Corresponds to \code{airmat} in
 #'   \code{\link{createCompletePar}}.
 #' @param soilmatR Numeric vector, a second, optional environmental grid, flattened
-#'   column-major (length x*y), analogous to \code{airmatR}. Stored internally per grid
+#'   column-major (length x * y if \code{airmatR} has this length, or a single value),
+#'   analogous to \code{airmatR}. Stored internally per grid
 #'   cell but not currently read by any fitness or dispersal calculation, so it has no
 #'   effect on simulation output. Retained for potential future use; not currently
 #'   exposed as a separate argument in \code{createCompletePar}.
