@@ -10,6 +10,8 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <algorithm>
+#include <cmath>
 #include "./RandomGen.h"
 #include "Individual.h"
 #include "Grid.h"
@@ -35,10 +37,10 @@ using namespace Rcpp;
 //' @param y Integer, dimension of the model landscape in y-direction.
 //' @param dispersal Integer, dispersal type: 1 = global dispersal (offspring may colonize
 //'   any cell in the lattice with equal probability), 3 = local dispersal with an exponential
-//'   kernel whose characteristic distance is \code{dispersalCutoff / 2}; 2 = nearest-neighbor dispersal (not used by
-//'   \code{\link{runSimulation}}).
+//'   kernel whose characteristic distance is \code{dispersalCutoff / 2}. Other values give an error.
 //'   \code{\link{runSimulation}} uses 1 for \code{dispersal = "global"} or 0, and 3 otherwise.
-//' @param runs Integer vector, the generation(s) at which the simulation state is saved.
+//' @param runs Integer vector, the generation(s) at which the simulation state is saved;
+//'   values must be >= 0 and must not decrease.
 //'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
 //'   intermediate states are saved at each value as well.
 //' @param specRate Numeric, speciation rate: mean number of speciation events per generation
@@ -68,6 +70,7 @@ using namespace Rcpp;
 //'   if \code{dispersal = 1}); individuals only disperse within this distance. The
 //'   characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
 //'   sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
+//'   With \code{dispersal = 3}, it must be between 1 and \code{min(x, y)}.
 //' @param densityCutoff Integer, defines the effective spatial range of the competition /
 //'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
 //'   \code{densityCut} in \code{\link{createCompletePar}}.
@@ -89,17 +92,19 @@ using namespace Rcpp;
 //' @param protracted Integer, number of generations a new species stays 'incipient' before
 //'   turning into a 'good' species (protracted speciation). Default is 0 (point speciation).
 //' @param airmatR Numeric vector, the environmental values of the grid, flattened
-//'   column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} in
+//'   column-major (length x*y), scaled between 0 and 1, or a single value for the default
+//'   gradient. Corresponds to \code{airmat} in
 //'   \code{\link{createCompletePar}}.
 //' @param soilmatR Numeric vector, a second, optional environmental grid, flattened
-//'   column-major (length x*y), analogous to \code{airmatR}. Stored internally per grid
+//'   column-major (length x * y if \code{airmatR} has this length, or a single value),
+//'   analogous to \code{airmatR}. Stored internally per grid
 //'   cell but not currently read by any fitness or dispersal calculation, so it has no
 //'   effect on simulation output. Retained for potential future use; not currently
 //'   exposed as a separate argument in \code{createCompletePar}.
-//' @param prunePhylogeny Logical, whether the phylogeny is pruned by the internal pruning
-//'   function, which removes extinct terminal lineages; the result can still contain extinct
-//'   tips (use \code{ape::drop.fossil} to keep only extant species). If FALSE, the full
-//'   phylogeny should be returned, but this currently fails (#105).
+//' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the
+//'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
+//'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
+//'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
 //' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
 //'   (see \code{\link{createCompletePar}}).
 //'
@@ -149,6 +154,24 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile.close();
 #endif
 
+    // fixes #13 (input that would crash R or never finish; the R side checks more in checkPar())
+    if (x < 1 || y < 1) Rcpp::stop("callModel(): x and y must be >= 1");
+    if (dispersal != 1 && dispersal != 3) Rcpp::stop("callModel(): dispersal must be 1 (global) or 3 (local)");
+    if (dispersal == 3 && (dispersalCutoff < 1 || dispersalCutoff > std::min(x, y)))
+        Rcpp::stop("callModel(): dispersalCutoff must be between 1 and min(x, y)");
+    if (densityCutoff > std::min(x, y)) Rcpp::stop("callModel(): densityCutoff must not exceed min(x, y)");
+    if (mort && mortStrength < 1) Rcpp::stop("callModel(): mortStrength must be >= 1");
+    if (!(specRate >= 0 && std::isfinite(specRate))) Rcpp::stop("callModel(): specRate must be finite and >= 0");
+    if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
+    for (int i = 1; i < runs.length(); i++) {
+        if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
+    }
+    R_xlen_t nCells = (R_xlen_t) x * y;
+    if (airmatR.length() != 1 && airmatR.length() != nCells)
+        Rcpp::stop("callModel(): airmatR must have length 1 or x * y");
+    if (soilmatR.length() != 1 && (soilmatR.length() != nCells || airmatR.length() == 1))
+        Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
+
     RandomGen ran;
     ran.seedrand(seed); // seed is int while seedrand expects unsigned int
 
@@ -165,6 +188,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
                               dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
                               redQueenStrength, protracted, airmat, soilmat, nicheWidth);
+    if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
+    else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
 
 
     for (int step = 0; step < nRuns; step++) {
@@ -199,20 +224,16 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                     indCounter++;
                 }
             }
-            phylSimModel.m_Global->m_Phylogeny.prunePhylogeny(prevNGen);
+            if (prunePhylogeny) phylSimModel.m_Global->m_Phylogeny.prunePhylogeny();
             std::string phyloPass("\0");
 
 #ifdef DEBUG
             Rcpp::Rcout << "before writePhylogenyR\nprunePhylogeny: " << prunePhylogeny << "\n";
             // consistency checks -> length, etc
 #endif
-            if (prunePhylogeny) {
-                phyloPass = phylSimModel.m_Global->m_Phylogeny.writePhylogenyR(1,
-                                                                               phylSimModel.m_Global->m_Phylogeny.m_PrunedPhylo);
-            } else {
-                phyloPass = phylSimModel.m_Global->m_Phylogeny.writePhylogenyR(1,
-                                                                               phylSimModel.m_Global->m_Phylogeny.m_FullPhylogeny);
-            }
+            phyloPass = phylSimModel.m_Global->m_Phylogeny.writePhylogenyR(1,
+                                                                           phylSimModel.m_Global->m_Phylogeny.m_FullPhylogeny,
+                                                                           prevNGen);
 #ifdef DEBUG
             Rcpp::Rcout << "after writePhylogenyR\n";
 #endif
@@ -232,17 +253,13 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                     indCounter++;
                 }
             }
-            phylSimModel.m_Local->m_Phylogeny.prunePhylogeny(prevNGen);
+            if (prunePhylogeny) phylSimModel.m_Local->m_Phylogeny.prunePhylogeny();
 
             std::string phyloPass("\0");
 
-            if (prunePhylogeny) {
-                phyloPass = phylSimModel.m_Local->m_Phylogeny.writePhylogenyR(1,
-                                                                              phylSimModel.m_Local->m_Phylogeny.m_PrunedPhylo);
-            } else {
-                phyloPass = phylSimModel.m_Local->m_Phylogeny.writePhylogenyR(1,
-                                                                              phylSimModel.m_Local->m_Phylogeny.m_FullPhylogeny);
-            }
+            phyloPass = phylSimModel.m_Local->m_Phylogeny.writePhylogenyR(1,
+                                                                          phylSimModel.m_Local->m_Phylogeny.m_FullPhylogeny,
+                                                                          prevNGen);
 
             char *cstr = new char[phyloPass.length() + 1];
             std::strcpy(cstr, phyloPass.c_str());

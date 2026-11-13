@@ -71,11 +71,13 @@ void PhylSimModel::update(unsigned int runs) {
             m_Global->increaseAge(timeStep + generation);
             m_Global->reproduce(timeStep + generation);
             m_Global->speciation(timeStep + generation);
+            m_Global->m_Phylogeny.pruneIfLarge();
             //  std::cout << "Disp generation :" <<  generation << '/' << runs << '\n';
         } else if (m_Dispersal == 3) {
             m_Local->increaseAge(timeStep + generation);
             m_Local->reproduce(timeStep + generation);
             m_Local->speciation(timeStep + generation);
+            m_Local->m_Phylogeny.pruneIfLarge();
             //   std::cout << "Disp generation :" <<  generation << '/' << runs << '\n';
         }
     }

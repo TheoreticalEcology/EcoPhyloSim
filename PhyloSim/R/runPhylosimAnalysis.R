@@ -34,7 +34,7 @@ runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summ
   validateParams(names(variableParams), names(arguments))
   validateParams(names(fixedParams), names(arguments))
   validatePriors(variableParams)
-  cat("ATTENTION: The values of the fixed parameters and the return values of the priors are not validated automatically. Please make sure to read the help of PhyloSim::createCompletePar to choose valid parameters.\n")
+  cat("ATTENTION: createCompletePar() stops with an error if a fixed parameter or a value drawn from a prior is invalid, which stops the analysis. Please make sure to read the help of PhyloSim::createCompletePar to choose valid parameters.\n")
   
   # Find parameters that stay at default values
   defaultParams <- getDefaultParams(arguments, c(fixedParams, variableParams))

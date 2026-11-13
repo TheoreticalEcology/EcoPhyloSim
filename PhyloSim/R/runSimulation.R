@@ -12,6 +12,7 @@
 
 runSimulation <- function(par)
 {
+  checkPar(par)
   
   # GENERAL SETTINGS
   
@@ -21,7 +22,6 @@ runSimulation <- function(par)
       dispersal = 1
       dispersalCut = 1
     }else if (is.numeric(par$dispersal)){
-      if (par$dispersal < 0.5) stop("dispersal parameter too small") 
       dispersalCut = 2*par$dispersal
       dispersal = 3
     }else stop("wrong dispersal parameter") 
@@ -38,38 +38,10 @@ runSimulation <- function(par)
     }else stop("wrong fitness parameters")
     
     
-    if (is.numeric(par$density)) {
-      if (par$density == 0) {
-        par$density = F
-        par$compStrength = 1
-      } else{
-        par$compStrength = par$density
-        par$density = T
-      }
-    }
-    
-    if (is.numeric(par$environment)) {
-      if (par$environment > 1 || par$environment < 0) stop("Parameter environment must be between 0 and 1")
-      if (par$environment == 0) {
-        par$environment = F
-        par$envStrength = 1
-      } else {
-        par$envStrength = par$environment
-        par$environment = T
-      }
-    }
-
-    
-    if(par$density == 0 & par$environment == 0)
-    {
-      neutral = TRUE
-    }else{
-      neutral = F
-    }    
-    
-    if (par$fitnessBaseMortalityRatio < 1) stop("Parameter fitnessBaseMortalityRation must be greater than or equal to 1")
-    
-    if (max(par$airmat) > 1 || min(par$airmat) < 0) stop("Values of airmat must be between 0 and 1")
+    # density and environment stay numeric, so that the stored $Model passes checkPar() when rerun (#118)
+    par$compStrength <- if (par$density == 0) 1 else par$density
+    par$envStrength <- if (par$environment == 0) 1 else par$environment
+    neutral <- par$density == 0 && par$environment == 0
     
     ptm <- proc.time()
     
@@ -78,8 +50,8 @@ runSimulation <- function(par)
                       dispersal = dispersal, 
                       runs = round(par$runs), 
                       specRate = par$specRate, 
-                      dens = par$density, 
-                      env = par$environment, 
+                      dens = par$density > 0, 
+                      env = par$environment > 0, 
                       neutral = neutral, 
                       mort = mortalityFitness, 
                       mortStrength = par$fitnessBaseMortalityRatio, 
@@ -93,10 +65,10 @@ runSimulation <- function(par)
                       redQueen = par$redQueen, 
                       redQueenStrength = par$redQueenStrength, 
                       protracted = par$protracted, 
-                      airmatR = par$airmat, 
-                      soilmatR = par$soilmat,
+                      airmatR = par[["airmatR"]], 
+                      soilmatR = par[["soilmatR"]],
                       prunePhylogeny = par$prunePhylogeny,
-                      nicheWidth = par$nicheWidth)  
+                      nicheWidth = par$nicheWidth)
     
     runtime <- as.numeric((proc.time() - ptm)[3])
     

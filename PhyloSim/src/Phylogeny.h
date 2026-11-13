@@ -23,7 +23,8 @@ public:
     ~Phylogeny();
 
     std::multimap<unsigned long long, Species *> *m_FullPhylogeny;
-    std::multimap<unsigned long long, Species *> *m_PrunedPhylo;
+    bool m_PruneDuringRun;
+    size_t m_PruneThreshold;
 
     void updatePhylogeny(Species *spec);
 
@@ -31,11 +32,14 @@ public:
                         std::multimap<unsigned long long, Species *> *phylogenyMap, char suffix);
 
     std::string writePhylogenyR(unsigned long long start,
-                                std::multimap<unsigned long long, Species *> *phylogenyMap);
+                                std::multimap<unsigned long long, Species *> *phylogenyMap,
+                                unsigned long long current);
 
     void writeSpeciesData();
 
-    void prunePhylogeny(int current);
+    void prunePhylogeny();
+
+    void pruneIfLarge();
 
     std::vector<Species *> specVec;
 };

@@ -17,33 +17,33 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{y}{Integer, Dimension of the model landscape in y-direction}
 
-\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance.}
+\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * dispersal must not exceed min(x, y).}
 
-\item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details).}
+\item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.}
 
 \item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution)}
 
-\item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence.}
+\item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence. Density value must be between 0 and 1.}
 
 \item{environment}{Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.}
 
 \item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche. Smaller values mean stronger environmental filtering. Default is 0.03659906.}
 
-\item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both"; "reproduction" and "both" are currently rejected by \code{createCompletePar}.}
+\item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both". With global dispersal, "reproduction" and "both" are only implemented if environment, density, redQueen and redQueenStrength are 0.}
 
 \item{fitnessBaseMortalityRatio}{Integer, determines the fitness based mortality ratio. Must be greater than or equal to 1.}
 
-\item{densityCut}{Integer, defines the effective range of the competition (ignored if density = 0)}
+\item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y)}
 
-\item{seed}{Numeric, sets the random seed. If NULL (default), a random seed is drawn.}
+\item{seed}{Integer, sets the random seed. If NULL (default), a random seed is drawn.}
 
 \item{type}{Character, determining which model should be used. "base" is running the default model. Other possibilities are "Leipzig" (currently not functional) and "Rneutral", which runs a neutral model purely in R.}
 
 \item{fission}{Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual becomes part of new species) and 2 (population is geographically split in two parts).}
 
-\item{redQueen}{Numeric, determining the strength of the fitness decline of an aging species.}
+\item{redQueen}{Numeric, determining the strength of the fitness decline of an aging species. Must not be negative.}
 
-\item{redQueenStrength}{Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty.}
+\item{redQueenStrength}{Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty. Must not be negative.}
 
 \item{protracted}{Integer, determining the time span in generations a new species stays 'incipient' before turning into a 'good' species. Default is 0.}
 
@@ -55,7 +55,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{convertToBinaryTree}{Logical, determining if the phylogeny should be converted into a binary tree}
 
-\item{prunePhylogeny}{Logical, determining whether the phylogeny should be pruned by the internal pruning function (FALSE currently fails, see #105)}
+\item{prunePhylogeny}{Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small (see \code{\link{callModel}}). If FALSE, all species are kept.}
 }
 \value{
 A List with parameters
