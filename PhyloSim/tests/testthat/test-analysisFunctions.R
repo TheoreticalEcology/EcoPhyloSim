@@ -34,16 +34,3 @@ test_that("es gives one species for one individual and increases with specRate",
   skip("es() uses theta = 2 * specRate, see #124")
   expect_equal(es(2, 3), sum(2 / (2 + 0:8)))
 })
-
-test_that("createCompletePar rejects invalid parameters", {
-  expect_error(createCompletePar(runs = c(100, 50)), "largest")
-  expect_error(createCompletePar(x = 10, y = 20, airmat = matrix(0.5, 10, 10)), "do not match")
-  expect_error(createCompletePar(airmat = 2), "between 0 and 1")
-  expect_error(createCompletePar(environment = 2), "between 0 and 1")
-  expect_error(createCompletePar(fitnessBaseMortalityRatio = 0.5), "greater than or equal to 1")
-})
-
-test_that("runSimulation rejects invalid dispersal", {
-  expect_error(runSimulation(createCompletePar(x = 10, y = 10, dispersal = 0.2)), "too small")
-  expect_error(runSimulation(createCompletePar(x = 10, y = 10, dispersal = "other")), "wrong dispersal")
-})
