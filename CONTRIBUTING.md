@@ -97,7 +97,7 @@ PhyloSim is an R package with a simulation model in C++ (via Rcpp); the package 
 
 ### Tests and checks
 
-- If your contribution changes or adds functionality, please include or update tests in `PhyloSim/tests/testthat/`. Tests should check behavior that matters, not cosmetic details, and should be fast; mark slow tests with `skip_on_cran()`. Model changes should be tested with a fixed seed.
+- If your contribution changes or adds functionality, please include or update tests in `PhyloSim/tests/testthat/`. Tests should check behavior that matters, not cosmetic details, and should be fast; mark slow tests with `skip_on_cran()`. Model changes should be tested with a fixed seed. `test-reproducibility.R` compares results of small simulations with stored snapshots; if a change intentionally changes them, check the differences and accept them with `testthat::snapshot_accept("reproducibility", path = "PhyloSim/tests/testthat")`.
 - Tests, examples and the vignette use at most 2 cores (e.g., `runSimulationBatch(..., parallel = 2)`), never `parallel = TRUE` or `"auto"`, as required by CRAN.
 - A CRAN release is planned, so `R CMD check --as-cran` should be clean; a pull request must not add ERRORs, WARNINGs or NOTEs. `R CMD check` runs on pull requests to `master` (GitHub Actions; for first-time contributors after approval by the EcoPhyloSim team) and must pass. Locally, it is usually sufficient to run the tests related to your change, e.g., `testthat::test_file("PhyloSim/tests/testthat/test-runSimulation.R")` after `devtools::load_all("PhyloSim")`.
 

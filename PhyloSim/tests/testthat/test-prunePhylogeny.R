@@ -17,3 +17,14 @@ test_that("phylogenies are complete for several runs and early time points", {
   }
 })
 
+test_that("phylogenies with and without pruning agree on the extant species", {
+  # #76 (pruned and full phylogeny agree); polytomies are not resolved randomly (#135)
+  run <- function(prune) quietSimulation(x = 20, y = 20, runs = 1000, seed = 3, prunePhylogeny = prune,
+                                         convertToBinaryTree = FALSE)$Output[[1]]
+  full <- run(FALSE)
+  pruned <- run(TRUE)
+  expect_identical(full$specMat, pruned$specMat)
+  extant <- paste0("s", unique(c(full$specMat)))
+  expect_true(ape::all.equal.phylo(ape::keep.tip(full$phylogeny, extant),
+                                   ape::keep.tip(pruned$phylogeny, extant)))
+})
