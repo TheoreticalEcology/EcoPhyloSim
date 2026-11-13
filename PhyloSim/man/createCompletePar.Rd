@@ -35,7 +35,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{seed}{Numeric, sets the random seed. If NULL (default), a random seed is drawn.}
 
-\item{type}{Character, determining which model should be used. "base" is running the default model. Other possibilities are "Leipzig" (currently not functional) and "Rneutral", which runs a neutral model purely in R.}
+\item{type}{Character, determining which model should be used. Currently only "base" (the default) is available. For a simple neutral model in R, see \code{\link{NeutralMod}}.}
 
 \item{fission}{Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual becomes part of new species) and 2 (population is geographically split in two parts).}
 
@@ -62,7 +62,7 @@ A List with parameters
 Function to create a list of parameters for biogeographical simulations with \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
 }
 \details{
-If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}. \cr\cr If type = "Rneutral" the model will run entirely in R. This model is to be seen only for testing and teaching purposes. To be used in practice it is far too slow. Also the output is reduced. Only the species landscape and the parameter settings will be displayed in the output.
+If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
 }
 \examples{
 ## Define a parameter set

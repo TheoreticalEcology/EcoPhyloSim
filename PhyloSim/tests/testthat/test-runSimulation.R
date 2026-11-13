@@ -2,13 +2,10 @@ context("run Simulation")
 
 test_that("Simulation is running correctly",{
   par<-createCompletePar(x=50, y=50, dispersal="global",density=1)
-  parRneutral<-createCompletePar(x=50, y=50, dispersal="global",density=1, type="Rneutral")
   simu<-runSimulation(par)
-  simuRneutral<-runSimulation(parRneutral)
   
   expect_output(str(par), "List of 22")
   expect_is(simu, "PhyloSim")
-  expect_is(simuRneutral, "PhyloSim")
   
   })
 

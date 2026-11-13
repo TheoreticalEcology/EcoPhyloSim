@@ -1,39 +1,93 @@
-#' @title Model of neutral community assembly
-#' @description Runs a simple model of species community assembly under neutral conditions as defined by Hubbell (2001). Usually called by \code{\link{runSimulation}}.
-#' @param xdim Integer, Dimension of the model landscape in x-direction
-#' @param ydim Integer, Dimension of the model landscape in y-direction
-#' @param specRate The speciation rate in total speciation events per generation
-#' @param seed The random seed (do not change this option if you previously set the seed!)
-#' @param runs The number of generations the model runs through
+#' @title Neutral model in R
+#' @description A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is independent of the C++ model of \code{\link{runSimulation}} and returns an object of class \code{PhyloSim} with a species matrix only.
+#' @param x Integer, dimension of the landscape in x-direction
+#' @param y Integer, dimension of the landscape in y-direction
+#' @param dispersal \code{"global"}, or a function with one argument \code{n} that returns \code{n} dispersal distances in cells (see Details)
+#' @param runs Integer or increasing vector of integers, number of generations. If a vector, the species matrix is also saved at the intermediate generations, as in \code{\link{createCompletePar}}.
+#' @param specRate Numeric, mean number of speciation events per generation (at most \code{x * y})
+#' @param density Numeric between 0 and 1, strength of conspecific negative density dependence. 0 (default) gives a neutral model.
+#' @param densityCut Integer, radius of the neighborhood for density dependence
+#' @param seed Integer, random seed. If NULL (default), a seed is drawn.
+#' @param verbose Logical, if TRUE, reports progress every 100 generations and the runtime
+#' @details The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. The parent is a random cell, possibly the dead cell itself (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid; draws that land on the dead cell itself are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula (Hubbell 2001) with \eqn{\theta} approximately equal to \code{specRate}, if \code{specRate} is much smaller than \code{x * y}.
+#'
+#' With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn (at most 10 times; the last recruit is accepted). Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
+#'
+#' The model is slow and only suitable for small landscapes. The output contains the species matrix (\code{specMat}) and the parameters (\code{Model}), so that functions that only need the species matrix, such as \code{\link{specRich}} and \code{\link{rac}}, can be used (\code{\link{sac}} and \code{\link{localPlots}} currently only on square grids). There is no phylogeny and there are no traits, so functions that need them (e.g. \code{plot()} and \code{summary()}) do not work.
 #' @references Hubbell, Stephen P. The unified neutral theory of biodiversity and biogeography (MPB-32). Vol. 32. Princeton University Press, 2001.
-#' @details This model is to be seen only for testing and teaching purposes. However, if you want to use the results for further analysis please call the model with \code{\link{runSimulation}}. \cr\cr  Be careful with the dimensions you choose. Large grids and many generations may take very long to compute. You can assume to have reached the equilibrium state of the model after dim^2/2.  
-#' @return A matrix of species IDs with \code{xdim} rows and \code{ydim} columns.
+#' @return An object of class \code{PhyloSim}, see \code{\link{runSimulation}}. Each element of \code{Output} contains only \code{specMat}, a matrix of species IDs with \code{y} rows and \code{x} columns.
 #' @example /inst/examples/neutralModelR-help.R
-
 #' @export
-NeutralMod <- function(  xdim = 100, ydim=100, specRate = 2,  seed = NULL, runs = 500 ){
-  
+NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRate = 1,
+                       density = 0, densityCut = 1, seed = NULL, verbose = TRUE) {
+
+  checkmate::assert_count(x, positive = TRUE)
+  checkmate::assert_count(y, positive = TRUE)
+  if (!is.function(dispersal) && !identical(dispersal, "global"))
+    stop("dispersal must be \"global\" or a function(n) returning n distances")
+  checkmate::assert_integerish(runs, lower = 1, any.missing = FALSE, min.len = 1, sorted = TRUE, unique = TRUE)
+  checkmate::assert_number(specRate, lower = 0, upper = x * y)
+  checkmate::assert_number(density, lower = 0, upper = 1)
+  checkmate::assert_count(densityCut, positive = TRUE)
+  checkmate::assert_int(seed, null.ok = TRUE)
+  if (is.null(seed)) seed <- sample.int(.Machine$integer.max, 1)
+  set.seed(seed)
+
   ptm <- proc.time()
-  if (! is.null(seed)) set.seed(seed)
-  
-  counter <- 1
-  mat  <- matrix(counter,xdim, ydim)
-  
-  for(i in 1:runs){
-    
-    for (j in 1:(xdim*ydim)){
-      coordx = sample.int(n=xdim,2, T )
-      coordy = sample.int(n=ydim,2, T )
-      mat[coordx[1], coordy[1]] = mat[coordx[2], coordy[2]]
-    }
-    for (j in 1:specRate){
-      SpecCoordx = sample.int(n=xdim,1, T )
-      SpecCoordy = sample.int(n=ydim,1, T )
-      mat[SpecCoordx, SpecCoordy] <- counter +1
-      counter <- counter +1  
-    }
-    if(i %% 100 == 0) print(i)
+  J <- x * y
+  mat <- matrix(1L, y, x)
+  counter <- 1L
+  neighbors <- as.matrix(getCircularOffsets(densityCut))
+  maxTries <- 10
+
+  # linear index of the cell (row, col) + (dr, dc) on the torus
+  shift <- function(cell, dr, dc) {
+    r <- (cell - 1) %% y
+    c <- (cell - 1) %/% y
+    ((r + dr) %% y) + ((c + dc) %% x) * y + 1
   }
-  print (paste("Finished after",floor(((proc.time() - ptm)[3])/60), "minute(s) and", ((proc.time() - ptm)[3])%%60, "second(s)."))
-  return (mat)
+
+  drawParent <- function(cell) {
+    if (!is.function(dispersal)) return(sample.int(J, 1))
+    for (k in 1:100) {
+      d <- dispersal(1)
+      a <- stats::runif(1, 0, 2 * pi)
+      dr <- round(d * sin(a))
+      dc <- round(d * cos(a))
+      parent <- shift(cell, dr, dc)
+      if (parent != cell) return(parent)
+    }
+    stop("dispersal keeps landing on the dead cell; use larger distances")
+  }
+
+  output <- list()
+  for (i in 1:max(runs)) {
+    for (cell in sample.int(J, J, replace = TRUE)) {
+      if (stats::runif(1) < specRate / J) {
+        counter <- counter + 1L
+        mat[cell] <- counter
+        next
+      }
+      for (k in 1:maxTries) {
+        recruit <- mat[drawParent(cell)]
+        if (density == 0 || k == maxTries) break
+        conspecific <- mean(mat[shift(cell, neighbors[, 1], neighbors[, 2])] == recruit)
+        if (stats::runif(1) > density * conspecific) break
+      }
+      mat[cell] <- recruit
+    }
+    if (i %in% runs) output[[length(output) + 1]] <- list(specMat = mat)
+    if (verbose && i %% 100 == 0) message("Generation ", i)
+  }
+
+  runtime <- as.numeric((proc.time() - ptm)[3])
+  if (verbose) message("Finished after ", round(runtime, 1), " seconds.")
+
+  model <- list(x = x, y = y,
+                dispersal = if (is.function(dispersal)) paste(deparse(dispersal), collapse = " ") else dispersal,
+                runs = runs, specRate = specRate, density = density, densityCut = densityCut,
+                environment = 0, seed = seed, type = "NeutralMod", runtime = runtime)
+  out <- list(Output = output, Model = model)
+  class(out) <- "PhyloSim"
+  return(out)
 }
