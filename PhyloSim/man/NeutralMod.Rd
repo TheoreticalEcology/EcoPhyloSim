@@ -2,46 +2,56 @@
 % Please edit documentation in R/neutralModelR.R
 \name{NeutralMod}
 \alias{NeutralMod}
-\title{Model of neutral community assembly}
+\title{Neutral model in R}
 \usage{
-NeutralMod(xdim = 100, ydim = 100, specRate = 2, seed = NULL,
-  runs = 500)
+NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
+  specRate = 1, density = 0, densityCut = 1, seed = NULL,
+  verbose = TRUE)
 }
 \arguments{
-\item{xdim}{Integer, Dimension of the model landscape in x-direction}
+\item{x}{Integer, dimension of the landscape in x-direction}
 
-\item{ydim}{Integer, Dimension of the model landscape in y-direction}
+\item{y}{Integer, dimension of the landscape in y-direction}
 
-\item{specRate}{The speciation rate in total speciation events per generation}
+\item{dispersal}{\code{"global"}, or a function with one argument \code{n} that returns \code{n} non-negative dispersal distances in cells (see Details)}
 
-\item{seed}{The random seed (do not change this option if you previously set the seed!)}
+\item{runs}{Integer or increasing vector of integers, number of generations. If a vector, the species matrix is also saved at the intermediate generations, as in \code{\link{createCompletePar}}.}
 
-\item{runs}{The number of generations the model runs through}
+\item{specRate}{Numeric, mean number of speciation events per generation (at most \code{x * y})}
+
+\item{density}{Numeric between 0 and 1, strength of conspecific negative density dependence. 0 (default) gives a neutral model.}
+
+\item{densityCut}{Integer, radius of the neighborhood for density dependence. If \code{density > 0}, at most \code{(min(x, y) - 1) / 2}, so that no cell is counted twice.}
+
+\item{seed}{Integer, random seed. If NULL (default), a seed is drawn. Apart from this draw, the random number stream of the R session is not changed.}
+
+\item{verbose}{Logical, if TRUE, reports progress every 100 generations and the runtime}
 }
 \value{
-A matrix of species IDs with \code{xdim} rows and \code{ydim} columns.
+An object of class \code{PhyloSim}, see \code{\link{runSimulation}}. Each element of \code{Output} contains only \code{specMat}, a matrix of species IDs with \code{y} rows and \code{x} columns.
 }
 \description{
-Runs a simple model of species community assembly under neutral conditions as defined by Hubbell (2001). Usually called by \code{\link{runSimulation}}.
+A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is independent of the C++ model of \code{\link{runSimulation}} and returns an object of class \code{PhyloSim} with a species matrix only.
 }
 \details{
-This model is to be seen only for testing and teaching purposes. However, if you want to use the results for further analysis please call the model with \code{\link{runSimulation}}. \cr\cr  Be careful with the dimensions you choose. Large grids and many generations may take very long to compute. You can assume to have reached the equilibrium state of the model after dim^2/2.
+The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. The parent is a random cell, possibly the dead cell itself (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid; draws that land on the dead cell itself are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate / (1 - specRate / (x y))}{theta = specRate / (1 - specRate / (x * y))} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
+
+With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn; at most 10 parents are drawn, and the last recruit is accepted. Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
+
+The model is slow and only suitable for small landscapes. The output contains the species matrix (\code{specMat}) and the parameters (\code{Model}), so that functions that only need the species matrix, such as \code{\link{specRich}} and \code{\link{rac}}, can be used (\code{\link{sac}} and \code{\link{localPlots}} currently only on square grids). There is no phylogeny and there are no traits, so functions that need them (e.g. \code{plot()} and \code{summary()}) do not work.
 }
 \examples{
-# Run the model
-metaCom <- NeutralMod(xdim=20, ydim=20, specRate=2, seed=1500, runs=500)
-image(metaCom)
+## Neutral model with global dispersal
+simu <- NeutralMod(x = 20, y = 20, runs = 100, specRate = 2, seed = 1)
+image(simu$Output[[1]]$specMat)
+specRich(simu)
 
-# Usually the function is called by the runSimulation function
-# Define a parameter set
-parNeut <- createCompletePar(x = 20, y = 20, dispersal = "global", runs = 500,
-        density = 1, environment = 0.5, specRate = 1, type="Rneutral")
-
-# Run the model
-simuNeut <- runSimulation(parNeut)
-
-# Visualize the grid
-image(simuNeut$Output[[1]]$specMat)
+## Local dispersal with exponential distances (mean 2 cells), saving
+## generations 50 and 100, and conspecific negative density dependence
+simu <- NeutralMod(x = 20, y = 20, runs = c(50, 100), specRate = 2, seed = 1,
+                   dispersal = function(n) stats::rexp(n, rate = 1/2),
+                   density = 0.5, densityCut = 2)
+rac(simu, which.result = "all")
 }
 \references{
 Hubbell, Stephen P. The unified neutral theory of biodiversity and biogeography (MPB-32). Vol. 32. Princeton University Press, 2001.
