@@ -1,10 +1,14 @@
-context("summaryStatistics")
-
-test_that("calculateSummaryStatistics returns for random simulations", {
+test_that("calculateSummaryStatistics returns all statistics", {
   set.seed(1)
-  for(i in 1:2) {
-    summStat <- calculateSummaryStatistics(runSimulation(createCompletePar(specRate = runif(1,1,5),
-                                                         density = runif(1,0,1))))
-    expect_output(str(summStat), "List of 16")
-  }
+  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = 200, seed = 1, density = 0.5, environment = 0.5)
+  summStat <- calculateSummaryStatistics(simu, strict = FALSE)
+  expect_length(summStat, 16)
+  expect_false(anyNA(unlist(summStat)))
+  expect_equal(summStat$gammaDiversity, specRich(simu))
+})
+
+test_that("calculateSummaryStatistics uses the last result if runs has several values", {
+  skip("calculateSummaryStatistics() mixes first and last result, see #134")
+  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = c(100, 200), seed = 1)
+  expect_equal(calculateSummaryStatistics(simu, strict = FALSE)$gammaDiversity, specRich(simu))
 })
