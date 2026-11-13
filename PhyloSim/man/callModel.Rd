@@ -16,11 +16,11 @@ callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
 
 \item{dispersal}{Integer, dispersal type: 1 = global dispersal (offspring may colonize
 any cell in the lattice with equal probability), 3 = local dispersal with an exponential
-kernel whose characteristic distance is \code{dispersalCutoff / 2}; 2 = nearest-neighbor dispersal (not used by
-\code{\link{runSimulation}}).
+kernel whose characteristic distance is \code{dispersalCutoff / 2}. Other values give an error.
 \code{\link{runSimulation}} uses 1 for \code{dispersal = "global"} or 0, and 3 otherwise.}
 
-\item{runs}{Integer vector, the generation(s) at which the simulation state is saved.
+\item{runs}{Integer vector, the generation(s) at which the simulation state is saved;
+values must be >= 0 and must not decrease.
 The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
 intermediate states are saved at each value as well.}
 
@@ -57,7 +57,8 @@ differential reproductive output. Corresponds to \code{fitnessActsOn = "reproduc
 \item{dispersalCutoff}{Integer, cutoff distance for the local dispersal kernel (ignored
 if \code{dispersal = 1}); individuals only disperse within this distance. The
 characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
-sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).}
+sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
+With \code{dispersal = 3}, it must be between 1 and \code{min(x, y)}.}
 
 \item{densityCutoff}{Integer, defines the effective spatial range of the competition /
 density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
@@ -88,11 +89,13 @@ newly formed species a fitness boost due to its novelty, which vanishes over tim
 turning into a 'good' species (protracted speciation). Default is 0 (point speciation).}
 
 \item{airmatR}{Numeric vector, the environmental values of the grid, flattened
-column-major (length x*y), scaled between 0 and 1. Corresponds to \code{airmat} in
+column-major (length x*y), scaled between 0 and 1, or a single value for the default
+gradient. Corresponds to \code{airmat} in
 \code{\link{createCompletePar}}.}
 
 \item{soilmatR}{Numeric vector, a second, optional environmental grid, flattened
-column-major (length x*y), analogous to \code{airmatR}. Stored internally per grid
+column-major (length x * y if \code{airmatR} has this length, or a single value),
+analogous to \code{airmatR}. Stored internally per grid
 cell but not currently read by any fitness or dispersal calculation, so it has no
 effect on simulation output. Retained for potential future use; not currently
 exposed as a separate argument in \code{createCompletePar}.}
