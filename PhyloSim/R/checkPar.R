@@ -14,7 +14,8 @@ checkPar <- function(par) {
   checkmate::assert_number(par[["specRate"]], lower = 0, finite = TRUE, .var.name = "specRate", add = coll)
   checkmate::assert_number(par[["density"]], lower = 0, upper = 1, .var.name = "density", add = coll)
   checkmate::assert_number(par[["environment"]], lower = 0, upper = 1, .var.name = "environment", add = coll)
-  checkmate::assert_number(par[["nicheWidth"]], lower = .Machine$double.eps, .var.name = "nicheWidth", add = coll) # > 0
+  checkmate::assert_number(par[["nicheWidth"]], lower = .Machine$double.eps, finite = TRUE,
+                           .var.name = "nicheWidth", add = coll) # > 0
   checkmate::assert_choice(par[["fitnessActsOn"]], c("mortality", "reproduction", "both"),
                            .var.name = "fitnessActsOn", add = coll)
   checkmate::assert_int(par[["fitnessBaseMortalityRatio"]], lower = 1,

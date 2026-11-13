@@ -27,7 +27,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{environment}{Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.}
 
-\item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche. Smaller values mean stronger environmental filtering. Default is 0.03659906.}
+\item{nicheWidth}{Numeric, width (standard deviation) of the Gaussian environmental niche. Must be positive and finite. The default 0.03659906 is the value that was fixed in earlier versions. Very small and very large values both weaken the association between trait and environment, because fitness then hardly varies with the trait for most individuals.}
 
 \item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both". With global dispersal, "reproduction" and "both" are only implemented if environment, density, redQueen and redQueenStrength are 0.}
 
