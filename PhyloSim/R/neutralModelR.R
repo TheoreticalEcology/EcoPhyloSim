@@ -41,7 +41,7 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
   J <- x * y
   mat <- matrix(1L, y, x)
   counter <- 1L
-  neighbors <- as.matrix(getCircularOffsets(densityCut))
+  if (density > 0) neighbors <- as.matrix(getCircularOffsets(densityCut))
   maxTries <- 10
 
   # linear index of the cell (row, col) + (dr, dc) on the torus
