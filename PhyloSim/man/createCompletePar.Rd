@@ -19,7 +19,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * dispersal must not exceed min(x, y).}
 
-\item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details).}
+\item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.}
 
 \item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution)}
 
@@ -31,7 +31,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{fitnessBaseMortalityRatio}{Integer, determines the fitness based mortality ratio. Must be greater than or equal to 1.}
 
-\item{densityCut}{Integer >= 1, defines the effective range of the competition (ignored if density = 0); must not exceed min(x, y)}
+\item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y)}
 
 \item{seed}{Integer, sets the random seed. If NULL (default), a random seed is drawn.}
 
@@ -39,9 +39,9 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{fission}{Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual becomes part of new species) and 2 (population is geographically split in two parts).}
 
-\item{redQueen}{Numeric, determining the strength of the fitness decline of an aging species.}
+\item{redQueen}{Numeric, determining the strength of the fitness decline of an aging species. Must not be negative.}
 
-\item{redQueenStrength}{Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty.}
+\item{redQueenStrength}{Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty. Must not be negative.}
 
 \item{protracted}{Integer, determining the time span in generations a new species stays 'incipient' before turning into a 'good' species. Default is 0.}
 

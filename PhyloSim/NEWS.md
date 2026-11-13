@@ -11,9 +11,8 @@
 ## Changes
 
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
-* `createCompletePar()` and `runSimulation()` stop with an error if `environment` or the values of `airmat` are outside [0, 1], or if `fitnessBaseMortalityRatio < 1` (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
-* `createCompletePar()` and `runSimulation()` check all parameters with checkmate, also in parameter lists changed by hand: among others, `density` must be in [0, 1] (#96), `runs` must not decrease, `airmat` must be a single value or have `x * y` values, `2 * dispersal` and `densityCut` must not exceed `min(x, y)`, and parameters documented as integers must be whole numbers (#118).
+* `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `density` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
 * The `Model` element of the output of `runSimulation()` keeps the numeric values of `density` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).
 * Default plot sizes in `sac()` are log-spaced, as documented (#115).
@@ -44,6 +43,5 @@
 
 * The vignette was converted from Sweave (PDF) to R Markdown (HTML).
 * Package help converted to roxygen; examples moved to `inst/examples/` (#87).
-* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), and the dimensions of `airmat` (#122).
-* The help of `createCompletePar()` states the valid ranges of `density` (#96), `dispersal` and `densityCut` (#118).
+* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `density` (#96), `dispersal`, `densityCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122).
 * Help pages and vignette revised: corrected trait-evolution formula in the vignette and return value of `sac()`, documented parameters of `callModel()`, faster examples, corrected spelling and several incorrect argument and return value descriptions (#113).

@@ -39,7 +39,8 @@ using namespace Rcpp;
 //'   any cell in the lattice with equal probability), 3 = local dispersal with an exponential
 //'   kernel whose characteristic distance is \code{dispersalCutoff / 2}. Other values give an error.
 //'   \code{\link{runSimulation}} uses 1 for \code{dispersal = "global"} or 0, and 3 otherwise.
-//' @param runs Integer vector, the generation(s) at which the simulation state is saved.
+//' @param runs Integer vector, the generation(s) at which the simulation state is saved;
+//'   values must be >= 0 and must not decrease.
 //'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
 //'   intermediate states are saved at each value as well.
 //' @param specRate Numeric, speciation rate: mean number of speciation events per generation
@@ -69,6 +70,7 @@ using namespace Rcpp;
 //'   if \code{dispersal = 1}); individuals only disperse within this distance. The
 //'   characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
 //'   sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
+//'   With \code{dispersal = 3}, it must be between 1 and \code{min(x, y)}.
 //' @param densityCutoff Integer, defines the effective spatial range of the competition /
 //'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
 //'   \code{densityCut} in \code{\link{createCompletePar}}.
