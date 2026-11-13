@@ -39,7 +39,7 @@ createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, 
     if((nrow(airmat) != y) | (ncol(airmat)!= x)) stop("Environment and matrix size do not match")
   }
   if (max(airmat) > 1 || min(airmat) < 0) stop("Values of airmat must be between 0 and 1")
-  
+  checkmate::assert_number(nicheWidth, lower = .Machine$double.eps) # must be > 0
   if(length(soilmat) != 1){
     if((nrow(soilmat) != y) | (ncol(soilmat)!= x)) stop("Environment and matrix size do not match")
   }

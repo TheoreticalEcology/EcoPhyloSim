@@ -6,7 +6,7 @@ test_that("Simulation is running correctly",{
   simu<-runSimulation(par)
   simuRneutral<-runSimulation(parRneutral)
   
-  expect_output(str(par), "List of 22")
+  expect_output(str(par), "List of 23")
   expect_is(simu, "PhyloSim")
   expect_is(simuRneutral, "PhyloSim")
   

@@ -330,7 +330,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                 for (int kernel_y = 0; kernel_y < m_Ydimensions; kernel_y++) {
                     weights[array_length] = m_Individuals[kernel_x][kernel_y].getFitness(
                             m_Environment[kernel_x * m_Ydimensions + kernel_y].first, m_Env, m_DD, generation,
-                            m_redQueenStrength, m_redQueen, m_nicheWidth);
+                            m_redQueenStrength, m_redQueen);
                     seedSum += weights[array_length];
                     array_length++;
                 }
@@ -367,7 +367,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             if (m_mortality && event % m_mortalityStrength != 0) {
                 double weight = m_Individuals[x_coordinate][y_coordinate].getFitness(
                         m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD, generation,
-                        m_redQueenStrength, m_redQueen, m_nicheWidth);
+                        m_redQueenStrength, m_redQueen);
                 // important!! the frequency in relation to the base mortality controls the intensity of the mechanisms
                 double chanceOfDeath = m_RandomGenerator.randomDouble(0.0, 1.0);
                 //std::cout<<weight<<"\n"; // DEBUG
@@ -631,7 +631,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         if (m_mortality && event % m_mortalityStrength != 0) {
             double weight = m_Individuals[x_coordinate][y_coordinate].getFitness(
                     m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD, generation,
-                    m_redQueenStrength, m_redQueen, m_nicheWidth);
+                    m_redQueenStrength, m_redQueen);
             double chanceOfDeath = m_RandomGenerator.randomDouble(0.0, 1.0);
             if (weight > chanceOfDeath) continue;
         }
@@ -667,8 +667,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                                                                                                            kernel_y].first,
                                                                                              m_Env, m_DD, generation,
                                                                                              m_redQueenStrength,
-                                                                                             m_redQueen,
-                                                                                             m_nicheWidth);
+                                                                                             m_redQueen);
                     } else if (m_mortality) {
                         weights[array_length] = m_Individuals[kernel_x][kernel_y].dispersal(m_Dispersal_type,
                                                                                             m_Individuals[kernel_x][kernel_y].euclidian_distance(

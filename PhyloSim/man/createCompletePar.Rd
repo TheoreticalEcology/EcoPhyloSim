@@ -5,7 +5,7 @@
 \title{Parameter Generator}
 \usage{
 createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
-  specRate = 1, density = 0, environment = 0,
+  specRate = 1, density = 0, environment = 0, nicheWidth = 0.03659906,
   fitnessActsOn = "mortality", fitnessBaseMortalityRatio = 10,
   densityCut = 1, seed = NULL, type = "base", fission = 0,
   redQueen = 0, redQueenStrength = 0, protracted = 0, airmat = 1,
@@ -26,6 +26,8 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 \item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence.}
 
 \item{environment}{Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.}
+
+\item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche. Smaller values mean stronger environmental filtering. Default is 0.03659906.}
 
 \item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both"; "reproduction" and "both" are currently rejected by \code{createCompletePar}.}
 

@@ -101,6 +101,9 @@ exposed as a separate argument in \code{createCompletePar}.}
 function, which removes extinct terminal lineages; the result can still contain extinct
 tips (use \code{ape::drop.fossil} to keep only extant species). If FALSE, the full
 phylogeny should be returned, but this currently fails (#105).}
+
+\item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche
+(see \code{\link{createCompletePar}}).}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

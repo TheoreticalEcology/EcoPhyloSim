@@ -59,9 +59,6 @@ runSimulation <- function(par)
       }
     }
 
-    if (!is.null(par$nicheWidth) && par$nicheWidth <= 0) {
-      stop("nicheWidth must be a positive number (used as variance in the environmental kernel)")
-    }    
     
     if(par$density == 0 & par$environment == 0)
     {
