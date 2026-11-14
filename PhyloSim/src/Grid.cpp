@@ -418,11 +418,11 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             new_parent = drawParent();
 
             // rejection sampling: parent with probability ~ proposal * fitness of its recruit here;
-            // after maxRecruitTries rejections, the same distribution is drawn from all weights
+            // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
             for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
                     recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
                  tries++) {
-                if (tries < maxRecruitTries) {
+                if (tries < std::min(maxRecruitTries, (int) m_LandscapeSize - 1)) {
                     new_parent = drawParent();
                     continue;
                 }
@@ -754,11 +754,11 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
 
         // fixes #165 (rejection sampling: parent with probability ~ weight * fitness of its recruit here);
-        // after maxRecruitTries rejections, the same distribution is drawn from all weights
+        // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
         for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
                 recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
              tries++) {
-            if (tries < maxRecruitTries) {
+            if (tries < std::min(maxRecruitTries, (int) array_length)) {
                 new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
                 continue;
             }
