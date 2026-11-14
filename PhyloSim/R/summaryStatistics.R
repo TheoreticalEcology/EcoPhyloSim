@@ -3,7 +3,8 @@
 #' @description Calculates the summary statistics for a simulation of class PhyloSim.
 #' @param simulation Simulation output of the class "PhyloSim"
 #' @param strict Logical. If true the output of the function will be NA if at least one summary statistic could not be calculated.
-#' @details Computes the following summary statistics from a single simulation run:
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @details Computes the following summary statistics from one result of a simulation run. If calculateSummaries = TRUE in \code{\link{createCompletePar}}, \code{\link{runSimulation}} stores the summary statistics of the last result in `Output[[1]]$summaries`:
 #' \describe{
 #'   \item{racAuc}{Area under the Rank Abundance Curve (see \code{\link{rac}}).}
 #'   \item{sacAuc}{Area under the Species Area Curve (see \code{\link{sac}}).}
@@ -25,7 +26,7 @@
 #' @export
 #' 
 
-calculateSummaryStatistics <- function(simulation, strict=TRUE) {
+calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NULL) {
   summaryStatistics <- list(racAuc=NA,
                             sacAuc=NA,
                             alphaDiversity = NA,
@@ -43,18 +44,23 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
                             env = NA,
                             envSqr = NA)
   
+  # use one result for all statistics (fixes #134)
+  checkmate::assert_int(which.result, lower = 1, upper = length(simulation$Output), null.ok = TRUE)
+  if (is.null(which.result)) which.result <- length(simulation$Output)
+  result <- simulation$Output[[which.result]]
+  
   # TODO: implement special case: only 1 species
-  if (is.double(simulation$Output[[1]]$phylogeny)) {
+  if (is.double(result$phylogeny)) {
     return(summaryStatistics)
   }
   
   # RAC
-  rac <- rac(simulation, plot = F)
+  rac <- rac(simulation, which.result = which.result, plot = F)
   summaryStatistics$racAuc <- MESS::auc(x = rac$Rank,
                                         y = rac$Abundance)
   
   # SAC
-  sac <- sac(simulation, size = seq(1,15), plot = F)
+  sac <- sac(simulation, which.result = which.result, size = seq(1,15), plot = F)
   summaryStatistics$sacAuc <- MESS::auc(x = sac$size,
                                         y = sac$sr.Mean)
   
@@ -67,6 +73,7 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   sizeSubPlots <- 10
   
   plots <- localPlots(simulation,
+                      which.result = which.result,
                       n = nSubPlots,
                       size = sizeSubPlots,
                       plot = F,
@@ -85,13 +92,13 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
                                                            method=method))
   
   # gamma diversity
-  summaryStatistics$gammaDiversity <- gammaDiversity(simulation)
+  summaryStatistics$gammaDiversity <- gammaDiversity(result)
   
   # phylogenetic imbalance
   # Colless index (Yule-normalized), computed internally (see collessImbalance.R).
   # Previously relied on apTreeshape, which was archived from CRAN.
   summaryStatistics$imbalance <- .collessIndex(
-    ape::drop.fossil(simulation$Output[[1]]$phylogeny),
+    ape::drop.fossil(result$phylogeny),
     norm = "yule")
 
   # phylogenetic dispersion
@@ -100,18 +107,18 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   # picante::ses.mpd, which is maintained and already a dependency.
   # The species pool is the full phylogeny, as with mpd.query before.
   sesMpd <- picante::ses.mpd(plots$communityTable,
-                             stats::cophenetic(simulation$Output[[1]]$phylogeny),
+                             stats::cophenetic(result$phylogeny),
                              null.model = "taxa.labels", runs = 999)
   summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
   
   # gamma statistics
   # uses ape's implementation of the gammaStatistics
   # attention: only works on ultrametric trees
-  summaryStatistics$gammaStatistics <- ape::gammaStat(ape::drop.fossil(simulation$Output[[1]]$phylogeny))
+  summaryStatistics$gammaStatistics <- ape::gammaStat(ape::drop.fossil(result$phylogeny))
   
   # mean node age
   #summaryStatistics$meanNodeAge <- ape::chronoMPL(simulation$Output[[1]]$phylogeny)
-  summaryStatistics$meanNodeAge <- mean(ape::drop.fossil(simulation$Output[[1]]$phylogeny)$edge.length)
+  summaryStatistics$meanNodeAge <- mean(ape::drop.fossil(result$phylogeny)$edge.length)
   
   
   # variation partitioning
@@ -127,13 +134,13 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   
   
   # Clark Evans
-  summaryStatistics$ce <- clarkEvans(simulation$Output[[1]]$specMat, correction="Donnelly")
+  summaryStatistics$ce <- clarkEvans(result$specMat, correction="Donnelly")
   
   # nb8
-  summaryStatistics$nb8 <- nb8Idx(simulation$Output[[1]]$specMat)
+  summaryStatistics$nb8 <- nb8Idx(result$specMat)
   
   # env influence index
-  envIndices <- envIdx(simulation)
+  envIndices <- envIdx(result)
   summaryStatistics$envIntercept <- envIndices[1]
   summaryStatistics$env <- envIndices[2]
   summaryStatistics$envSqr <- envIndices[3]
@@ -147,8 +154,8 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE) {
   return(summaryStatistics)
 }
 
-gammaDiversity <- function(simulation, q=0){
-  spec_vector <- c(simulation$Output[[1]]$specMat)
+gammaDiversity <- function(result, q=0){
+  spec_vector <- c(result$specMat)
   specs <- unique(spec_vector)
   n_specs <- length(specs)
   
@@ -275,9 +282,9 @@ nb8Idx <- function (mat) {
   return(sum(nbRates))
 }
 
-envIdx <- function (s) {
-  envMat <- s$Output[[1]]$envMat
-  specMat <- s$Output[[1]]$specMat
+envIdx <- function (result) {
+  envMat <- result$envMat
+  specMat <- result$specMat
   
   specIDs <- unique(as.vector(specMat))
   nSpec <- length(specIDs)

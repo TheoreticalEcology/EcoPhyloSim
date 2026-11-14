@@ -34,3 +34,9 @@ test_that("es gives one species for one individual and increases with specRate",
   skip("es() uses theta = 2 * specRate, see #124")
   expect_equal(es(2, 3), sum(2 / (2 + 0:8)))
 })
+
+test_that("the bundled simulations have class PhyloSim", {
+  for (simu in list(simu.envcom.local, simu.neutral.local, simu.neutral.global)) {
+    expect_s3_class(simu, "PhyloSim", exact = TRUE) # #128
+  }
+})

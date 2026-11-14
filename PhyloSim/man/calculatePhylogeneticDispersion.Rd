@@ -19,7 +19,7 @@ calculatePhylogeneticDispersion(simu, plotlengths = 10, plots = 200,
 
 \item{type}{String, determines which null model should be created. Possible inputs are "PhylMeta" (default), "PhylSample", "PhylPool", "SamplePool" (see details).}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose a particular result, or use all results with which.result = "all".}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose one or several results (e.g. which.result = c(1, 2)), or use all results with which.result = "all".}
 
 \item{reduce}{Logical, currently not used by this function (reserved for a future implementation; has no effect on the output).}
 

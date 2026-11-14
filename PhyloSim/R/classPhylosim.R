@@ -37,7 +37,7 @@ summary.PhyloSim <- function(object, ...){
     runsarg<- paste(runsarg, object$Model$runs[[length(object$Model$runs)]], ")" )
   }
   
-  cat("Summary for class Phylosim",  "\n")
+  cat("Summary for class PhyloSim",  "\n")
   cat("# Call: runSimulation(x = ", object$Model$x, ", y = ", object$Model$y, ", dispersal = '", 
       object$Model$dispersal,"'", ", runs =", runsarg,"\n", ", density = ", object$Model$density, 
       ", environment = ", object$Model$environment, ", specRate = ",object$Model$specRate,")", "\n", sep="")

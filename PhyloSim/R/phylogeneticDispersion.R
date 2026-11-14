@@ -5,7 +5,7 @@
 #' @param plots Integer, number of sample plots
 #' @param replicates Integer, number of replicates
 #' @param type String, determines which null model should be created. Possible inputs are "PhylMeta" (default), "PhylSample", "PhylPool", "SamplePool" (see details).
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose a particular result, or use all results with which.result = "all".
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose one or several results (e.g. which.result = c(1, 2)), or use all results with which.result = "all".
 #' @param reduce Logical, currently not used by this function (reserved for a future implementation; has no effect on the output).
 #' @param fun String, currently not used by this function; MPD is always used.
 #' @details In the type argument "PhylMeta" is equivalent to \code{\link{nullModel}} with abundance = FALSE, "PhylSample" is equivalent to the same function with abundance = TRUE, whereas the two other options use \code{\link[picante]{ses.mpd}}. "PhylPool" uses the argument null.model = "phylogeny.pool", "SamplePool" is setting null.model to "sample.pool". \cr\cr For more information see \code{\link{nullModel}}. \cr\cr If you choose which.result = NULL (default), the length of the output corresponds to the length of the 'runs' argument in your parameter definition. Otherwise the list has length max(which.result); elements of results not requested are NULL. \cr\cr The structure of the output is organized as follows: with `output[[t]]` you will get the results for result (time step) 't'. With `output[[t]][[n]]` you will get the results for scenario 'n' at 't'. `output[[t]][[n]]` is a list that contains one vector with p values for each element in the plotlengths argument.
@@ -30,7 +30,7 @@ calculatePhylogeneticDispersion <- function(simu, plotlengths = 10,  plots = 200
   }
   
   if(is.null(times) == FALSE){
-    if(times == "all"){
+    if(identical(times, "all")){
       times = c(1:nRuns)     
     }
   }

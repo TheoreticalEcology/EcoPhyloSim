@@ -8,7 +8,7 @@ test_that("calculateSummaryStatistics returns all statistics", {
 })
 
 test_that("calculateSummaryStatistics uses the last result if runs has several values", {
-  skip("calculateSummaryStatistics() mixes first and last result, see #134")
   simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = c(100, 200), seed = 1)
   expect_equal(calculateSummaryStatistics(simu, strict = FALSE)$gammaDiversity, specRich(simu))
+  expect_error(calculateSummaryStatistics(simu, which.result = 3), "which.result")
 })
