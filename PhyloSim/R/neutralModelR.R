@@ -11,7 +11,7 @@
 #' @param verbose Logical, if TRUE, reports progress every 100 generations and the runtime
 #' @details The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. As in \code{\link{runSimulation}}, the parent is never the dead cell itself: it is a random other cell (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid, where draws that land on the dead cell are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate (x y - 1) / (x y - specRate)}{theta = specRate * (x * y - 1) / (x * y - specRate)} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
 #'
-#' With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn; at most 10 parents are drawn, and the last recruit is accepted. Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
+#' With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn. The parent is therefore drawn with a probability proportional to its dispersal probability times \code{1 - density * S}, where \code{S} is the proportion of its conspecifics around the dead cell. This is the same rule as in \code{\link{runSimulation}} with \code{densityKernel = "species"} and \code{fitnessActsOn = "recruitment"}. After 1000 rejections, the parent is drawn directly from these probabilities with global dispersal; with a dispersal function, the last recruit is accepted. Note that \code{dispersal} is defined differently than in \code{\link{createCompletePar}}. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
 #'
 #' The model is slow and only suitable for small landscapes. The output contains the species matrix (\code{specMat}) and the parameters (\code{Model}), so that functions that only need the species matrix, such as \code{\link{specRich}}, \code{\link{rac}}, \code{\link{sac}} and \code{\link{localPlots}}, can be used. There is no phylogeny and there are no traits, so functions that need them (e.g. \code{plot()} and \code{summary()}) do not work.
 #' @references Hubbell, Stephen P. The unified neutral theory of biodiversity and biogeography (MPB-32). Vol. 32. Princeton University Press, 2001.
@@ -43,7 +43,7 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
   mat <- matrix(1L, y, x)
   counter <- 1L
   if (density > 0) neighbors <- as.matrix(getCircularOffsets(densityCut))
-  maxTries <- 10
+  maxTries <- 1000 # as in the C++ model (Landscape::maxRecruitTries)
 
   # linear index of the cell (row, col) + (dr, dc) on the torus
   shift <- function(cell, dr, dc) {
@@ -81,9 +81,14 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
       }
       for (k in 1:maxTries) {
         recruit <- mat[drawParent(cell)]
-        if (density == 0 || k == maxTries) break
-        conspecific <- mean(mat[shift(cell, neighbors[, 1], neighbors[, 2])] == recruit)
-        if (stats::runif(1) > density * conspecific) break
+        if (density == 0) break
+        around <- mat[shift(cell, neighbors[, 1], neighbors[, 2])]
+        if (stats::runif(1) > density * mean(around == recruit)) break
+        if (k == maxTries && !is.function(dispersal)) { # exact draw, as in the C++ model (#165)
+          prob <- 1 - density * tabulate(around, counter)[mat] / length(around) + .Machine$double.xmin * 100
+          prob[cell] <- 0
+          recruit <- mat[sample.int(J, 1, prob = prob)]
+        }
       }
       mat[cell] <- recruit
     }

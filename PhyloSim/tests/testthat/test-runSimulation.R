@@ -4,7 +4,7 @@ test_that("Simulation is running correctly",{
   par<-createCompletePar(x=50, y=50, dispersal="global",density=1)
   simu<-runSimulation(par)
   
-  expect_output(str(par), "List of 23")
+  expect_output(str(par), "List of 26")
   expect_is(simu, "PhyloSim")
   
   })

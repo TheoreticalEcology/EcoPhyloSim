@@ -76,7 +76,8 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
                      int DensityCutoff, unsigned int mortalityStrength,
                      double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                      int protracted,
-                     std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth) {
+                     std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
+                     DensityOptions ddOptions) {
 
     m_Cutoff = dispersalCutoff;
     m_Neutral = neutral;
@@ -100,6 +101,10 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     m_redQueenStrength = redQueenStrength;
     m_protracted = protracted;
     m_nicheWidth = nicheWidth;
+    m_recruitment = ddOptions.recruitment;
+    m_ddKernel = ddOptions.kernel;
+    m_ddWidth = ddOptions.width;
+    m_ddTable = ddOptions.table;
 
     //	func.seedrand(1500);
 
@@ -125,6 +130,7 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
             this->m_Individuals[cols][rows].m_envStrength = m_envStrength;
             this->m_Individuals[cols][rows].m_compStrength = m_compStrength;
             this->m_Individuals[cols][rows].m_nicheWidth = m_nicheWidth;
+            this->m_Individuals[cols][rows].m_ddTable = m_ddTable.empty() ? NULL : &m_ddTable;
 
             //this->individuals[cols][rows].Species->date_of_extinction = runs;
         }
@@ -237,10 +243,11 @@ GlobalEnvironment::GlobalEnvironment(int xsize, int ysize, int type, bool neutra
                                      bool repro, unsigned int runs, double specRate, int dispersalCutoff,
                                      int densityCutoff, unsigned int mortalityStrength, double envStrength,
                                      double compStrength, int fission, double redQueen, double redQueenStrength,
-                                     int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth) :
+                                     int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
+                                     DensityOptions ddOptions) :
         Landscape(xsize, ysize, type, neutral, dd, env, mort, repro, runs, specRate, dispersalCutoff, densityCutoff,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
-                  soilmat, nicheWidth) {
+                  soilmat, nicheWidth, ddOptions) {
 
 }
 
@@ -366,7 +373,12 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
             // check if individual's fitness is high enough to survive
             // every m_mortalityStrength'th step the randomly chosen individual dies, no matter its fitness
-            if (m_mortality && event % m_mortalityStrength != 0) {
+            if (m_mortality && m_Env && m_DD) { // proportional hazards, see Individual::deathProbability
+                double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
+                        m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_mortalityStrength,
+                        generation, m_redQueenStrength, m_redQueen);
+                if (m_RandomGenerator.randomDouble(0.0, 1.0) >= p) continue;
+            } else if (m_mortality && event % m_mortalityStrength != 0) {
                 double weight = m_Individuals[x_coordinate][y_coordinate].getFitness(
                         m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD, generation,
                         m_redQueenStrength, m_redQueen);
@@ -383,13 +395,43 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
             m_Individuals[x_coordinate][y_coordinate].reportDeath(generation);
 
-            do { // fixes #81
-                if (m_reproduction) {
-                    new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), m_LandscapeSize - 1, seedSum);
-                } else {
-                    new_parent = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
+            int target = x_coordinate * m_Ydimensions + y_coordinate;
+            auto drawParent = [&]() {
+                int p;
+                do { // fixes #81
+                    if (m_reproduction) {
+                        p = m_RandomGenerator.multinomialDraw(cumWeights.data(), m_LandscapeSize - 1, seedSum);
+                    } else {
+                        p = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
+                    }
+                } while (p == target);
+                return p;
+            };
+            new_parent = drawParent();
+
+            // rejection sampling: parent with probability ~ proposal * fitness of its recruit here;
+            // after maxRecruitTries rejections, the same distribution is drawn from all weights
+            for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
+                    recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
+                 tries++) {
+                if (tries < maxRecruitTries) {
+                    new_parent = drawParent();
+                    continue;
                 }
-            } while (new_parent == x_coordinate * m_Ydimensions + y_coordinate);
+                std::vector<double> cumRecruit(m_LandscapeSize);
+                double sum = 0.0;
+                for (unsigned int i = 0; i < m_LandscapeSize; i++) {
+                    if ((int) i != target) {
+                        sum += recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
+                               DBL_MIN * 100.0;
+                    }
+                    cumRecruit[i] = sum;
+                }
+                do {
+                    new_parent = m_RandomGenerator.multinomialDraw(cumRecruit.data(), m_LandscapeSize - 1, sum);
+                } while (new_parent == target);
+                break;
+            }
 
             x_parent = parents[new_parent].first;
             y_parent = parents[new_parent].second;
@@ -453,7 +495,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 //        }
 //      }
 
-            if (!m_reproduction && m_DD) densityUpdate(x_coordinate, y_coordinate);
+            if (!m_reproduction && m_mortality && m_DD) densityUpdate(x_coordinate, y_coordinate);
 
             // only if env and dens affect reproduction
             if (m_reproduction) {
@@ -583,10 +625,11 @@ LocalEnvironment::LocalEnvironment(int xsize, int ysize, int type, bool neutral,
                                    bool repro, unsigned int runs, double specRate, int dispersalCutoff,
                                    int densityCutoff, unsigned int mortalityStrength, double envStrength,
                                    double compStrength, int fission, double redQueen, double redQueenStrength,
-                                   int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth) :
+                                   int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
+                                   DensityOptions ddOptions) :
         Landscape(xsize, ysize, type, neutral, dd, env, mort, repro, runs, specRate, dispersalCutoff, densityCutoff,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
-                  soilmat, nicheWidth) {
+                  soilmat, nicheWidth, ddOptions) {
 
 }
 
@@ -632,7 +675,12 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         // If fitness acts on mortality, break here with a chance ~ fitness
 
         // important!! the frequency in relation to the base mortality controls the intensity of the mechanisms
-        if (m_mortality && event % m_mortalityStrength != 0) {
+        if (m_mortality && m_Env && m_DD) { // proportional hazards, see Individual::deathProbability
+            double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
+                    m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_mortalityStrength,
+                    generation, m_redQueenStrength, m_redQueen);
+            if (m_RandomGenerator.randomDouble(0.0, 1.0) >= p) continue;
+        } else if (m_mortality && event % m_mortalityStrength != 0) {
             double weight = m_Individuals[x_coordinate][y_coordinate].getFitness(
                     m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD, generation,
                     m_redQueenStrength, m_redQueen);
@@ -672,12 +720,12 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                                                                                              m_Env, m_DD, generation,
                                                                                              m_redQueenStrength,
                                                                                              m_redQueen);
-                    } else if (m_mortality) {
+                    } else {
                         weights[array_length] = m_Individuals[kernel_x][kernel_y].dispersal(m_Dispersal_type,
                                                                                             m_Individuals[kernel_x][kernel_y].euclidian_distance(
                                                                                                     relativeX,
                                                                                                     relativeY));
-                    } else throw 11;
+                    }
                     seedSum += weights[array_length];
                     array_length += 1;
                 }
@@ -695,6 +743,25 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         }
 
         new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
+
+        // fixes #165 (rejection sampling: parent with probability ~ weight * fitness of its recruit here);
+        // after maxRecruitTries rejections, the same distribution is drawn from all weights
+        for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
+                recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
+             tries++) {
+            if (tries < maxRecruitTries) {
+                new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
+                continue;
+            }
+            double sum = 0.0;
+            for (unsigned int i = 0; i < array_length; i++) {
+                sum += weights[i] * (recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
+                                     DBL_MIN * 100.0);
+                cumWeights[i] = sum;
+            }
+            new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, sum);
+            break;
+        }
         x_parent = parents[new_parent].first;
         y_parent = parents[new_parent].second;
 
@@ -706,15 +773,14 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
         // UPDATE RELATEDNESS
 
-        if (m_DD) densityUpdate(x_coordinate, y_coordinate);
+        if (m_DD && (m_mortality || m_reproduction)) densityUpdate(x_coordinate, y_coordinate);
     } // END while (numberDeath < numberOfRuns)
 }
 
 // update the density around an individual with 
 void Landscape::densityUpdate(int x, int y) {
 
-    int focus_x, focus_y, neighborX, neighborY;
-    double relatedness;
+    int focus_x, focus_y;
 
     for (int X1 = -m_DensityCutoff; X1 <= m_DensityCutoff; X1++) {
         int yLims = floor(sqrt(m_DensityCutoff * m_DensityCutoff - X1 * X1));
@@ -722,29 +788,38 @@ void Landscape::densityUpdate(int x, int y) {
             // get focus cell
             focus_x = ((x + X1 + m_Xdimensions) % m_Xdimensions);
             focus_y = ((y + Y1 + m_Ydimensions) % m_Ydimensions);
-
-            relatedness = 0.0;
-
-            for (int X2 = -m_DensityCutoff; X2 <= m_DensityCutoff; X2++) {
-                int yLims2 = floor(sqrt(m_DensityCutoff * m_DensityCutoff - X2 * X2)); // avoid diagonal bias
-                for (int Y2 = -yLims2; Y2 <= yLims2; Y2++) {
-                    neighborX = ((focus_x + X2 + m_Xdimensions) % m_Xdimensions);
-                    neighborY = ((focus_y + Y2 + m_Ydimensions) % m_Ydimensions);
-
-                    if (!(neighborX == focus_x && neighborY == focus_y)) {
-                        double a = m_Individuals[focus_x][focus_y].m_CompetitionMarker;
-                        double b = m_Individuals[neighborX][neighborY].m_CompetitionMarker;
-                        double diff = std::abs(a - b);
-                        relatedness += diff;
-                        //if (diff < 0.5) relatedness += diff / 0.5;
-                        //else relatedness += 1;
-                    }
-                }
-            }
-            m_Individuals[focus_x][focus_y].m_LocalDensity = relatedness / cellsWithinDensityCutoff;
-            //std::cout<<m_Individuals[focus_x][focus_y].m_LocalDensity<<"\n"; //DEBUG
+            m_Individuals[focus_x][focus_y].m_LocalDensity =
+                    localDissimilarity(m_Individuals[focus_x][focus_y], focus_x, focus_y);
         }
     }
+}
+
+double Landscape::localDissimilarity(Individual &ind, int x, int y) {
+    double sum = 0.0;
+    for (int X2 = -m_DensityCutoff; X2 <= m_DensityCutoff; X2++) {
+        int yLims2 = floor(sqrt(m_DensityCutoff * m_DensityCutoff - X2 * X2)); // avoid diagonal bias
+        for (int Y2 = -yLims2; Y2 <= yLims2; Y2++) {
+            int neighborX = ((x + X2 + m_Xdimensions) % m_Xdimensions);
+            int neighborY = ((y + Y2 + m_Ydimensions) % m_Ydimensions);
+            if (neighborX == x && neighborY == y) continue;
+            Individual &neighbor = m_Individuals[neighborX][neighborY];
+            double diff = std::abs(ind.m_CompetitionMarker - neighbor.m_CompetitionMarker);
+            if (m_ddKernel == 1) sum += diff;
+            else if (m_ddKernel == 2) sum += exp(-0.5 * pow(diff / m_ddWidth, 2.0));
+            else sum += (ind.m_Species->m_ID == neighbor.m_Species->m_ID);
+        }
+    }
+    // the absolute kernel keeps its original scaling with the focal cell in the denominator
+    if (m_ddKernel == 1) return sum / cellsWithinDensityCutoff;
+    return 1.0 - sum / (cellsWithinDensityCutoff - 1.0);
+}
+
+double Landscape::recruitFitness(int p_x, int p_y, int x, int y) {
+    Individual &parent = m_Individuals[p_x][p_y];
+    double out = 1.0;
+    if (m_Env) out *= parent.envTerm(m_Environment[x * m_Ydimensions + y].first);
+    if (m_DD) out *= parent.ddTerm(localDissimilarity(parent, x, y));
+    return out;
 }
 
 

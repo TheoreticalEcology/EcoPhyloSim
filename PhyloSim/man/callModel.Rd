@@ -7,7 +7,8 @@
 callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
   mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength,
   compStrength, fission, redQueen, redQueenStrength, protracted, airmatR,
-  soilmatR, prunePhylogeny, nicheWidth)
+  soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE,
+  densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric(c()))
 }
 \arguments{
 \item{x}{Integer, dimension of the model landscape in x-direction.}
@@ -109,6 +110,22 @@ returned; its size grows with the run length. See \code{\link{runSimulation}} fo
 
 \item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche
 (see \code{\link{createCompletePar}}).}
+
+\item{recruit}{Logical, whether fitness acts on recruitment: the parent of a new individual is
+chosen with a probability proportional to its dispersal weight times the fitness of its
+offspring in the free cell. Corresponds to \code{"recruitment"} in \code{fitnessActsOn} of
+\code{\link{createCompletePar}}.}
+
+\item{densityKernel}{Integer, how similar neighbors are measured for density dependence:
+1 = absolute difference of the competition trait, 2 = Gaussian kernel of the difference,
+3 = species identity. Corresponds to \code{densityKernel} in \code{\link{createCompletePar}}.}
+
+\item{densityWidth}{Numeric > 0, width of the Gaussian kernel (only used if \code{densityKernel = 2}).}
+
+\item{densityTable}{Numeric vector with values between 0 and 1: the density term of fitness as a function
+of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
+the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates it from
+\code{densityResponse} in \code{\link{createCompletePar}}.}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

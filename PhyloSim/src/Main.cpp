@@ -88,7 +88,7 @@ int main() {
 
     PhylSimModel Model(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
                        mortStrength, repro, dispersalCutoff, densityCutoff, saveLoc, envStrength, compStrength, fission,
-                       redQueen, redQueenStrength, protracted, airmat, soilmat, nicheWidth);
+                       redQueen, redQueenStrength, protracted, airmat, soilmat, nicheWidth, DensityOptions());
     Model.update(runs);
 
     if (prunePhylogeny) {

@@ -2,6 +2,10 @@
 # createCompletePar() and runSimulation(), so that lists changed by hand are
 # also checked before they reach the C++ code (#118).
 checkPar <- function(par) {
+  # defaults for parameter lists created before these arguments existed
+  if (is.null(par[["densityKernel"]])) par$densityKernel <- "absolute"
+  if (is.null(par[["densityWidth"]])) par$densityWidth <- 0.1
+  if (is.null(par[["densityResponse"]])) par$densityResponse <- "linear"
   coll <- checkmate::makeAssertCollection()
   checkmate::assert_count(par[["x"]], positive = TRUE, .var.name = "x", add = coll)
   checkmate::assert_count(par[["y"]], positive = TRUE, .var.name = "y", add = coll)
@@ -16,8 +20,15 @@ checkPar <- function(par) {
   checkmate::assert_number(par[["environment"]], lower = 0, upper = 1, .var.name = "environment", add = coll)
   checkmate::assert_number(par[["nicheWidth"]], lower = .Machine$double.eps, finite = TRUE,
                            .var.name = "nicheWidth", add = coll) # > 0
-  checkmate::assert_choice(par[["fitnessActsOn"]], c("mortality", "reproduction", "both"),
-                           .var.name = "fitnessActsOn", add = coll)
+  checkmate::assert_subset(par[["fitnessActsOn"]], c("mortality", "reproduction", "recruitment", "both"),
+                           empty.ok = FALSE, .var.name = "fitnessActsOn", add = coll)
+  checkmate::assert_choice(par[["densityKernel"]], c("absolute", "gaussian", "species"),
+                           .var.name = "densityKernel", add = coll)
+  checkmate::assert_number(par[["densityWidth"]], lower = .Machine$double.eps, finite = TRUE,
+                           .var.name = "densityWidth", add = coll) # > 0
+  if (!is.function(par[["densityResponse"]]) && !identical(par[["densityResponse"]], "linear")) {
+    coll$push("Variable 'densityResponse': Must be 'linear' or a function.")
+  }
   checkmate::assert_int(par[["fitnessBaseMortalityRatio"]], lower = 1,
                         .var.name = "fitnessBaseMortalityRatio", add = coll)
   checkmate::assert_int(par[["densityCut"]], lower = 1, .var.name = "densityCut", add = coll)
@@ -58,17 +69,49 @@ checkPar <- function(par) {
          "if density > 0.", call. = FALSE)
   }
   # fixes #98 (reproduction fitness is not implemented in the non-neutral global model)
-  if (!local && par[["fitnessActsOn"]] != "mortality" &&
+  actsOn <- fitnessStages(par[["fitnessActsOn"]])
+  if (!local && "reproduction" %in% actsOn &&
       (par[["environment"]] > 0 || par[["density"]] > 0 || par[["redQueen"]] != 0 ||
        par[["redQueenStrength"]] != 0)) {
-    stop("fitnessActsOn = '", par[["fitnessActsOn"]], "' is not implemented for global dispersal ",
+    stop("Fitness acting on reproduction is not implemented for global dispersal ",
          "with environment, density, redQueen or redQueenStrength > 0. ",
          "Use local dispersal (dispersal >= 0.5) or fitnessActsOn = 'mortality'.", call. = FALSE)
+  }
+  # Red Queen changes the fitness on mortality or reproduction only, not of recruits
+  if (identical(actsOn, "recruitment") && (par[["redQueen"]] != 0 || par[["redQueenStrength"]] != 0)) {
+    stop("redQueen and redQueenStrength have no effect with fitnessActsOn = 'recruitment'; ",
+         "add 'mortality' or 'reproduction' to fitnessActsOn.", call. = FALSE)
+  }
+  if (is.function(par[["densityResponse"]])) {
+    tab <- densityResponseTable(par[["densityResponse"]], 101)
+    if (any(diff(tab) > 1e-12)) {
+      message("densityResponse increases with the similarity to the neighbors, i.e. similar neighbors ",
+              "increase fitness (positive density dependence).")
+    }
+    if (par[["density"]] == 0) message("densityResponse has no effect, because density = 0.")
   }
   # Valid, but probably not intended
   w <- par[["nicheWidth"]]
   if (par[["environment"]] > 0 && (w < 0.003 || w > 3)) {
     message("nicheWidth = ", w, " is outside [0.003, 3], so environmental filtering is very weak.")
   }
+  if (par[["density"]] > 0 && par[["densityKernel"]] == "gaussian" && par[["densityWidth"]] > 1) {
+    message("densityWidth = ", par[["densityWidth"]], " is larger than the range of the competition trait ",
+            "[0, 1], so all neighbors count as similar.")
+  }
   invisible(par)
+}
+
+# fitnessActsOn as a set of stages; "both" means mortality and reproduction
+fitnessStages <- function(fitnessActsOn) {
+  unique(unlist(lapply(fitnessActsOn, function(f) if (f == "both") c("mortality", "reproduction") else f)))
+}
+
+# Values of a user-defined densityResponse at n equally spaced similarities in [0, 1]
+densityResponseTable <- function(f, n) {
+  tab <- vapply(seq(0, 1, length.out = n), function(S) as.numeric(f(S))[1], numeric(1))
+  if (anyNA(tab) || any(tab < 0 | tab > 1)) {
+    stop("densityResponse must return values between 0 and 1 for similarities between 0 and 1.", call. = FALSE)
+  }
+  tab
 }

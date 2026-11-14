@@ -15,10 +15,10 @@ See also comments here https://github.com/florianhartig/BayesianTools/issues/31
 extern SEXP _EcoPhyloSim_callModel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                                 SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                                 SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                                SEXP, SEXP, SEXP);
+                                SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-        {"_EcoPhyloSim_callModel", (DL_FUNC) & _EcoPhyloSim_callModel, 24},
+        {"_EcoPhyloSim_callModel", (DL_FUNC) & _EcoPhyloSim_callModel, 28},
         {NULL,                  NULL,                            0}
 };
 

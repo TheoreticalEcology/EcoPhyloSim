@@ -10,6 +10,7 @@
 #include "Individual.h"
 
 #include <float.h>
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
@@ -37,6 +38,7 @@ Individual::Individual() {
 
     this->m_envStrength = 1;
     this->m_compStrength = 1;
+    this->m_ddTable = NULL;
 
     this->m_dispersalDistance = 0.0; // parameter for dispersal kernel
 }
@@ -64,6 +66,7 @@ Individual::Individual(const Individual &ind) {
 
     this->m_envStrength = ind.m_envStrength;
     this->m_compStrength = ind.m_compStrength;
+    this->m_ddTable = ind.m_ddTable;
 }
 
 Individual::~Individual() {
@@ -97,6 +100,7 @@ void Individual::operator=(const Individual &ind) {
 
     this->m_envStrength = ind.m_envStrength;
     this->m_compStrength = ind.m_compStrength;
+    this->m_ddTable = ind.m_ddTable;
 }
 
 
@@ -145,8 +149,11 @@ double Individual::getSeedsTo(int rel_x, int rel_y, int dispersal_type, double t
 double Individual::getFitness(double temp, bool env, bool dd, int generation, double redQueenStrength, double redQueen) {
     double out = (DBL_MIN * 100.0); // TODO: Why this?
 
-    if (env) out += m_envStrength * exp(-0.5 * pow((temp - m_Mean) / m_nicheWidth, 2.0)) + 1 - m_envStrength; // environmental niche
-    if (dd) out += m_compStrength * m_LocalDensity + 1 - m_compStrength + (DBL_MIN * 100.0);
+    if (env && dd) out += envTerm(temp) * ddTerm(m_LocalDensity); // terms multiply
+    else {
+        if (env) out += envTerm(temp); // environmental niche
+        if (dd) out += ddTerm(m_LocalDensity) + (DBL_MIN * 100.0);
+    }
 
     // Implementation of the redQueen Mechanism
     if ((redQueenStrength != 0) || (redQueen != 0)) {
@@ -160,6 +167,39 @@ double Individual::getFitness(double temp, bool env, bool dd, int generation, do
 
     }
     return out;
+}
+
+double Individual::envTerm(double temp) {
+    return m_envStrength * exp(-0.5 * pow((temp - m_Mean) / m_nicheWidth, 2.0)) + 1 - m_envStrength;
+}
+
+// localDensity is the dissimilarity to the neighbors (see Landscape::localDissimilarity)
+double Individual::ddTerm(double localDensity) {
+    if (m_ddTable == NULL) return m_compStrength * localDensity + 1 - m_compStrength;
+    // user-defined response, tabulated over the similarity S = 1 - localDensity
+    const std::vector<double> &table = *m_ddTable;
+    double pos = (1.0 - localDensity) * (table.size() - 1);
+    if (pos <= 0) return table.front();
+    if (pos >= table.size() - 1) return table.back();
+    int i = (int) pos;
+    double f = pos - i;
+    if (f > 1 - 1e-9) return table[i + 1]; // exact value for the species kernel
+    if (f < 1e-9) return table[i];
+    return table[i] * (1 - f) + table[i + 1] * f;
+}
+
+// fixes #144 (proportional hazards): the death rate relative to an individual with fitness 1 is
+// 1 + (m - 1)(1 - w) for each mechanism, and the rates of environment and density dependence multiply
+double Individual::deathProbability(double temp, unsigned int mortalityStrength, int generation,
+                                    double redQueenStrength, double redQueen) {
+    double m = mortalityStrength;
+    double rate = (1 + (m - 1) * (1 - std::min(envTerm(temp), 1.0))) *
+                  (1 + (m - 1) * (1 - std::min(ddTerm(m_LocalDensity), 1.0)));
+    if ((redQueenStrength != 0) || (redQueen != 0)) {
+        rate /= 1 + redQueenStrength *
+                    std::pow(2.71828, (-redQueen * (generation - 1 - m_Species->m_Date_of_Emergence)));
+    }
+    return rate / (m * m);
 }
 
 

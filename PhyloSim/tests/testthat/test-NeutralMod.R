@@ -30,6 +30,12 @@ test_that("NeutralMod runs with local dispersal and density dependence", {
                "densityCut")
 })
 
+test_that("NeutralMod draws the parent directly after 1000 rejected recruits", {
+  # with one species and density = 1, every recruit is rejected
+  simu <- NeutralMod(x = 5, y = 5, runs = 2, specRate = 0, density = 1, seed = 1, verbose = FALSE)
+  expect_equal(specRich(simu), 1)
+})
+
 test_that("NeutralMod: density dependence increases species richness", {
   skip_on_cran()
   richness <- function(density) mean(sapply(1:10, function(s) specRich(NeutralMod(

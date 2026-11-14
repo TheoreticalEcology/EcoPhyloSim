@@ -109,6 +109,18 @@ using namespace Rcpp;
 //'   returned; its size grows with the run length. See \code{\link{runSimulation}} for the time scale.
 //' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
 //'   (see \code{\link{createCompletePar}}).
+//' @param recruit Logical, whether fitness acts on recruitment: the parent of a new individual is
+//'   chosen with a probability proportional to its dispersal weight times the fitness of its
+//'   offspring in the free cell. Corresponds to \code{"recruitment"} in \code{fitnessActsOn} of
+//'   \code{\link{createCompletePar}}.
+//' @param densityKernel Integer, how similar neighbors are measured for density dependence:
+//'   1 = absolute difference of the competition trait, 2 = Gaussian kernel of the difference,
+//'   3 = species identity. Corresponds to \code{densityKernel} in \code{\link{createCompletePar}}.
+//' @param densityWidth Numeric > 0, width of the Gaussian kernel (only used if \code{densityKernel = 2}).
+//' @param densityTable Numeric vector with values between 0 and 1: the density term of fitness as a function
+//'   of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
+//'   the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates it from
+//'   \code{densityResponse} in \code{\link{createCompletePar}}.
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -123,7 +135,9 @@ using namespace Rcpp;
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
                bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, int seed,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
-               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth) {
+               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth,
+               bool recruit = false, int densityKernel = 1, double densityWidth = 0.1,
+               NumericVector densityTable = NumericVector::create()) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -166,6 +180,10 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     if (mort && mortStrength < 1) Rcpp::stop("callModel(): mortStrength must be >= 1");
     if (!(specRate >= 0 && std::isfinite(specRate))) Rcpp::stop("callModel(): specRate must be finite and >= 0");
     if (!(nicheWidth > 0 && std::isfinite(nicheWidth))) Rcpp::stop("callModel(): nicheWidth must be finite and > 0");
+    if (densityKernel < 1 || densityKernel > 3) Rcpp::stop("callModel(): densityKernel must be 1, 2 or 3");
+    if (!(densityWidth > 0 && std::isfinite(densityWidth))) Rcpp::stop("callModel(): densityWidth must be finite and > 0");
+    if (densityTable.length() == 1) Rcpp::stop("callModel(): densityTable must be empty or have length >= 2");
+    for (double a : densityTable) if (!(a >= 0 && a <= 1)) Rcpp::stop("callModel(): densityTable values must be between 0 and 1");
     if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
     for (int i = 1; i < runs.length(); i++) {
         if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
@@ -189,11 +207,17 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     std::vector<double> airmat(airmatR.begin(), airmatR.end());
     std::vector<double> soilmat(soilmatR.begin(), soilmatR.end());
 
+    DensityOptions ddOptions;
+    ddOptions.recruitment = recruit;
+    ddOptions.kernel = densityKernel;
+    ddOptions.width = densityWidth;
+    ddOptions.table.assign(densityTable.begin(), densityTable.end());
+
     Rcpp::List outList = Rcpp::List::create();
 
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
                               dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
-                              redQueenStrength, protracted, airmat, soilmat, nicheWidth);
+                              redQueenStrength, protracted, airmat, soilmat, nicheWidth, ddOptions);
     if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
     else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
 

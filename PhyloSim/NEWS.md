@@ -8,9 +8,14 @@
 * New function `getMortalityData()` returns, for each individual and census interval, its species, number of conspecific neighbors and whether it died before the next recorded generation, for analyses of conspecific negative density dependence (@AndyEnvFr, #100).
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental response coefficients) (#85).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
+* `createCompletePar()`: new arguments `densityKernel` and `densityWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
+* `createCompletePar()`: new argument `densityResponse` sets the density term of fitness as a function of the similarity to the neighbors (#144).
+* `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
 
 ## Changes
 
+* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction) instead of adding their fitness terms; this changes all results with `environment > 0` and `density > 0`, which were neutral if `environment + density <= 1` (#144).
+* `NeutralMod()` with `density > 0` draws up to 1000 instead of 10 parents, so that it follows the same rule as `fitnessActsOn = "recruitment"` with `densityKernel = "species"` in `runSimulation()`; this changes its results (#165).
 * The package was renamed from PhyloSim to EcoPhyloSim because of a name clash with the archived CRAN package phylosim; class and function names are unchanged (#64).
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).

@@ -59,6 +59,24 @@ test_that("fitnessActsOn = 'reproduction' is rejected only where it is not imple
   }
 })
 
+test_that("density dependence options and fitnessActsOn stages are checked (#144, #165)", {
+  expect_error(smallPar(densityKernel = "trait"), "densityKernel")
+  expect_error(smallPar(densityWidth = 0), "densityWidth")
+  expect_error(smallPar(densityResponse = "exponential"), "densityResponse")
+  expect_error(smallPar(density = 0.5, densityResponse = function(S) 2 - S), "between 0 and 1")
+  expect_message(smallPar(density = 0.5, densityResponse = function(S) S), "increases")
+  expect_message(smallPar(densityResponse = function(S) 1 - S), "no effect")
+  expect_message(smallPar(density = 0.5, densityKernel = "gaussian", densityWidth = 2), "densityWidth")
+  expect_error(smallPar(fitnessActsOn = "recruitment", redQueen = 0.5), "no effect")
+  expect_error(smallPar(fitnessActsOn = character(0)), "fitnessActsOn")
+  expect_silent(smallPar(fitnessActsOn = c("mortality", "recruitment"), density = 0.5, environment = 0.5))
+  expect_silent(smallPar(fitnessActsOn = "recruitment", dispersal = "global", density = 0.5))
+  # parameter lists from earlier versions get the default options
+  p <- smallPar()
+  p$densityKernel <- p$densityWidth <- p$densityResponse <- NULL
+  expect_identical(EcoPhyloSim:::checkPar(p), smallPar())
+})
+
 test_that("runSimulation() checks parameter lists changed after createCompletePar()", {
   p <- smallPar()
   # wrong airmat lengths read memory outside the vector, length 0 crashed R (#118)
@@ -102,4 +120,9 @@ test_that("callModel() stops on invalid input (#13)", {
   expect_error(call(airmatR = rep(0.5, 7)), "airmatR")
   expect_error(call(airmatR = rep(1.5, 100)), "airmatR")
   expect_error(call(soilmatR = rep(0.5, 100)), "soilmatR")
+  expect_error(call(densityKernel = 4), "densityKernel")
+  expect_error(call(densityWidth = 0), "densityWidth")
+  expect_error(call(densityTable = 0.5), "densityTable")
+  expect_error(call(densityTable = c(0, 2)), "densityTable")
+  expect_error(call(recruit = TRUE, mort = FALSE, densityKernel = 3, densityTable = c(1, 0.5, 0.3, 0.2, 0)), NA)
 })

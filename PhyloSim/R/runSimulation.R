@@ -12,7 +12,7 @@
 
 runSimulation <- function(par)
 {
-  checkPar(par)
+  par <- checkPar(par)
   
   # GENERAL SETTINGS
   
@@ -26,17 +26,18 @@ runSimulation <- function(par)
       dispersal = 3
     }else stop("wrong dispersal parameter") 
     
-    if(par$fitnessActsOn == "mortality"){
-      reproductiveFitness = F
-      mortalityFitness = T    
-    }else if(par$fitnessActsOn == "reproduction"){
-      reproductiveFitness = T
-      mortalityFitness = F    
-    }else if (par$fitnessActsOn == "both"){
-      reproductiveFitness = T
-      mortalityFitness = T    
-    }else stop("wrong fitness parameters")
-    
+    actsOn <- fitnessStages(par$fitnessActsOn)
+    mortalityFitness <- "mortality" %in% actsOn
+    reproductiveFitness <- "reproduction" %in% actsOn
+
+    # user-defined density response as a table over the similarity S in [0, 1]; for the
+    # species kernel, exactly at S = 0, 1/k, ..., 1 (k neighbors), otherwise on a fine grid
+    densityTable <- numeric(0)
+    if (is.function(par$densityResponse)) {
+      k <- nrow(getCircularOffsets(par$densityCut))
+      densityTable <- densityResponseTable(par$densityResponse,
+                                           if (par$densityKernel == "species") k + 1 else 1001)
+    }
     
     # density and environment stay numeric, so that the stored $Model passes checkPar() when rerun (#118)
     par$compStrength <- if (par$density == 0) 1 else par$density
@@ -68,7 +69,11 @@ runSimulation <- function(par)
                       airmatR = par[["airmatR"]], 
                       soilmatR = par[["soilmatR"]],
                       prunePhylogeny = par$prunePhylogeny,
-                      nicheWidth = par$nicheWidth)
+                      nicheWidth = par$nicheWidth,
+                      recruit = "recruitment" %in% actsOn,
+                      densityKernel = match(par$densityKernel, c("absolute", "gaussian", "species")),
+                      densityWidth = par$densityWidth,
+                      densityTable = densityTable)
     
     runtime <- as.numeric((proc.time() - ptm)[3])
     

@@ -218,7 +218,9 @@ extractParams <- function(parList, params, outFormat="df") {
   if (outFormat == "df") {
     # out <- as.data.frame(do.call(what = rbind, args = parList))
     checkSuggested("data.table")
-    out <- as.data.frame(data.table::rbindlist(parList))
+    # one string per parameter, e.g. for several fitnessActsOn stages or a densityResponse function
+    oneValue <- function(v) if (is.function(v) || length(v) > 1) paste(deparse(v), collapse = " ") else v
+    out <- as.data.frame(data.table::rbindlist(lapply(parList, function(p) lapply(p[params], oneValue))))
     out <- out[, params]
   } else if (outFormat == "list") {
     stop("no implemented")
