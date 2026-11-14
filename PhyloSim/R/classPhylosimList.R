@@ -57,6 +57,6 @@ summary.PhylosimList <- function(object, ...){
         as.numeric(object[[i]]$Model$environment),"      ", specRich(object[[i]]),"   ", 
         object[[i]]$Model$runs[length(object[[i]]$Model$runs)],
         "  ", round(collessImbalance(object[[i]]),3), "  ",
-        suppressWarnings(round(ape::gammaStat(ape::drop.fossil(object[[i]]$Output[[length(object[[i]]$Output)]]$phylogeny)),3)),"\n")
+        round(.gammaStat(object[[i]]$Output[[length(object[[i]]$Output)]]$phylogeny),3),"\n")
   }
 }

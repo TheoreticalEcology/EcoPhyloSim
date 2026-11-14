@@ -12,3 +12,14 @@ test_that("calculateSummaryStatistics uses the last result if runs has several v
   expect_equal(calculateSummaryStatistics(simu, strict = FALSE)$gammaDiversity, specRich(simu))
   expect_error(calculateSummaryStatistics(simu, which.result = 3), "which.result")
 })
+
+test_that("the gamma statistic resolves polytomies (#169)", {
+  skip_on_cran() # calculateSummaryStatistics(), slow
+  simu <- quietSimulation(x = 30, y = 30, specRate = 20, runs = 200, seed = 1,
+                          convertToBinaryTree = FALSE)
+  phy <- simu$Output[[1]]$phylogeny
+  expect_false(ape::is.binary(phy))
+  gamma <- ape::gammaStat(ape::multi2di(phy, random = FALSE))
+  expect_equal(calculateSummaryStatistics(simu, strict = FALSE)$gammaStatistics, gamma)
+  expect_output(summary(simu), paste("Gamma: ", format(gamma)), fixed = TRUE)
+})

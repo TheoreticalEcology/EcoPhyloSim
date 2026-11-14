@@ -21,6 +21,7 @@
 #'   \item{nb8}{Index of local species clustering among neighboring grid cells.}
 #'   \item{envIntercept, env, envSqr}{Coefficients relating species occurrence to the environmental value.}
 #' }
+#' The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter).
 #' @return A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
 #' @example /inst/examples/summaryStatistics-help.R
 #' @export
@@ -94,32 +95,32 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NUL
   # gamma diversity
   summaryStatistics$gammaDiversity <- gammaDiversity(result)
   
+  # phylogenetic statistics use the extant species only
+  extant <- .dropFossil(result$phylogeny)
+
   # phylogenetic imbalance
   # Colless index (Yule-normalized), computed internally (see collessImbalance.R).
   # Previously relied on apTreeshape, which was archived from CRAN.
-  summaryStatistics$imbalance <- .collessIndex(
-    ape::drop.fossil(result$phylogeny),
-    norm = "yule")
+  summaryStatistics$imbalance <- .collessIndex(extant, norm = "yule")
 
   # phylogenetic dispersion
   # standardized mean pairwise distance (z-score, analogous to -NRI).
   # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
   # picante::ses.mpd, which is maintained and already a dependency.
-  # The species pool is all species in the phylogeny: only the extant species with
-  # prunePhylogeny = TRUE, all species ever created with prunePhylogeny = FALSE (#147).
+  # The species pool is the extant species, also with prunePhylogeny = FALSE (#168).
   sesMpd <- picante::ses.mpd(plots$communityTable,
-                             stats::cophenetic(result$phylogeny),
+                             stats::cophenetic(extant),
                              null.model = "taxa.labels", runs = 999)
   summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
   
   # gamma statistics
   # uses ape's implementation of the gammaStatistics
   # attention: only works on ultrametric trees
-  summaryStatistics$gammaStatistics <- ape::gammaStat(ape::drop.fossil(result$phylogeny))
+  summaryStatistics$gammaStatistics <- .gammaStat(extant)
   
   # mean node age
   #summaryStatistics$meanNodeAge <- ape::chronoMPL(simulation$Output[[1]]$phylogeny)
-  summaryStatistics$meanNodeAge <- mean(ape::drop.fossil(result$phylogeny)$edge.length)
+  summaryStatistics$meanNodeAge <- mean(extant$edge.length)
   
   
   # variation partitioning

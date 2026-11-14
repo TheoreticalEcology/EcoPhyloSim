@@ -17,7 +17,7 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   
   names <- unique(as.numeric(dat$specMat))
   # same species colors as in plotSpatialPhylo(), without random numbers (#156)
-  cols <- unname(speciesColors(ape::drop.fossil(dat$phylogeny), alpha = 0.5)[paste0("s", names)])
+  cols <- unname(speciesColors(.dropFossil(dat$phylogeny), alpha = 0.5)[paste0("s", names)])
   cols[is.na(cols)] <- grey(0.5, alpha = 0.5)
   ymax <- max(1, log(max(table(dat$specMat)))) # no histogram bin can exceed the largest abundance
   colmat <- dat$specMat

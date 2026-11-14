@@ -37,6 +37,7 @@ Computes the following summary statistics from one result of a simulation run. I
 \item{nb8}{Index of local species clustering among neighboring grid cells.}
 \item{envIntercept, env, envSqr}{Coefficients relating species occurrence to the environmental value.}
 }
+The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter).
 }
 \examples{
 

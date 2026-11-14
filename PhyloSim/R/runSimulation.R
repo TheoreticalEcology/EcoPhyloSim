@@ -2,7 +2,7 @@
 #' @description A model of species community assembly under different assembly mechanisms.  
 #' @param par a list of model parameters created with \link{createCompletePar}
 #' @return An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation. 
-#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. \cr\cr Branch lengths of the phylogeny are in generations. Speciation and extinction events of generation g are placed at time g, and the census of generation g (an entry in \code{runs}) at time g + 0.5, after all events of that generation. Tips of extant species therefore end half a generation after those of species that went extinct in the last generation, so that \code{ape::drop.fossil()} removes the latter. Internal nodes are labeled with the species from which the descendants emerged (nodes added by \code{convertToBinaryTree} have no label); the tree has no root edge. With \code{prunePhylogeny = TRUE} (the default), the phylogeny contains only the extant species; with \code{prunePhylogeny = FALSE}, it also contains all extinct species as tips. \cr\cr If a result contains only one species, no phylogeny can be built, and its `phylogeny` element is set to 0 with a warning. This is common in short runs, because all individuals start as one species and new species arise at a rate of `specRate` per generation.
+#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di(random = FALSE)` from the "ape" package, so that the same `seed` gives the same phylogeny. With `calculateSummaries = TRUE`, R's random number generator is set from `seed` for \code{\link{calculateSummaryStatistics}} and restored afterwards. \cr\cr Branch lengths of the phylogeny are in generations. Speciation and extinction events of generation g are placed at time g, and the census of generation g (an entry in \code{runs}) at time g + 0.5, after all events of that generation. Tips of extant species therefore end half a generation after those of species that went extinct in the last generation, so that \code{ape::drop.fossil()} removes the latter. Internal nodes are labeled with the species from which the descendants emerged (nodes added by \code{convertToBinaryTree} have no label); the tree has no root edge. With \code{prunePhylogeny = TRUE} (the default), the phylogeny contains only the extant species; with \code{prunePhylogeny = FALSE}, it also contains all extinct species as tips. \cr\cr If a result contains only one species, no phylogeny can be built, and its `phylogeny` element is set to 0 with a warning. This is common in short runs, because all individuals start as one species and new species arise at a rate of `specRate` per generation.
 #' @importFrom adephylo distTips
 #' @import Rcpp
 #' @useDynLib EcoPhyloSim, .registration = TRUE
@@ -100,7 +100,7 @@ runSimulation <- function(par)
         envMat = matrix(out[[i]]$Environment,ncol=par$x, nrow=par$y), 
         compMat = matrix(out[[i]]$CompetitionTrait,ncol=par$x, nrow=par$y), 
         neutMat = matrix(out[[i]]$NeutralTrait,ncol=par$x, nrow=par$y),
-        phylogeny = if (par$convertToBinaryTree && !is.double(phyloi)) ape::multi2di(phyloi) else phyloi, 
+        phylogeny = if (par$convertToBinaryTree && !is.double(phyloi)) ape::multi2di(phyloi, random = FALSE) else phyloi, 
         phyloTXT = out[[i]]$Phylogeny,
         summaries = NA)
     }
@@ -113,6 +113,11 @@ runSimulation <- function(par)
     class(output) <- "PhyloSim"
     
     if(par$calculateSummaries) {
+      # fixes #135 (summaries reproducible from par$seed; user's stream restored as in NeutralMod())
+      oldSeed <- globalenv()$.Random.seed
+      on.exit(if (is.null(oldSeed)) rm(".Random.seed", envir = globalenv())
+              else assign(".Random.seed", oldSeed, envir = globalenv()), add = TRUE)
+      set.seed(par$seed)
       output$Output[[1]]$summaries = calculateSummaryStatistics(output)
     }
     
