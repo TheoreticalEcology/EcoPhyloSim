@@ -12,7 +12,7 @@ sac(simu, which.result = NULL, size = NULL, rep = 50, plot = T,
 
 \item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details').}
 
-\item{size}{a single value or a vector determining the edge length of the subplots. If not provided, up to 10 logarithmically spaced plot sizes will be used.}
+\item{size}{a single value or a vector determining the edge length of the subplots. If not provided, up to 10 logarithmically spaced plot sizes between 2 and the shorter side of the grid will be used.}
 
 \item{rep}{The number of repetitions per size to calculate the mean}
 
@@ -23,7 +23,7 @@ sac(simu, which.result = NULL, size = NULL, rep = 50, plot = T,
 \item{nested}{Logical, determining whether nested subplots should be used.}
 }
 \value{
-A data frame with the plot area (size^2), the mean species richness and its 5\% and 95\% quantiles. If which.result = "all", the plot is drawn and NULL is returned.
+A data frame with the plot area (size^2), the mean species richness and its 5\% and 95\% quantiles. If which.result = "all" or contains several results, the plot is drawn and NULL is returned.
 }
 \description{
 Plots the species area curve for a given community.

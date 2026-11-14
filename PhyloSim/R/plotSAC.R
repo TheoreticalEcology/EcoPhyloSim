@@ -3,13 +3,13 @@
 #' @description Plots the species area curve for a given community. 
 #' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)
 #' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details').
-#' @param size a single value or a vector determining the edge length of the subplots. If not provided, up to 10 logarithmically spaced plot sizes will be used.
+#' @param size a single value or a vector determining the edge length of the subplots. If not provided, up to 10 logarithmically spaced plot sizes between 2 and the shorter side of the grid will be used.
 #' @param rep The number of repetitions per size to calculate the mean 
 #' @param plot Logical determining whether to plot the SAC or not
 #' @param title String, determining the title of the plot
 #' @param nested Logical, determining whether nested subplots should be used.
 #' @details Displays the accumulated species richness as a function of plot size. It serves as an indicator for the clustering of a species community. A positively bent curve usually indicates clustering since an increase in plot size leads to an increase in species richness while a negatively bent curve indicates a more neutral distribution of species within the community. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
-#' @return A data frame with the plot area (size^2), the mean species richness and its 5% and 95% quantiles. If which.result = "all", the plot is drawn and NULL is returned.
+#' @return A data frame with the plot area (size^2), the mean species richness and its 5% and 95% quantiles. If which.result = "all" or contains several results, the plot is drawn and NULL is returned.
 #' @example /inst/examples/plotSAC-help.R
 
 #' @export
@@ -23,7 +23,7 @@ sac <- function(simu, which.result = NULL, size = NULL, rep=50, plot=T, title="S
   if(is.null(which.result)) which.result = length(simu$Output) 
   
   if(is.null(which.result) == FALSE){
-    if(which.result == "all"){
+    if(identical(which.result, "all")){
       simulations <- c(1:length(simu$Output))
     
     }else{
@@ -34,18 +34,14 @@ sac <- function(simu, which.result = NULL, size = NULL, rep=50, plot=T, title="S
   colfunc <- colorRampPalette(c("blue", "red"))
   cols<-colfunc(length(simulations))
   
-  for(t in simulations){
-    
-    simu_t <- simu$Output[[t]]
+  for(t in seq_along(simulations)){ # position, so that t == 1 is the first result (several results)
+    res <- simulations[t]
+    simu_t <- simu$Output[[res]]
     matrix <- simu_t$specMat
     
-    res <- t # result to use; t is reset to 1 for a single result
-    if(length(simulations)==1) t<-1
-    
     landscapeDim = dim(matrix)
-    landscapeArea = landscapeDim[1] * landscapeDim[2]
     if (is.null(size)){
-      size = unique(as.integer(round(exp(seq(log(2), log(sqrt(landscapeArea)), length.out = 10)))))
+      size = unique(as.integer(round(exp(seq(log(2), log(min(landscapeDim)), length.out = 10)))))
     }
     
     
@@ -97,7 +93,7 @@ sac <- function(simu, which.result = NULL, size = NULL, rep=50, plot=T, title="S
       } else{
         lines(size^2,meanSpeciesRichness,type="l", col=cols[t])
         
-        if(t == length(simu$Output)){
+        if(t == length(simulations)){
          
           polygon(x=c(size^2,rev(size^2)), y=c(meanSpeciesRichnessUpperCI,
                   rev(meanSpeciesRichnessLowerCI)), col="#00000030", border=NA)

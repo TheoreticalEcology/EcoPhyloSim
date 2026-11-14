@@ -2,7 +2,7 @@
 #' @description A model of species community assembly under different assembly mechanisms.  
 #' @param par a list of model parameters created with \link{createCompletePar}
 #' @return An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation. 
-#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. 
+#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. \cr\cr If a result contains only one species, no phylogeny can be built, and its `phylogeny` element is set to 0 with a warning. This is common in short runs, because all individuals start as one species and new species arise at a rate of `specRate` per generation.
 #' @importFrom adephylo distTips
 #' @import Rcpp
 #' @useDynLib PhyloSim, .registration = TRUE
@@ -89,7 +89,7 @@ runSimulation <- function(par)
       specMati = matrix(out[[i]]$Species,ncol=par$x, nrow=par$y)
       if(length(unique(c(specMati)))==1){
         phyloi <- 0
-        warning("Cannot build Phylogeny")
+        warning("Only one species in the community at generation ", par$runs[i], "; phylogeny set to 0. Increase runs or specRate.")
       }else{
         phyloi <- ape::read.tree(text= out[[i]]$Phylogeny)
       }
