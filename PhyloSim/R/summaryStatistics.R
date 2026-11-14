@@ -105,7 +105,8 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NUL
   # standardized mean pairwise distance (z-score, analogous to -NRI).
   # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
   # picante::ses.mpd, which is maintained and already a dependency.
-  # The species pool is the full phylogeny, as with mpd.query before.
+  # The species pool is all species in the phylogeny: only the extant species with
+  # prunePhylogeny = TRUE, all species ever created with prunePhylogeny = FALSE (#147).
   sesMpd <- picante::ses.mpd(plots$communityTable,
                              stats::cophenetic(result$phylogeny),
                              null.model = "taxa.labels", runs = 999)
