@@ -191,6 +191,11 @@ and 1000 generations. They contain the spatial species matrix, the
 environment), the competition matrix and the neutral matrix, as well as the
 phylogeny in two formats.
 
+With the default `prunePhylogeny = TRUE`, the phylogeny contains only the
+extant species; with `prunePhylogeny = FALSE`, it also contains all extinct
+species as tips. Branch lengths are in generations, with each census placed
+half a generation after the events of its generation (see `?runSimulation`).
+
 To access them, the easiest way is to use indices:
 
 ```{r output1}
@@ -290,7 +295,7 @@ traits to construct a phylogeny for the given community. These phylogenies can
 then be compared to the real phylogeny of the community.
 
 ```{r phylorecon, fig.width = 7, fig.height = 4, fig.cap = "Reconstructed phylogeny (left) and real phylogeny (right). There are differences in the species that make up the resulting communities as well as in their assembly."}
-Phyl   <- ape::drop.fossil(simu$Output[[2]]$phylogeny)
+Phyl   <- simu$Output[[2]]$phylogeny
 rePhyl <- phyloReconstruct(simu)
 
 par(mfrow = c(1, 2))

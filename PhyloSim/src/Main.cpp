@@ -100,19 +100,6 @@ int main() {
 //	Model.get_data();
 //	Model.getclimate();
 //	Model.gettraits();
-    /* if (dispersal == 1) {
-
-         Model.m_Global->m_Phylogeny.prunePhylogeny(runs);
-         Model.m_Global->m_Phylogeny.writePhylogeny(1, Model.m_Global->m_Phylogeny.m_PrunedPhylo, 'P');
-         Model.m_Global->m_Phylogeny.writePhylogeny(1, Model.m_Global->m_Phylogeny.m_FullPhylogeny, 'F');
-         Model.m_Global->m_Phylogeny.writeSpeciesData();
-     } else {
-
-         Model.m_Local->m_Phylogeny.prunePhylogeny(runs);
-         Model.m_Local->m_Phylogeny.writePhylogeny(1, Model.m_Local->m_Phylogeny.m_PrunedPhylo, 'P');
-         Model.m_Local->m_Phylogeny.writePhylogeny(1, Model.m_Local->m_Phylogeny.m_FullPhylogeny, 'F');
-         Model.m_Local->m_Phylogeny.writeSpeciesData();
-     }*/
 
     return 0;
 }

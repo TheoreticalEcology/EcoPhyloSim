@@ -28,20 +28,13 @@ public:
 
     void updatePhylogeny(Species *spec);
 
-    void writePhylogeny(unsigned long long start,
-                        std::multimap<unsigned long long, Species *> *phylogenyMap, char suffix);
-
     std::string writePhylogenyR(unsigned long long start,
                                 std::multimap<unsigned long long, Species *> *phylogenyMap,
                                 unsigned long long current);
 
-    void writeSpeciesData();
-
     void prunePhylogeny();
 
     void pruneIfLarge();
-
-    std::vector<Species *> specVec;
 };
 
 #endif /* PHYLOGENY_H_ */
