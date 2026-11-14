@@ -16,8 +16,7 @@ test_that("the seed controls the species matrix", {
   expect_false(identical(run(1), run(2)))
 })
 
-test_that("the seed alone controls the phylogeny", {
-  skip("the seed does not control the R-side randomness yet, see #135")
+test_that("the seed alone controls the phylogeny (#135)", {
   run <- function() quietSimulation(x = 20, y = 20, runs = 300, specRate = 10, seed = 1)$Output[[1]]$phylogeny # with polytomies
   expect_equal(run(), run())
 })

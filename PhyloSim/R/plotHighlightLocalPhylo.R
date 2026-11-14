@@ -22,7 +22,7 @@ highlightLocalPhylo <- function(simu,which.result=NULL, size, n, subplot = NULL,
     simu <- simu$Output[[which.result]]
   
   phylo <- simu$phylogeny} else phylo <- phylogeny
-  phylo <- ape::drop.fossil(phylo)
+  phylo <- .dropFossil(phylo)
   
   for( i in 1:n){
     x <- phylo$tip.label[is.element(phylo$tip.label,names(community[which(community[i,] > 0)]))]

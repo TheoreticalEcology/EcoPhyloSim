@@ -125,4 +125,18 @@ getSpeciesIndices <- function (sim, speciesID, whichRun=1) {
   return(which(sim$Output[[whichRun]]$specMat == speciesID))  
 }
 
+# Internal helper: removes extinct tips as ape::drop.fossil(), but with root-to-tip
+# distances in linear time; drop.fossil() builds the matrix of all node distances,
+# which crashes R on Windows above 23170 tips (fixes #168)
+.dropFossil <- function(phy, tol = 1e-8) {
+  x <- ape::node.depth.edgelength(phy)[seq_len(ape::Ntip(phy))]
+  ape::drop.tip(phy, which(x < max(x) - tol))
+}
+
+# Internal helper: gamma statistic of the extant species; ape::gammaStat() needs a
+# binary tree, so polytomies are resolved deterministically (fixes #169)
+.gammaStat <- function(phy) {
+  ape::gammaStat(ape::multi2di(.dropFossil(phy), random = FALSE))
+}
+
 

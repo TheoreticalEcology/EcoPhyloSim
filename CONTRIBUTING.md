@@ -91,7 +91,7 @@ EcoPhyloSim is an R package with a simulation model in C++ (via Rcpp); the packa
 ### C++ code
 
 - The simulation model is in `PhyloSim/src/`. Print with `Rcpp::Rcout` (and `Rcpp::Rcerr`), never with `std::cout`, `std::cerr` or `printf`; signal errors with `Rcpp::stop()`, never with `exit()` or `abort()`.
-- `PhyloSim/src/RcppExports.cpp` and `PhyloSim/R/RcppExports.R` are generated: after changing an `// [[Rcpp::export]]` function, run `Rcpp::compileAttributes("PhyloSim")`. `PhyloSim/src/RcppExportsIni.c` registers `callModel` and is maintained by hand: if the number of arguments of `callModel` changes, update both the `SEXP` declaration and the count in `CallEntries`.
+- `PhyloSim/src/RcppExports.cpp` and `PhyloSim/R/RcppExports.R` are generated: after changing an `// [[Rcpp::export]]` function, run `Rcpp::compileAttributes("PhyloSim")`. `PhyloSim/src/RcppExportsIni.c` registers the exported C++ functions and is maintained by hand: if one is added or its number of arguments changes, update both the `SEXP` declaration and the count in `CallEntries`.
 - Changes to the model that change simulation results, even for the default parameters, must be stated in the pull request description (and, as every user-visible change, in `NEWS.md`).
 - `NeutralMod()` (`PhyloSim/R/neutralModelR.R`) follows the general rules of the C++ model, except for the differences listed in its help. If you change such a rule (e.g., which individual can be the parent of a new one), update `NeutralMod()`, its help and its tests in the same pull request.
 
