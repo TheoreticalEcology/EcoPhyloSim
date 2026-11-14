@@ -46,7 +46,7 @@
 * `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
 * `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
 * `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
-* `summary()` of a `PhyloSim` object printed the class name as `Phylosim`.
+* `summary()` of a `PhyloSim` object printed the class name as `Phylosim` (#155).
 
 ## Documentation
 
