@@ -32,7 +32,7 @@ Generates subplots from a metacommunity, simulating field conditions
 If nested == TRUE the subplots are produced in a sequential order. That means if your 'size' argument has the length 5 and your 'n' argument is 2 you will get ten subplots. The first five will be one group of nested plots and the last five the second group of nested plots.
 }
 \examples{
-library(PhyloSim)
+library(EcoPhyloSim)
 xSize <- 30
 ySize <- 30
 nGenerations <- 300

@@ -28,13 +28,13 @@
 # TODO: Rename this
 runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summariesOnly=FALSE, nCores="auto", chunkSize="auto") {
   # Get available parameters
-  arguments <- formals(PhyloSim::createCompletePar)
+  arguments <- formals(EcoPhyloSim::createCompletePar)
   
   # Validate input
   validateParams(names(variableParams), names(arguments))
   validateParams(names(fixedParams), names(arguments))
   validatePriors(variableParams)
-  cat("ATTENTION: createCompletePar() stops with an error if a fixed parameter or a value drawn from a prior is invalid, which stops the analysis. Please make sure to read the help of PhyloSim::createCompletePar to choose valid parameters.\n")
+  cat("ATTENTION: createCompletePar() stops with an error if a fixed parameter or a value drawn from a prior is invalid, which stops the analysis. Please make sure to read the help of EcoPhyloSim::createCompletePar to choose valid parameters.\n")
   
   # Find parameters that stay at default values
   defaultParams <- getDefaultParams(arguments, c(fixedParams, variableParams))
@@ -84,7 +84,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
   doParallel::registerDoParallel(cl)
   
-  foreach(i=1:length(simFiles), .packages = c("PhyloSim")) %dopar% {
+  foreach(i=1:length(simFiles), .packages = c("EcoPhyloSim")) %dopar% {
     loadLocal <- function(path) return(local(get(load(path))))
     joinPath <- function(x, sysName = "auto") {
       if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
@@ -97,9 +97,9 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
     simChunk <- loadLocal(joinPath(c(dir, simFiles[i])))
     
     # Calculate summaries
-    tryCalcSummaries <- function(x,...)return(tryCatch(PhyloSim::calculateSummaryStatistics(x,...),
+    tryCalcSummaries <- function(x,...)return(tryCatch(EcoPhyloSim::calculateSummaryStatistics(x,...),
                                                    error=function(x)return(NA)))
-    # summaryChunk <- lapply(simChunk, PhyloSim::calculateSummaryStatistics, strict=TRUE)
+    # summaryChunk <- lapply(simChunk, EcoPhyloSim::calculateSummaryStatistics, strict=TRUE)
     summaryChunk <- lapply(simChunk, tryCalcSummaries, strict=TRUE)
     
     # Determine file name
@@ -141,7 +141,7 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     dir.create(outDir)
   }
   
-  foreach(i=1:length(sumFiles), .packages = c("PhyloSim")) %dopar% {
+  foreach(i=1:length(sumFiles), .packages = c("EcoPhyloSim")) %dopar% {
     # loadLocal <- function(path) return(local(get(load(path))))
     # joinPath <- function(x, sysName = "auto") {
     #   if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
@@ -250,7 +250,7 @@ runSimulationChunkwise <- function (fixedParamsList, variableParams, nRuns, chun
     for (j in 1:n) {
       # create list of variable parameters drawn from prior
       varParamsList <- lapply(variableParams, FUN = do.call, list())
-      params[[j]] <- do.call(PhyloSim::createCompletePar, args = c(fixedParamsList, varParamsList))
+      params[[j]] <- do.call(EcoPhyloSim::createCompletePar, args = c(fixedParamsList, varParamsList))
     }
     
     # generate "unique" suffix for data files
@@ -289,7 +289,7 @@ prepareForAnalysis <- function(dir=".", variableParams) {
   pars <- loadLocal(joinPath(c(cleanedDir, "combined_param_clean")))
   
   # extract variable parameters' values
-  pars_df <- PhyloSim::extractParams(pars, names(variableParams))
+  pars_df <- EcoPhyloSim::extractParams(pars, names(variableParams))
   
   # scale summaries
   summaries_df <- as.data.frame(data.table::rbindlist(summaries))

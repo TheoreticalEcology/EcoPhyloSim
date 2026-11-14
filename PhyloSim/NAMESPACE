@@ -81,4 +81,4 @@ importFrom(stats,
   sd,
   setNames
 )
-useDynLib(PhyloSim, .registration = TRUE)
+useDynLib(EcoPhyloSim, .registration = TRUE)

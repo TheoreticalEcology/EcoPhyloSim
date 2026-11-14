@@ -15,7 +15,7 @@ You will find the following sections.
 -----------------
 First the package has to be loaded.
 ```{r}
-library(PhyloSim)
+library(EcoPhyloSim)
 ```
 
 

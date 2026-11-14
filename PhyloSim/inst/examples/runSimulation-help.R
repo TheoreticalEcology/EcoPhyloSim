@@ -1,4 +1,4 @@
- library(PhyloSim)
+ library(EcoPhyloSim)
 # Define a parameter set
 par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = c(500, 1000),
         density = 0, environment = 0, specRate = 1, fission = 0, redQueen=0, redQueenStrength=0,

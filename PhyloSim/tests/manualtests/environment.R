@@ -13,7 +13,7 @@ createLinearGradientEnv <- function (params, w, h, scale=TRUE) {
 }
 
 
-library(PhyloSim)
+library(EcoPhyloSim)
 w <- h <- 50
 p <- c(1.5, 1, 0)
 envMat <- createLinearGradientEnv(p, w, h, T)

@@ -1,4 +1,4 @@
-# PhyloSim 0.3.1
+# EcoPhyloSim 0.3.1
 
 ## New features
 
@@ -11,6 +11,7 @@
 
 ## Changes
 
+* The package was renamed from PhyloSim to EcoPhyloSim because of a name clash with the archived CRAN package phylosim; class and function names are unchanged (#64).
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
 * `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `density` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
@@ -22,7 +23,7 @@
 * The archived packages kulife, apTreeshape and PhyloMeasures are no longer needed: the Colless index is computed internally, and the phylogenetic dispersion uses `picante::ses.mpd()` with 999 randomizations, so the `dispersion` statistic of `calculateSummaryStatistics()` is stochastic and slower than before. The `useApTreeshape` argument of `collessImbalance()` is deprecated; `useApTreeshape = FALSE` no longer returns the normalized index (@melina-leite, #89).
 * spatstat.geom, spatstat.explore and vegan were added to Imports; rmarkdown, testthat, abctools, ranger, data.table and gtools to Suggests (the last four are only needed for `runPhylosimAnalysis()`, its helper functions and the rejection sampling functions) (#113).
 * License changed from GPL (>= 2) to GPL (>= 3).
-* PhyloSim now requires R (>= 4.1.0), as required by its dependencies vegan and MESS (#113).
+* EcoPhyloSim now requires R (>= 4.1.0), as required by its dependencies vegan and MESS (#113).
 * The `plot()`, `print()` and `summary()` methods for `PhyloSim` and `PhylosimList` objects use the argument names of the generics (`x`, `object`), so calls such as `plot(simu = s)` no longer work (#113).
 * `collessImbalance()` and `summary()` use only extant species by default (`dropFossils = TRUE`), as `calculateSummaryStatistics()` already did (#117).
 * The non-functional Leipzig model (`type = "Leipzig"`) and its C++ code were removed, and `runSimulation()` no longer accepts `type = "Rneutral"`. Unknown values of `type` now give an error instead of returning `NULL` (#112).

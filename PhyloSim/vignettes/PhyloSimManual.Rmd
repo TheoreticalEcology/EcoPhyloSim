@@ -1,5 +1,5 @@
 ---
-title: "The PhyloSim R Package"
+title: "The EcoPhyloSim R Package"
 author: "Paul Bauche, Florian Hartig, Christian Buschbeck, Stefan Paul"
 date: "`r Sys.Date()`"
 output:
@@ -10,7 +10,7 @@ output:
 bibliography: Vignette_bib.bib
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{The PhyloSim R Package}
+  %\VignetteIndexEntry{The EcoPhyloSim R Package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -29,7 +29,7 @@ knitr::opts_chunk$set(
 knitr::include_graphics("PlotSpatial.png")
 ```
 
-Tutorial for the PhyloSim package. Comments and contact:
+Tutorial for the EcoPhyloSim package. Comments and contact:
 Florian Hartig, Theoretical Ecology, University of Regensburg [website](https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig).
 
 **Warning for the user:** consider this package to be in a beta-stage.
@@ -44,14 +44,14 @@ devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
                          dependencies = TRUE,
                          build_vignettes = TRUE)
 
-?PhyloSim
-browseVignettes("PhyloSim")
+?EcoPhyloSim
+browseVignettes("EcoPhyloSim")
 ```
 
 **To cite the package:** use the citation information provided with the package.
 
 ```{r citation}
-citation("PhyloSim")
+citation("EcoPhyloSim")
 ```
 
 This work is licensed under a Creative Commons
@@ -61,7 +61,7 @@ Attribution-NonCommercial-NoDerivatives 4.0 International License.
 
 ## Overview
 
-The PhyloSim package is a modeling environment for neutral and non-neutral biogeographic simulations. It generates a) spatial distribution and diversity metrics, b) phylogeny and c) traits from four basic processes: i) dispersal, ii) (adaptive) environmental preferences, iii) (adaptive) competitive traits, and iv) speciation in a stochastic simulation.
+The EcoPhyloSim package is a modeling environment for neutral and non-neutral biogeographic simulations. It generates a) spatial distribution and diversity metrics, b) phylogeny and c) traits from four basic processes: i) dispersal, ii) (adaptive) environmental preferences, iii) (adaptive) competitive traits, and iv) speciation in a stochastic simulation.
 
 The package allows the user to choose between a number of options for each of these processes, and provides functions for analyzing the results, including standard biogeographic and phylogenetic summaries such as species-area curves, rank-abundance curves or phylogenetic balance and diversity.
 
@@ -154,7 +154,7 @@ point speciation (the default, described above) is included for comparison:
 The first thing to do is, obviously, loading the package:
 
 ```{r library, message = FALSE}
-library(PhyloSim)
+library(EcoPhyloSim)
 ```
 
 Running the model consists of two consecutive steps. First, a list of parameters
@@ -244,7 +244,7 @@ simu1 <- simuBatch[[1]]
 An overview of the basic classes and functions to run simulations is provided
 below.
 
-```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
+```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the EcoPhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
 knitr::include_graphics("runsimulation.svg")
 ```
 
@@ -256,7 +256,7 @@ present one explains plots and summary statistics that can be created from the
 
 ## Plot functions
 
-The PhyloSim package contains multiple functions to visualize the results of the
+The EcoPhyloSim package contains multiple functions to visualize the results of the
 simulation, which are summarized in the overview figure at the end of this
 chapter.
 
@@ -318,7 +318,7 @@ Both figures show the phylogeny of the same metacommunity but highlight differen
 local plots with different plot sizes (10 and 5). The larger plot is richer in
 species than the smaller one.
 
-```{r plotsfig, echo = FALSE, out.width = "70%", fig.cap = "Overview of the plotting functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. The arrows illustrate what is used as input parameter for the functions."}
+```{r plotsfig, echo = FALSE, out.width = "70%", fig.cap = "Overview of the plotting functions in the EcoPhyloSim package. Functions are represented by bubbles, objects by circles. The arrows illustrate what is used as input parameter for the functions."}
 knitr::include_graphics("plots.svg")
 ```
 

@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r}
-require(PhyloSim)
+require(EcoPhyloSim)
 require(ape)
 load("../results/results100x100.Rdata" )
 
