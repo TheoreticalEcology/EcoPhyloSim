@@ -44,7 +44,7 @@ summary.PhyloSim <- function(object, ...){
   cat("------------------------------------", "\n", sep="")
   cat("Number of Species in Metacommunity: ", specRich(object), "\n", sep="")
   cat("Colless' Imbalance: ", collessImbalance(object), "\n", sep="")
-  cat("Gamma: ", suppressWarnings(ape::gammaStat(ape::drop.fossil(object$Output[[length(object$Output)]]$phylogeny))), "\n" )
+  cat("Gamma: ", .gammaStat(object$Output[[length(object$Output)]]$phylogeny), "\n" )
   cat("Time elapsed: ", object$Model$runtime,"seconds", "\n", sep="")
 }
 

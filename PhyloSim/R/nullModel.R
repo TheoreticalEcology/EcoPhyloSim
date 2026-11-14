@@ -21,7 +21,7 @@ nullModel <- function(simu, which.result=NULL, abundance = FALSE, localPlotSize,
   phylogeny <- simu$phylogeny
   speciesMatrix <- simu$specMat
   
-  extantPhyloCophen <- stats::cophenetic(phylogeny) # create distance matrix from phylogeny (requires picante)
+  extantPhyloCophen <- stats::cophenetic(.dropFossil(phylogeny)) # distance matrix of the extant species
   
   # calculate fun for "real matrix"
   ifelse (fun == "mpd", observedMPD <- picante::mpd(samp = comMat, dis = extantPhyloCophen, abundance.weighted = T),

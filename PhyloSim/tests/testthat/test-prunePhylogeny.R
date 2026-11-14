@@ -64,3 +64,20 @@ test_that("the pruned phylogeny does not depend on the number of censuses (#140)
   expect_identical(one$specMat, many$specMat)
   expect_identical(one$phyloTXT, many$phyloTXT)
 })
+
+test_that(".dropFossil() gives the same trees as ape::drop.fossil() (#168)", {
+  set.seed(1)
+  for (n in c(3, 10, 50, 200)) for (poly in c(FALSE, TRUE)) {
+    phy <- ape::rcoal(n)
+    if (poly) phy <- ape::di2multi(phy, tol = stats::median(phy$edge.length))
+    tips <- which(phy$edge[, 2] <= n)
+    short <- sample(tips, n %/% 2)
+    phy$edge.length[short] <- phy$edge.length[short] * stats::runif(length(short), 0, 0.9)
+    expect_equal(EcoPhyloSim:::.dropFossil(phy), ape::drop.fossil(phy))
+  }
+  # simulated tree with extinct species
+  phy <- quietSimulation(x = 20, y = 20, specRate = 8, runs = 1000, seed = 1,
+                         convertToBinaryTree = FALSE, prunePhylogeny = FALSE)$Output[[1]]$phylogeny
+  expect_lt(ape::Ntip(EcoPhyloSim:::.dropFossil(phy)), ape::Ntip(phy))
+  expect_equal(EcoPhyloSim:::.dropFossil(phy), ape::drop.fossil(phy))
+})
