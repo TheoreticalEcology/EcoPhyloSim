@@ -51,7 +51,7 @@ importFrom(grDevices,
   colorRampPalette,
   dev.size,
   grey,
-  rainbow,
+  hcl.colors,
   rgb
 )
 importFrom(graphics,
@@ -78,6 +78,7 @@ importFrom(stats,
   na.omit,
   quantile,
   rmultinom,
-  sd
+  sd,
+  setNames
 )
 useDynLib(PhyloSim, .registration = TRUE)

@@ -16,13 +16,10 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   dat <- simu$Output[[which.result]]
   
   names <- unique(as.numeric(dat$specMat))
-  p   <- seq(from = 0, to = 1 ,length.out = length(names))
-  red <- sample(p, size = length(names))
-  green <- sample(p, size = length(names))
-  blue <- sample(p, size = length(names))
-  cols <- vector()
-  for(i in 1:length(names)){
-      cols[i] <- rgb(red[i],green[i],blue[i],0.5)}
+  # same species colors as in plotSpatialPhylo(), without random numbers (#156)
+  cols <- unname(speciesColors(ape::drop.fossil(dat$phylogeny), alpha = 0.5)[paste0("s", names)])
+  cols[is.na(cols)] <- grey(0.5, alpha = 0.5)
+  ymax <- max(1, log(max(table(dat$specMat)))) # no histogram bin can exceed the largest abundance
   colmat <- dat$specMat
   for(i in 1:length(names)){
     colmat[colmat==names[i]] <- cols[i]}
@@ -49,7 +46,7 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   
   f <- hist(dat$traitMat[dat$specMat==names[1]], plot=F)
   f$counts <- log(f$counts)
-  plot(f,ylim =c(0,7), xlim=c(xmin,xmax), col =cols[1], ylab="log(Frequency)" , xlab="Value", main = "Environment Histogram", border =0)
+  plot(f,ylim = c(0, ymax), xlim=c(xmin,xmax), col =cols[1], ylab="log(Frequency)" , xlab="Value", main = "Environment Histogram", border =0)
   
   for(i in 2:length(names)){
     f <- hist(dat$traitMat[dat$specMat==names[i]], plot=F)
@@ -63,7 +60,7 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   
   f <- hist(dat$compMat[dat$specMat==names[1]], plot=F)
   f$counts <- log(f$counts)
-  plot(f,ylim =c(0,7), xlim=c(xmin,xmax), col =cols[1], ylab="log(Frequency)" , xlab="Value", main = "Competition Histogram", border =0)
+  plot(f,ylim = c(0, ymax), xlim=c(xmin,xmax), col =cols[1], ylab="log(Frequency)" , xlab="Value", main = "Competition Histogram", border =0)
   
   for(i in 2:length(names)){
     f <- hist(dat$compMat[dat$specMat==names[i]], plot=F)
@@ -77,7 +74,7 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
   
   f <- hist(dat$neutMat[dat$specMat==names[1]], plot=F)
   f$counts <- log(f$counts)
-  plot(f,ylim =c(0,7), xlim=c(xmin,xmax), col =cols[1], ylab="log(Frequency)" , xlab="Value", main = "Neutral Histogram", border =0)
+  plot(f,ylim = c(0, ymax), xlim=c(xmin,xmax), col =cols[1], ylab="log(Frequency)" , xlab="Value", main = "Neutral Histogram", border =0)
   
   for(i in 2:length(names)){
     f <- hist(dat$neutMat[dat$specMat==names[i]], plot=F)
