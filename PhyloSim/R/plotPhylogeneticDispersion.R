@@ -81,7 +81,8 @@ plotPhylogeneticDispersion <- function(pvalues, positions=NULL, title = "P-value
   oldpar<-par()
   
   par(mar=c(0, 3, 0, 0), xpd=TRUE)
-  shape::emptyplot(xlim=c(0, xmax), ylim=c(0.5,ymax), asp=1, frame.plot = FALSE)
+  plot(0, type = "n", xlab = "", ylab = "", axes = FALSE, asp = 1,
+       xlim = c(0, xmax), ylim = c(0.5, ymax), xaxs = "i", yaxs = "i")
   text(x = median(positions$x/2), y = 1.5*ycol/2 ,  labels= title, cex=1.3)
   
   for(i in 1:length(positions$y)){
@@ -96,8 +97,8 @@ plotPhylogeneticDispersion <- function(pvalues, positions=NULL, title = "P-value
       k <- length(positions$x)*(i-1) + j
       
       mpv <- mean(z[,k])
-      shape::filledrectangle(wx = 0.3 ,wy = 0.3, col = Cols[which.max(index[index <= mpv])],
-              mid = c(x, y), angle = 0, lcol = "darkgrey")
+      rect(x - 0.15, y - 0.15, x + 0.15, y + 0.15, col = Cols[which.max(index[index <= mpv])],
+           border = "darkgrey", lwd = 2)
       
       xval <- (lengths - min(lengths)) / lRange *0.3 -0.15
       yval <- z[,k] * 0.3 - 0.15
@@ -119,8 +120,12 @@ plotPhylogeneticDispersion <- function(pvalues, positions=NULL, title = "P-value
   bary <- mean(positions$y)/2
   barl <- 0.3
   
-  fields::colorbar.plot(x = barx, y = bary, strip=seq(0,1,0.001), col=Cols, 
-                        strip.length = barl, horizontal = F, strip.width = 0.04)
+  # vertical color bar, sized as by fields::colorbar.plot() (#167)
+  usr <- par("usr")
+  pin <- par("pin")
+  dx <- 0.04 * (usr[2] - usr[1])
+  ys <- bary + barl * pin[1] * (usr[4] - usr[3]) / pin[2] * seq(-0.5, 0.5, length.out = length(Cols) + 1)
+  rect(barx - dx/2, ys[-length(ys)], barx + dx/2, ys[-1], col = Cols, border = NA)
   text(x = barx+0.1 , y = bary + 1.8* barl, labels = "overdispersed" , pos = 4) 
   text(x = barx+0.1 , y = bary, labels = "neutral" , pos = 4) 
   text(x = barx+0.1 , y = bary - 1.8* barl, labels = "underdispersed \n(clustered)", pos = 4) 

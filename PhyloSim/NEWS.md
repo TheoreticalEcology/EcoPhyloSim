@@ -23,7 +23,8 @@
 * The archived packages kulife, apTreeshape and PhyloMeasures are no longer needed: the Colless index is computed internally, and the phylogenetic dispersion uses `picante::ses.mpd()` with 999 randomizations, so the `dispersion` statistic of `calculateSummaryStatistics()` is stochastic and slower than before. The `useApTreeshape` argument of `collessImbalance()` is deprecated; `useApTreeshape = FALSE` no longer returns the normalized index (@melina-leite, #89).
 * spatstat.geom, spatstat.explore and vegan were added to Imports; rmarkdown, testthat, abctools, ranger, data.table and gtools to Suggests (the last four are only needed for `runPhylosimAnalysis()`, its helper functions and the rejection sampling functions) (#113).
 * License changed from GPL (>= 2) to GPL (>= 3).
-* EcoPhyloSim now requires R (>= 4.1.0), as required by its dependencies vegan and MESS (#113).
+* EcoPhyloSim now requires R (>= 4.1.0), as required by its dependency vegan (#113).
+* adephylo, fields, MESS and shape were removed from Imports: adephylo was not used, and the few functions used from the others were replaced by base R code; `calculateSummaryStatistics()` gives the same values, and `plotPhylogeneticDispersion()` looks the same (#167).
 * The `plot()`, `print()` and `summary()` methods for `PhyloSim` and `PhylosimList` objects use the argument names of the generics (`x`, `object`), so calls such as `plot(simu = s)` no longer work (#113).
 * `collessImbalance()` and `summary()` use only extant species by default (`dropFossils = TRUE`), as `calculateSummaryStatistics()` already did (#117).
 * The non-functional Leipzig model (`type = "Leipzig"`) and its C++ code were removed, and `runSimulation()` no longer accepts `type = "Rneutral"`. Unknown values of `type` now give an error instead of returning `NULL` (#112).
