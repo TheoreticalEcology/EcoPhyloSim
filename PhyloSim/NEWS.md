@@ -43,6 +43,7 @@
 * `runSimulation()`: with `prunePhylogeny = TRUE`, the returned phylogeny contained extinct lineages without living descendants, and with either setting, each value in `runs` leaked a copy of all species ever created, so that memory use grew with the run length and the number of values in `runs`. Such lineages are now removed during the run; the simulated communities are unchanged. With `prunePhylogeny = FALSE`, the branches of extant species in intermediate results no longer extend to the last value in `runs` (#140).
 * `runSimulation()` with global dispersal: the dying individual could be its own parent, so that living species could get an extinction date (removed by `ape::drop.fossil()`, negative branch lengths, wrong species trait means); results with global dispersal change for a given seed. Grids must have at least 2 cells (#81).
 * The bundled data sets `simu.envcom.local`, `simu.neutral.local` and `simu.neutral.global` had the class `c("list", "Phylosim")` instead of `PhyloSim`, so that `print()`, `summary()`, `plot()`, `getAverageTraits()` and `calculatePhylogeneticDispersion()` did not recognize them (#128).
+* `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
 
 ## Documentation
 
