@@ -104,9 +104,9 @@ using namespace Rcpp;
 //'   effect on simulation output. Retained for potential future use; not currently
 //'   exposed as a separate argument in \code{createCompletePar}.
 //' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the
-//'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
-//'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
-//'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
+//'   phylogeny during the run, which keeps the tree and memory use small; the result contains only the
+//'   extant species as tips. If FALSE, the full phylogeny with all species (extinct species as tips) is
+//'   returned; its size grows with the run length. See \code{\link{runSimulation}} for the time scale.
 //' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
 //'   (see \code{\link{createCompletePar}}).
 //'

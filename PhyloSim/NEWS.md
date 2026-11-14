@@ -30,6 +30,7 @@
 * `plotSpatialPhylo()` and `plotTraitDistribution()` color the species with the colorblind-safe viridis palette, ordered along the phylogeny, so that a species has the same color in both plots (#156).
 * `localPlots()` stops with an error if `size` is not a whole number between 1 and the shorter side of the grid, and the default plot sizes of `sac()` go up to the shorter side of the grid instead of `sqrt(x * y)` (#151).
 * `runSimulation()`: the warning for results with only one species says that the phylogeny is set to 0 and how to avoid this, instead of "Cannot build Phylogeny" (#153).
+* `runSimulation()`: with `prunePhylogeny = TRUE` (the default), the phylogeny contains only the extant species, so that its size no longer grows with the run length; extinct ancestors become internal nodes. Each census is placed half a generation after the events of its generation, and the tree has no root edge (see `?runSimulation`), so tree statistics change slightly. Writing large phylogenies is faster (#147).
 
 ## Bug fixes
 
@@ -56,6 +57,7 @@
 * `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
 * `localPlots()` and `sac()` failed with "subscript out of bounds" if the grid is not square (`x != y`); on square grids, the `positions` of the subplots had x and y swapped. The fix changes `sac()` results for a fixed seed (#151).
 * `sac()`: a vector in `which.result` gave an error (#151).
+* `runSimulation()`: species that went extinct in the last generation before a census were kept by `ape::drop.fossil()`; with `prunePhylogeny = TRUE`, the species pool of the `dispersion` statistic of `calculateSummaryStatistics()` contained extinct ancestors (#147).
 
 ## Documentation
 

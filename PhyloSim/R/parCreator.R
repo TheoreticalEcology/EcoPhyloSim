@@ -21,7 +21,7 @@
 #' @param scenario String, further information you want to add to the parameter set in order to refer to a model run more conveniently. 
 #' @param calculateSummaries Logical, determining whether summary statistics should be calculated
 #' @param convertToBinaryTree Logical, determining if the phylogeny should be converted into a binary tree
-#' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small (see \code{\link{callModel}}). If FALSE, all species are kept.
+#' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small; the phylogeny then contains only the extant species (see \code{\link{runSimulation}}). If FALSE, all species are kept.
 #' @details If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
 #' @return A List with parameters
 #' @example /inst/examples/parCreator-help.R

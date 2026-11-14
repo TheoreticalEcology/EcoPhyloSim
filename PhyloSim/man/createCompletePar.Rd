@@ -55,7 +55,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{convertToBinaryTree}{Logical, determining if the phylogeny should be converted into a binary tree}
 
-\item{prunePhylogeny}{Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small (see \code{\link{callModel}}). If FALSE, all species are kept.}
+\item{prunePhylogeny}{Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small; the phylogeny then contains only the extant species (see \code{\link{runSimulation}}). If FALSE, all species are kept.}
 }
 \value{
 A List with parameters
