@@ -11,7 +11,7 @@
 
 runSimulation <- function(par)
 {
-  checkPar(par)
+  par <- checkPar(par)
   
   # GENERAL SETTINGS
   
@@ -25,22 +25,24 @@ runSimulation <- function(par)
       dispersal = 3
     }else stop("wrong dispersal parameter") 
     
-    if(par$fitnessActsOn == "mortality"){
-      reproductiveFitness = F
-      mortalityFitness = T    
-    }else if(par$fitnessActsOn == "reproduction"){
-      reproductiveFitness = T
-      mortalityFitness = F    
-    }else if (par$fitnessActsOn == "both"){
-      reproductiveFitness = T
-      mortalityFitness = T    
-    }else stop("wrong fitness parameters")
+    actsOn <- fitnessStages(par$fitnessActsOn)
+    mortalityFitness <- "mortality" %in% actsOn
+    reproductiveFitness <- "reproduction" %in% actsOn
+
+    # user-defined density response as a table over the similarity S in [0, 1]; for the
+    # species kernel, exactly at S = 0, 1/k, ..., 1 (k neighbors), otherwise on a fine grid
+    kernels <- c("absolute", "gaussian", "species")
+    densityTable <- numeric(0)
+    if (is.function(par$negativeDDResponse)) {
+      k <- nrow(getCircularOffsets(par$negativeDDCut))
+      densityTable <- densityResponseTable(par$negativeDDResponse,
+                                           if (par$negativeDDKernel == "species") k + 1 else 1001)
+    }
     
-    
-    # density and environment stay numeric, so that the stored $Model passes checkPar() when rerun (#118)
-    par$compStrength <- if (par$density == 0) 1 else par$density
+    # negativeDD and environment stay numeric, so that the stored $Model passes checkPar() when rerun (#118)
+    par$compStrength <- if (par$negativeDD == 0) 1 else par$negativeDD
     par$envStrength <- if (par$environment == 0) 1 else par$environment
-    neutral <- par$density == 0 && par$environment == 0
+    neutral <- par$negativeDD == 0 && par$positiveDD == 0 && par$environment == 0
     
     ptm <- proc.time()
     
@@ -49,14 +51,14 @@ runSimulation <- function(par)
                       dispersal = dispersal, 
                       runs = round(par$runs), 
                       specRate = par$specRate, 
-                      dens = par$density > 0, 
+                      dens = par$negativeDD > 0, 
                       env = par$environment > 0, 
                       neutral = neutral, 
                       mort = mortalityFitness, 
                       mortStrength = par$fitnessBaseMortalityRatio, 
                       repro = reproductiveFitness, 
                       dispersalCutoff = dispersalCut, 
-                      densityCutoff = par$densityCut, 
+                      densityCutoff = par$negativeDDCut, 
                       seed = par$seed, 
                       envStrength = par$envStrength, 
                       compStrength = par$compStrength, 
@@ -67,7 +69,15 @@ runSimulation <- function(par)
                       airmatR = par[["airmatR"]], 
                       soilmatR = par[["soilmatR"]],
                       prunePhylogeny = par$prunePhylogeny,
-                      nicheWidth = par$nicheWidth)
+                      nicheWidth = par$nicheWidth,
+                      recruit = "recruitment" %in% actsOn,
+                      densityKernel = match(par$negativeDDKernel, kernels),
+                      densityWidth = par$negativeDDWidth,
+                      densityTable = densityTable,
+                      positiveStrength = par$positiveDD,
+                      positiveCutoff = par$positiveDDCut,
+                      positiveKernel = match(par$positiveDDKernel, kernels),
+                      positiveWidth = par$positiveDDWidth)
     
     runtime <- as.numeric((proc.time() - ptm)[3])
     

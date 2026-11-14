@@ -12,7 +12,7 @@ or a list of them, e.g., from \code{\link{runSimulationBatch}}. At least two
 generations must be recorded (see \code{runs} in \code{\link{createCompletePar}}).}
 
 \item{radius}{radius of the neighborhood, a non-negative integer. If \code{NULL},
-the \code{densityCut} of the simulation is used.}
+the \code{negativeDDCut} of the simulation is used.}
 }
 \value{
 A data frame with the columns
@@ -47,22 +47,25 @@ the traits change at every birth. On average, a cell is replaced about once
 per generation, so the recorded generations should be consecutive, e.g.,
 \code{runs = 1000:1010} after a burn-in.
 
-In the model, density dependence acts through the competition trait
-(\code{compTrait}), not through species identity: fitness depends on the
-absolute difference in this trait to the neighbors. The number of
-conspecific neighbors \code{con} is therefore only a proxy. As the grid is
-always full, the number of heterospecific neighbors is the number of cells
-in the neighborhood minus \code{con}. With \code{environment > 0}, fitness
-also depends on the difference between \code{envTrait} and \code{env}.
+With the default \code{negativeDDKernel = "absolute"} (see
+\code{\link{createCompletePar}}), density dependence acts through the
+competition trait (\code{compTrait}), not through species identity, and the
+number of conspecific neighbors \code{con} is only a proxy; with
+\code{negativeDDKernel = "species"}, it acts through \code{con} directly. As the
+grid is always full, the number of heterospecific neighbors is the number of
+cells in the neighborhood minus \code{con}. With \code{environment > 0},
+fitness also depends on the difference between \code{envTrait} and
+\code{env}. Density dependence only appears in these data if
+\code{fitnessActsOn} includes \code{"mortality"}.
 
 Surviving individuals appear in several rows; account for this, e.g., with a
 random effect for \code{id}.
 }
 \examples{
-# Local dispersal and density dependence, burn-in of 300 generations,
+# Local dispersal and conspecific density dependence, burn-in of 300 generations,
 # then 6 consecutive recorded generations
-par <- createCompletePar(x = 30, y = 30, dispersal = 1, density = 1, densityCut = 2,
-                         runs = 300:305, seed = 1)
+par <- createCompletePar(x = 30, y = 30, dispersal = 1, negativeDD = 1, negativeDDCut = 2,
+                         negativeDDKernel = "species", runs = 300:305, seed = 1)
 simu <- runSimulation(par)
 
 dat <- getMortalityData(simu)

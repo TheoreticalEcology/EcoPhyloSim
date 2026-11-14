@@ -69,7 +69,7 @@ simu <- simu.neutral.global
 #Here, two simulation runs are stored in simu (one with 500 timesteps, one with 1000)
   par <- createCompletePar(
      x = 50, y = 50, dispersal = 1,
-     runs = c(500,1000), density = 1,
+     runs = c(500,1000), negativeDD = 1,
      environment = 0.5, specRate = 1)
 simu <- runSimulation(par)
 

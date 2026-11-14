@@ -33,7 +33,7 @@ print.PhylosimList <- function(x, ...){
   cat()
   for(i in 1:length(x)){
     cat("#",i," ",x[[i]]$Model$x,"", x[[i]]$Model$y," ",x[[i]]$Model$dispersal,"     ",
-        as.numeric(x[[i]]$Model$density),"      ", 
+        as.numeric(c(x[[i]]$Model$negativeDD, x[[i]]$Model$density)[1]),"      ", 
         as.numeric(x[[i]]$Model$environment),"      ", specRich(x[[i]]),"   ", x[[i]]$Model$runs[length(x[[i]]$Model$runs)], "\n")
   }
 }
@@ -53,7 +53,7 @@ summary.PhylosimList <- function(object, ...){
   cat()
   for(i in 1:length(object)){
     cat("#",i," ",object[[i]]$Model$x,"", object[[i]]$Model$y," ",object[[i]]$Model$dispersal,"     ",
-        as.numeric(object[[i]]$Model$density),"      ", 
+        as.numeric(c(object[[i]]$Model$negativeDD, object[[i]]$Model$density)[1]),"      ", 
         as.numeric(object[[i]]$Model$environment),"      ", specRich(object[[i]]),"   ", 
         object[[i]]$Model$runs[length(object[[i]]$Model$runs)],
         "  ", round(collessImbalance(object[[i]]),3), "  ",

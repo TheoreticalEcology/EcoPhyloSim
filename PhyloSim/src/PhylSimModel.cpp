@@ -23,7 +23,7 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
                            int densityCutoff, std::string saveLocation, double envStrength, double compStrength,
                            int fission,
                            double redQueen, double redQueenStrength, int protracted, std::vector<double> airmat,
-                           std::vector<double> soilmat, double nicheWidth) {
+                           std::vector<double> soilmat, double nicheWidth, DensityOptions ddOptions) {
 
 #ifdef DEBUG
     Rcpp::Rcout << "Running simulation with\n";
@@ -36,13 +36,15 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
     if (dispersal == 1) {
         m_Global = new GlobalEnvironment(X, Y, dispersal, neutral, dens, env, mort, repro, simulationEnd, specRate,
                                          dispersalCutoff, densityCutoff, mortalityStrength, envStrength, compStrength,
-                                         fission, redQueen, redQueenStrength, protracted, airmat, soilmat, nicheWidth);
+                                         fission, redQueen, redQueenStrength, protracted, airmat, soilmat, nicheWidth,
+                                         ddOptions);
         m_Local = NULL;
     } else if (dispersal == 2 || dispersal == 3) {
         m_Global = NULL;
         m_Local = new LocalEnvironment(X, Y, dispersal, neutral, dens, env, mort, repro, simulationEnd, specRate,
                                        dispersalCutoff, densityCutoff, mortalityStrength, envStrength, compStrength,
-                                       fission, redQueen, redQueenStrength, protracted, airmat, soilmat, nicheWidth);
+                                       fission, redQueen, redQueenStrength, protracted, airmat, soilmat, nicheWidth,
+                                       ddOptions);
     }
 
     timeStep = 0;

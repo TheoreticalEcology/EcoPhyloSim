@@ -21,16 +21,17 @@
 #'   intermediate states are saved at each value as well.
 #' @param specRate Numeric, speciation rate: mean number of speciation events per generation
 #'   (the realized number is drawn from a Poisson distribution); must not exceed \code{x * y}.
-#' @param dens Logical, whether density dependence is active. If \code{FALSE}, density
-#'   dependence is disabled (together with \code{env = FALSE} this yields the neutral
-#'   model). The strength of density dependence is set by \code{compStrength}.
+#' @param dens Logical, whether negative density dependence is active. If \code{FALSE}, it is
+#'   disabled (together with \code{env = FALSE} and \code{positiveStrength = 0} this yields the
+#'   neutral model). Its strength is set by \code{compStrength}.
 #' @param env Logical, whether environmental filtering is active. If \code{FALSE},
-#'   environmental filtering is disabled (together with \code{dens = FALSE} this yields
-#'   the neutral model). The strength of environmental filtering is set by \code{envStrength}.
+#'   environmental filtering is disabled (together with \code{dens = FALSE} and
+#'   \code{positiveStrength = 0} this yields the neutral model). The strength of environmental filtering is set by \code{envStrength}.
 #' @param neutral Logical, whether the neutral model is used: if TRUE (and \code{redQueen}
 #'   and \code{redQueenStrength} are 0), each death is replaced by the offspring of a random
 #'   parent without fitness differences. Only used for global dispersal (\code{dispersal = 1}).
-#'   \code{\link{runSimulation}} sets it to TRUE when density and environment are both 0.
+#'   \code{\link{runSimulation}} sets it to TRUE when negative and positive density dependence and
+#'   environment are all 0.
 #'   The neutral trait is computed in every case.
 #' @param mort Logical, whether fitness differences among individuals are expressed via
 #'   differential mortality. Corresponds to \code{fitnessActsOn = "mortality"} (or
@@ -50,17 +51,17 @@
 #'   exceed \code{min(x, y)}.
 #' @param densityCutoff Integer, defines the effective spatial range of the competition /
 #'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
-#'   \code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
+#'   \code{negativeDDCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
 #'   \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.
 #' @param seed Integer, sets the random seed.
 #' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
 #'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
 #'   influence of the environment on individual fitness. Corresponds to \code{environment}
 #'   in \code{\link{createCompletePar}}.
-#' @param compStrength Numeric between 0 and 1, strength of the density-dependence /
+#' @param compStrength Numeric between 0 and 1, strength of the negative density-dependence /
 #'   competition effect (ignored if \code{dens = FALSE}); the higher the value, the
 #'   stronger the influence of trait-based competition on individual fitness. Corresponds
-#'   to \code{density} in \code{\link{createCompletePar}}.
+#'   to \code{negativeDD} in \code{\link{createCompletePar}}.
 #' @param fission Integer, which fission (speciation) type to use: 0 = none (default),
 #'   1 = every second individual of a species becomes part of a new species, 2 = the
 #'   population is geographically split into two parts, one of which becomes a new species.
@@ -85,6 +86,23 @@
 #'   returned; its size grows with the run length. See \code{\link{runSimulation}} for the time scale.
 #' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
 #'   (see \code{\link{createCompletePar}}).
+#' @param recruit Logical, whether fitness acts on recruitment: the parent of a new individual is
+#'   chosen with a probability proportional to its dispersal weight times the fitness of its
+#'   offspring in the free cell. Corresponds to \code{"recruitment"} in \code{fitnessActsOn} of
+#'   \code{\link{createCompletePar}}.
+#' @param densityKernel Integer, how similar neighbors are measured for density dependence:
+#'   1 = absolute difference of the competition trait, 2 = Gaussian kernel of the difference,
+#'   3 = species identity. Corresponds to \code{negativeDDKernel} in \code{\link{createCompletePar}}.
+#' @param densityWidth Numeric > 0, width of the Gaussian kernel (only used if \code{densityKernel = 2}).
+#' @param densityTable Numeric vector with values between 0 and 1: the density term of fitness as a function
+#'   of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
+#'   the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates it from
+#'   \code{negativeDDResponse} in \code{\link{createCompletePar}}.
+#' @param positiveStrength Numeric between 0 and 1, strength of positive density dependence
+#'   (\code{positiveDD} in \code{\link{createCompletePar}}); 0 switches it off.
+#' @param positiveCutoff Integer >= 1, radius of the neighborhood for positive density dependence.
+#' @param positiveKernel Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.
+#' @param positiveWidth Numeric > 0, width of the Gaussian kernel for positive density dependence.
 #'
 #' @return A list with one element per entry in \code{runs}, each containing the raw
 #'   simulation output for that generation: \code{Species} (species identity per grid
@@ -95,7 +113,7 @@
 #'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 #'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 #' @export
-callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth) {
-    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth)
+callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE, densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric( c()), positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L, positiveWidth = 0.1) {
+    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth)
 }
 

@@ -7,7 +7,10 @@
 callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
   mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength,
   compStrength, fission, redQueen, redQueenStrength, protracted, airmatR,
-  soilmatR, prunePhylogeny, nicheWidth)
+  soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE,
+  densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric(c()),
+  positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L,
+  positiveWidth = 0.1)
 }
 \arguments{
 \item{x}{Integer, dimension of the model landscape in x-direction.}
@@ -27,18 +30,19 @@ intermediate states are saved at each value as well.}
 \item{specRate}{Numeric, speciation rate: mean number of speciation events per generation
 (the realized number is drawn from a Poisson distribution); must not exceed \code{x * y}.}
 
-\item{dens}{Logical, whether density dependence is active. If \code{FALSE}, density
-dependence is disabled (together with \code{env = FALSE} this yields the neutral
-model). The strength of density dependence is set by \code{compStrength}.}
+\item{dens}{Logical, whether negative density dependence is active. If \code{FALSE}, it is
+disabled (together with \code{env = FALSE} and \code{positiveStrength = 0} this yields the
+neutral model). Its strength is set by \code{compStrength}.}
 
 \item{env}{Logical, whether environmental filtering is active. If \code{FALSE},
-environmental filtering is disabled (together with \code{dens = FALSE} this yields
-the neutral model). The strength of environmental filtering is set by \code{envStrength}.}
+environmental filtering is disabled (together with \code{dens = FALSE} and
+\code{positiveStrength = 0} this yields the neutral model). The strength of environmental filtering is set by \code{envStrength}.}
 
 \item{neutral}{Logical, whether the neutral model is used: if TRUE (and \code{redQueen}
 and \code{redQueenStrength} are 0), each death is replaced by the offspring of a random
 parent without fitness differences. Only used for global dispersal (\code{dispersal = 1}).
-\code{\link{runSimulation}} sets it to TRUE when density and environment are both 0.
+\code{\link{runSimulation}} sets it to TRUE when negative and positive density dependence and
+environment are all 0.
 The neutral trait is computed in every case.}
 
 \item{mort}{Logical, whether fitness differences among individuals are expressed via
@@ -63,7 +67,7 @@ exceed \code{min(x, y)}.}
 
 \item{densityCutoff}{Integer, defines the effective spatial range of the competition /
 density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
-\code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
+\code{negativeDDCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
 \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.}
 
 \item{seed}{Integer, sets the random seed.}
@@ -73,10 +77,10 @@ effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
 influence of the environment on individual fitness. Corresponds to \code{environment}
 in \code{\link{createCompletePar}}.}
 
-\item{compStrength}{Numeric between 0 and 1, strength of the density-dependence /
+\item{compStrength}{Numeric between 0 and 1, strength of the negative density-dependence /
 competition effect (ignored if \code{dens = FALSE}); the higher the value, the
 stronger the influence of trait-based competition on individual fitness. Corresponds
-to \code{density} in \code{\link{createCompletePar}}.}
+to \code{negativeDD} in \code{\link{createCompletePar}}.}
 
 \item{fission}{Integer, which fission (speciation) type to use: 0 = none (default),
 1 = every second individual of a species becomes part of a new species, 2 = the
@@ -109,6 +113,31 @@ returned; its size grows with the run length. See \code{\link{runSimulation}} fo
 
 \item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche
 (see \code{\link{createCompletePar}}).}
+
+\item{recruit}{Logical, whether fitness acts on recruitment: the parent of a new individual is
+chosen with a probability proportional to its dispersal weight times the fitness of its
+offspring in the free cell. Corresponds to \code{"recruitment"} in \code{fitnessActsOn} of
+\code{\link{createCompletePar}}.}
+
+\item{densityKernel}{Integer, how similar neighbors are measured for density dependence:
+1 = absolute difference of the competition trait, 2 = Gaussian kernel of the difference,
+3 = species identity. Corresponds to \code{negativeDDKernel} in \code{\link{createCompletePar}}.}
+
+\item{densityWidth}{Numeric > 0, width of the Gaussian kernel (only used if \code{densityKernel = 2}).}
+
+\item{densityTable}{Numeric vector with values between 0 and 1: the density term of fitness as a function
+of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
+the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates it from
+\code{negativeDDResponse} in \code{\link{createCompletePar}}.}
+
+\item{positiveStrength}{Numeric between 0 and 1, strength of positive density dependence
+(\code{positiveDD} in \code{\link{createCompletePar}}); 0 switches it off.}
+
+\item{positiveCutoff}{Integer >= 1, radius of the neighborhood for positive density dependence.}
+
+\item{positiveKernel}{Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.}
+
+\item{positiveWidth}{Numeric > 0, width of the Gaussian kernel for positive density dependence.}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

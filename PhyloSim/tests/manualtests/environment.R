@@ -26,7 +26,7 @@ competition <- 0
 par1 <- createCompletePar(w, h, runs = nRuns,
                          dispersal = dispersal,
                          environment = envStrength, airmat = envMat,
-                         density = competition)
+                         negativeDD = competition)
 sim1 <- runSimulation(par1)
 plotTraitDistribution(sim1, type = "all")
 
@@ -36,7 +36,7 @@ envStrength <- 0.1 # weak influence
 par2 <- createCompletePar(w, h, runs = nRuns,
                           dispersal = dispersal,
                           environment = envStrength, airmat = envMat,
-                          density = competition)
+                          negativeDD = competition)
 sim2 <- runSimulation(par2)
 plotTraitDistribution(sim2, type = "all")
 
@@ -47,6 +47,6 @@ envStrength <- 0 # no influence
 par3 <- createCompletePar(w, h, runs = nRuns,
                           dispersal = dispersal,
                           environment = envStrength, airmat = envMat,
-                          density = competition)
+                          negativeDD = competition)
 sim3 <- runSimulation(par3)
 plotTraitDistribution(sim3, type = "all")

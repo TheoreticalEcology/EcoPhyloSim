@@ -39,7 +39,7 @@ summary.PhyloSim <- function(object, ...){
   
   cat("Summary for class PhyloSim",  "\n")
   cat("# Call: runSimulation(x = ", object$Model$x, ", y = ", object$Model$y, ", dispersal = '", 
-      object$Model$dispersal,"'", ", runs =", runsarg,"\n", ", density = ", object$Model$density, 
+      object$Model$dispersal,"'", ", runs =", runsarg,"\n", ", negativeDD = ", c(object$Model$negativeDD, object$Model$density)[1], 
       ", environment = ", object$Model$environment, ", specRate = ",object$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
   cat("Number of Species in Metacommunity: ", specRich(object), "\n", sep="")
@@ -71,7 +71,7 @@ print.PhyloSim <- function(x, ...){
   
   cat("Summary for class PhyloSim",  "\n")
   cat("# Call: runSimulation(x = ", x$Model$x, ", y = ", x$Model$y, ", dispersal = '", 
-      x$Model$dispersal,"'", ", runs =", runsarg, ", density = ", x$Model$density, 
+      x$Model$dispersal,"'", ", runs =", runsarg, ", negativeDD = ", c(x$Model$negativeDD, x$Model$density)[1], 
       ", environment = ", x$Model$environment, ", specRate = ",x$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
   cat("Time elapsed: ", x$Model$runtime,"seconds", "\n", sep="")
