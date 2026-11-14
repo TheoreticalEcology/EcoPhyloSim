@@ -9,7 +9,7 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
   verbose = TRUE)
 }
 \arguments{
-\item{x}{Integer, dimension of the landscape in x-direction}
+\item{x}{Integer, dimension of the landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
 
 \item{y}{Integer, dimension of the landscape in y-direction}
 
@@ -31,10 +31,10 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 An object of class \code{PhyloSim}, see \code{\link{runSimulation}}. Each element of \code{Output} contains only \code{specMat}, a matrix of species IDs with \code{y} rows and \code{x} columns.
 }
 \description{
-A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is independent of the C++ model of \code{\link{runSimulation}} and returns an object of class \code{PhyloSim} with a species matrix only.
+A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is a separate implementation that follows the rules of the C++ model of \code{\link{runSimulation}}, with the differences listed in Details, and returns an object of class \code{PhyloSim} with a species matrix only.
 }
 \details{
-The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. The parent is a random cell, possibly the dead cell itself (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid; draws that land on the dead cell itself are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate / (1 - specRate / (x y))}{theta = specRate / (1 - specRate / (x * y))} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
+The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. As in \code{\link{runSimulation}}, the parent is never the dead cell itself: it is a random other cell (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid, where draws that land on the dead cell are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate (x y - 1) / (x y - specRate)}{theta = specRate * (x * y - 1) / (x * y - specRate)} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
 
 With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn; at most 10 parents are drawn, and the last recruit is accepted. Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
 

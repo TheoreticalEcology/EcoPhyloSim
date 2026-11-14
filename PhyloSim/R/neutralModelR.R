@@ -1,6 +1,6 @@
 #' @title Neutral model in R
-#' @description A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is independent of the C++ model of \code{\link{runSimulation}} and returns an object of class \code{PhyloSim} with a species matrix only.
-#' @param x Integer, dimension of the landscape in x-direction
+#' @description A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is a separate implementation that follows the rules of the C++ model of \code{\link{runSimulation}}, with the differences listed in Details, and returns an object of class \code{PhyloSim} with a species matrix only.
+#' @param x Integer, dimension of the landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)
 #' @param y Integer, dimension of the landscape in y-direction
 #' @param dispersal \code{"global"}, or a function with one argument \code{n} that returns \code{n} non-negative dispersal distances in cells (see Details)
 #' @param runs Integer or increasing vector of integers, number of generations. If a vector, the species matrix is also saved at the intermediate generations, as in \code{\link{createCompletePar}}.
@@ -9,7 +9,7 @@
 #' @param densityCut Integer, radius of the neighborhood for density dependence. If \code{density > 0}, at most \code{(min(x, y) - 1) / 2}, so that no cell is counted twice.
 #' @param seed Integer, random seed. If NULL (default), a seed is drawn. Apart from this draw, the random number stream of the R session is not changed.
 #' @param verbose Logical, if TRUE, reports progress every 100 generations and the runtime
-#' @details The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. The parent is a random cell, possibly the dead cell itself (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid; draws that land on the dead cell itself are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate / (1 - specRate / (x y))}{theta = specRate / (1 - specRate / (x * y))} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
+#' @details The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. As in \code{\link{runSimulation}}, the parent is never the dead cell itself: it is a random other cell (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid, where draws that land on the dead cell are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate (x y - 1) / (x y - specRate)}{theta = specRate * (x * y - 1) / (x * y - specRate)} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
 #'
 #' With \code{density > 0}, a recruit is rejected with probability \code{density} times the proportion of conspecifics among the cells within distance \code{densityCut}, and a new parent is drawn; at most 10 parents are drawn, and the last recruit is accepted. Note that \code{dispersal} and \code{density} are defined differently than in \code{\link{createCompletePar}}, where density dependence acts through the competition trait. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
 #'
@@ -23,6 +23,7 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
 
   checkmate::assert_count(x, positive = TRUE)
   checkmate::assert_count(y, positive = TRUE)
+  if (x * y < 2) stop("The grid must have at least 2 cells (x * y >= 2).")
   if (!is.function(dispersal) && !identical(dispersal, "global"))
     stop("dispersal must be \"global\" or a function(n) returning n distances")
   checkmate::assert_integerish(runs, lower = 1, any.missing = FALSE, min.len = 1, sorted = TRUE, unique = TRUE)
@@ -51,8 +52,13 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
     ((r + dr) %% y) + ((c + dc) %% x) * y + 1
   }
 
+  # NeutralMod() follows the rules of the C++ model of runSimulation() except for the
+  # differences listed in the help (Details), e.g. the dead cell is never its own parent (#81)
   drawParent <- function(cell) {
-    if (!is.function(dispersal)) return(sample.int(J, 1))
+    if (!is.function(dispersal)) {
+      parent <- sample.int(J - 1, 1)
+      return(parent + (parent >= cell))
+    }
     for (k in 1:100) {
       d <- dispersal(1)
       checkmate::assert_number(d, lower = 0, finite = TRUE, .var.name = "dispersal(1)")

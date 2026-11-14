@@ -1,6 +1,6 @@
 #' @title  Parameter Generator 
 #' @description Function to create a list of parameters for biogeographical simulations with \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
-#' @param x  Integer, Dimension of the model landscape in x-direction
+#' @param x  Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)
 #' @param y  Integer, Dimension of the model landscape in y-direction
 #' @param dispersal Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * dispersal must not exceed min(x, y).
 #' @param runs  Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.

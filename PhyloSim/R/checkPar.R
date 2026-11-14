@@ -37,6 +37,7 @@ checkPar <- function(par) {
 
   # Conditions that connect several parameters
   x <- par[["x"]]; y <- par[["y"]]
+  if (x * y < 2) stop("The grid must have at least 2 cells (x * y >= 2).", call. = FALSE)
   if (!length(par[["airmatR"]]) %in% c(1, x * y)) {
     stop("airmat must be a single value or have x * y = ", x * y, " values, not ",
          length(par[["airmatR"]]), ".", call. = FALSE)

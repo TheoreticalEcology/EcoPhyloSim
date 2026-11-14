@@ -13,7 +13,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
   convertToBinaryTree = TRUE, prunePhylogeny = TRUE)
 }
 \arguments{
-\item{x}{Integer, Dimension of the model landscape in x-direction}
+\item{x}{Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
 
 \item{y}{Integer, Dimension of the model landscape in y-direction}
 

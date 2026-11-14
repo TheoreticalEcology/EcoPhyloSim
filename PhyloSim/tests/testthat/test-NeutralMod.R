@@ -9,6 +9,7 @@ test_that("NeutralMod returns a PhyloSim object with a species matrix", {
   expect_equal(specRich(simu), length(unique(c(simu$Output[[2]]$specMat))))
   square <- NeutralMod(x = 10, y = 10, runs = 5, specRate = 2, seed = 1, verbose = FALSE)
   expect_silent(sac(square, plot = FALSE))
+  expect_error(NeutralMod(x = 1, y = 1, verbose = FALSE), "at least 2 cells")
 })
 
 test_that("NeutralMod without speciation keeps a single species", {
@@ -51,16 +52,17 @@ test_that("runSimulation no longer accepts type = 'Rneutral'", {
 
 test_that("NeutralMod richness matches the Ewens sampling formula", {
   skip_on_cran()
-  # mean and variance of the number of species among J = 16 individuals, with
-  # theta = specRate / (1 - specRate / J) as documented in NeutralMod(); a large
-  # specRate makes theta (16) clearly different from specRate (8)
-  specRate <- 8
-  J <- 16
-  theta <- specRate / (1 - specRate / J)
+  # mean and variance of the number of species among J = 6 individuals, with
+  # theta = specRate * (J - 1) / (J - specRate) as documented in NeutralMod(); on this
+  # small grid, 500 runs separate it from theta = specRate / (1 - specRate / J), which
+  # holds if the dead cell can be its own parent (#81)
+  specRate <- 1.5
+  J <- 6
+  theta <- specRate * (J - 1) / (J - specRate)
   i <- 0:(J - 1)
   expected <- sum(theta / (theta + i))
-  se <- sqrt(sum(theta * i / (theta + i)^2) / 200)
-  richness <- sapply(1:200, function(s) specRich(NeutralMod(x = 4, y = 4, runs = 60,
+  se <- sqrt(sum(theta * i / (theta + i)^2) / 500)
+  richness <- sapply(1:500, function(s) specRich(NeutralMod(x = 3, y = 2, runs = 60,
                                     specRate = specRate, seed = s, verbose = FALSE)))
   expect_lt(abs(mean(richness) - expected), 3 * se)
 })
