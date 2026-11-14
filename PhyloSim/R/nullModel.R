@@ -12,7 +12,7 @@
  
 #' @export
 nullModel <- function(simu, which.result=NULL, abundance = FALSE, localPlotSize, numberOfPlots, repetitions, fun="mpd"){
-  
+  checkmate::assert_count(localPlotSize, positive = TRUE)
   comMat <- localPlots(simu=simu, which.result=which.result, size = localPlotSize, n = numberOfPlots, community = T)$communityTable # create community matrix from local communities (requires PhyloSim)
   
   
@@ -37,7 +37,7 @@ nullModel <- function(simu, which.result=NULL, abundance = FALSE, localPlotSize,
   if(abundance==FALSE) names(metaabundance) <- paste("s", names(metaabundance), sep="") # set names equal to those in the local communities and the distance matrix
   
   
-  distribution <- rmultinom(n = repetitions, size=localPlotSize,  prob=metaabundance) # create multinomial distributed matrix
+  distribution <- rmultinom(n = repetitions, size=localPlotSize^2,  prob=metaabundance) # fixes #132 (null plots with localPlotSize^2 individuals, as comMat)
   
   if(fun == "mpd"){
   NullDistribution <- picante::mpd(samp = t(distribution), dis = extantPhyloCophen, abundance.weighted = T) # calculate mpd for null matrix
