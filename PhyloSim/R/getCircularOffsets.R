@@ -1,6 +1,6 @@
 # Offsets (dx, dy) of all cells with dx^2 + dy^2 <= radius^2 around a focal cell, without the
 # focal cell; the same neighborhood as for density dependence in Landscape::densityUpdate (Grid.cpp).
-# Used by getMortalityData().
+# Used by getMortalityData() and NeutralMod().
 getCircularOffsets <- function(radius) {
   if (length(radius) != 1 || is.na(radius) || radius < 0 || radius != round(radius)) stop("radius must be a single non-negative integer")
   offsets <- data.frame()

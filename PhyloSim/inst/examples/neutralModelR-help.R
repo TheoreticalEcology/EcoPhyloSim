@@ -1,14 +1,11 @@
-# Run the model
-metaCom <- NeutralMod(xdim=20, ydim=20, specRate=2, seed=1500, runs=500)
-image(metaCom)
+## Neutral model with global dispersal
+simu <- NeutralMod(x = 20, y = 20, runs = 100, specRate = 2, seed = 1)
+image(simu$Output[[1]]$specMat)
+specRich(simu)
 
-# Usually the function is called by the runSimulation function
-# Define a parameter set
-parNeut <- createCompletePar(x = 20, y = 20, dispersal = "global", runs = 500,
-        density = 1, environment = 0.5, specRate = 1, type="Rneutral")
-
-# Run the model
-simuNeut <- runSimulation(parNeut)
-
-# Visualize the grid
-image(simuNeut$Output[[1]]$specMat)
+## Local dispersal with exponential distances (mean 2 cells), saving
+## generations 50 and 100, and conspecific negative density dependence
+simu <- NeutralMod(x = 20, y = 20, runs = c(50, 100), specRate = 2, seed = 1,
+                   dispersal = function(n) stats::rexp(n, rate = 1/2),
+                   density = 0.5, densityCut = 2)
+rac(simu, which.result = "all")

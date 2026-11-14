@@ -31,6 +31,5 @@ str(simu)
 
 
 
-par <- createCompletePar(type = "Rneutral")
-simu <- runSimulation(par)
+simu <- NeutralMod()
 str(simu)

@@ -17,12 +17,12 @@
 #' @param redQueen Numeric, determining the strength of the fitness decline of an aging species. Must not be negative.
 #' @param airmat matrix determining the environment of the simulation, with `y` rows and `x` columns (the grid dimensions); values must be between 0 and 1. A single value (the default) gives an environmental gradient along `x` that rises from 0 to 1 and falls back.
 #' @param seed Integer, sets the random seed. If NULL (default), a random seed is drawn.
-#' @param type Character, determining which model should be used. "base" is running the default model. Other possibilities are "Leipzig" (currently not functional) and "Rneutral", which runs a neutral model purely in R.
+#' @param type Character, determining which model should be used. Currently only "base" (the default) is available. For a simple neutral model in R, see \code{\link{NeutralMod}}.
 #' @param scenario String, further information you want to add to the parameter set in order to refer to a model run more conveniently. 
 #' @param calculateSummaries Logical, determining whether summary statistics should be calculated
 #' @param convertToBinaryTree Logical, determining if the phylogeny should be converted into a binary tree
 #' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small (see \code{\link{callModel}}). If FALSE, all species are kept.
-#' @details If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}. \cr\cr If type = "Rneutral" the model will run entirely in R. This model is to be seen only for testing and teaching purposes. To be used in practice it is far too slow. Also the output is reduced. Only the species landscape and the parameter settings will be displayed in the output.
+#' @details If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
 #' @return A List with parameters
 #' @example /inst/examples/parCreator-help.R
 #' @export

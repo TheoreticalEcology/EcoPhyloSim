@@ -2,7 +2,7 @@
 #' @description A model of species community assembly under different assembly mechanisms.  
 #' @param par a list of model parameters created with \link{createCompletePar}
 #' @return An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation. 
-#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr If you are using `type="Rneutral"` only a single value of runs can be processed.\cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. 
+#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. 
 #' @importFrom adephylo distTips
 #' @import Rcpp
 #' @useDynLib PhyloSim, .registration = TRUE
@@ -118,32 +118,7 @@ runSimulation <- function(par)
     
     return(output)
     
-  ##################################################################
-  # The following two options are other models that are implemented in Phylosiom
-  # Leipzig class C code similar to Chave 2002 - probably currently not functional
-  # Rneutral calls R code for a neutralm model similar to Chave 2002 that was implemented for 
-  # Testing purposes 
-  
-  }else if(par$type == "Leipzig"){
-    
-    # TODO ... NOT FUNCTIONAL YET !!!
-    out <- .C(callLeipzig, as.integer(x),as.integer(y), as.integer(dispersal), as.integer(nSpec),as.integer(specRate), as.integer(runs), as.logical(density), as.numeric(densityStrength), specOut = as.integer(outVec), densOut = as.numeric(outVec))[9:10]
-    
-    specMat = matrix(out[[1]],ncol=x, nrow=y)
-    densMat = matrix(out[[2]],ncol=x, nrow=y)
-    print (paste("Finished after",floor(((proc.time() - ptm)[3])/60), "minute(s) and", ((proc.time() - ptm)[3])%%60, "second(s)."))
-    return(list(specMat = specMat, densMat=densMat))
-    
-    ###################################################################
-  }else if (par$type == "Rneutral"){
-    ptm <- proc.time()
-    result = NeutralMod(xdim = par$x, ydim=par$y, specRate = par$specRate,  seed = par$seed, runs = par$runs)
-    runtime <- as.numeric((proc.time() - ptm)[3])
-    par$runtime <- runtime
-    out = list(Output = list(list("specMat"=result)), Model = par)
-    class(out) <- "PhyloSim"
-    return(out)
-  }
+  }else stop("unknown model type: ", par$type, "; for a neutral model in R, use NeutralMod()")
 }
 
 

@@ -16,7 +16,7 @@ An object of class \code{PhyloSim}. This object contains the species matrix, the
 A model of species community assembly under different assembly mechanisms.
 }
 \details{
-If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr If you are using \code{type="Rneutral"} only a single value of runs can be processed.\cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If \code{convertToBinaryTree = TRUE} (the default), the phylogeny is converted to a bifurcating one using \code{multi2di()} from the "ape" package.
+If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If \code{convertToBinaryTree = TRUE} (the default), the phylogeny is converted to a bifurcating one using \code{multi2di()} from the "ape" package.
 }
 \examples{
  library(PhyloSim)
