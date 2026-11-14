@@ -191,17 +191,17 @@ and 1000 generations. They contain the spatial species matrix, the
 environment), the competition matrix and the neutral matrix, as well as the
 phylogeny in two formats.
 
-With the default `prunePhylogeny = TRUE`, the phylogeny contains only the
-extant species; with `prunePhylogeny = FALSE`, it also contains all extinct
-species as tips. Branch lengths are in generations, with each census placed
-half a generation after the events of its generation (see `?runSimulation`).
-
 To access them, the easiest way is to use indices:
 
 ```{r output1}
 Output1 <- simu$Output[[1]]
 str(Output1)
 ```
+
+With the default `prunePhylogeny = TRUE`, the phylogeny contains only the
+extant species; with `prunePhylogeny = FALSE`, it also contains all extinct
+species as tips. Branch lengths are in generations, with each census placed
+half a generation after the events of its generation (see `?runSimulation`).
 
 The simulation settings are saved in the model object:
 
