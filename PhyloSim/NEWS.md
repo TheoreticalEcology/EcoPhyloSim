@@ -6,7 +6,7 @@
 * New functions `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` for ABC rejection sampling on simulation outputs (#85).
 * New functions `getSpecies()`, `getSpeciesTrait()` and `getSpeciesTraits()` extract the extant species and their traits from a simulation (#85).
 * New function `getMortalityData()` returns, for each individual and census interval, its species, number of conspecific neighbors and whether it died before the next recorded generation, for analyses of conspecific negative density dependence (@AndyEnvFr, #100).
-* `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental response coefficients) (#85).
+* `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental sorting of species) (#85, #126).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
 * `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
 * `createCompletePar()`: new argument `negativeDDResponse` sets the term of negative density dependence as a function of the similarity to the neighbors (#144).
@@ -19,7 +19,7 @@
 * `density` and `densityCut` in `createCompletePar()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
 * Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144).
 * The package was renamed from PhyloSim to EcoPhyloSim because of a name clash with the archived CRAN package phylosim; class and function names are unchanged (#64).
-* `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
+* `calculateSummaryStatistics()`: new argument `strict` (default `FALSE`); with `strict = TRUE`, the result is `NA` if any statistic cannot be calculated (#85, #126).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` includes `"reproduction"` (also via `"both"`) with global dispersal and `environment`, `negativeDD`, `positiveDD`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
 * `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `negativeDD` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
 * `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `negativeDDCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `negativeDD` or `positiveDD` > 0, `2 * negativeDDCut + 1` or `2 * positiveDDCut + 1` must not exceed `min(x, y)` (#152).
@@ -68,6 +68,9 @@
 * `localPlots()` and `sac()` failed with "subscript out of bounds" if the grid is not square (`x != y`); on square grids, the `positions` of the subplots had x and y swapped. The fix changes `sac()` results for a fixed seed (#151).
 * `sac()`: a vector in `which.result` gave an error (#151).
 * `runSimulation()`: species that went extinct in the last generation before a census were kept by `ape::drop.fossil()`; with `prunePhylogeny = TRUE`, the species pool of the `dispersion` statistic of `calculateSummaryStatistics()` contained extinct ancestors (#147).
+* `runSimulation()`: without `airmat`, the default environmental gradient exceeded 1 for an odd number of columns `x` (e.g., 1.2 for `x = 5`); results for odd `x` change (#142).
+* `calculateSummaryStatistics()`: the Clark-Evans index `ce` used a wrong row for each cell, so that cells were moved to other rows or, on grids with more columns than rows, dropped; `ce` changes on all grids (#163).
+* `calculateSummaryStatistics()`: `envIntercept`, `env` and `envSqr` (binomial GLM coefficients) were `NaN` under strong environmental filtering because the fits failed, and used only the first row of the environment; they are replaced by `envSorting`; `ce` is `NA` instead of `NaN` if no species has a finite Clark-Evans index (#126).
 
 ## Documentation
 

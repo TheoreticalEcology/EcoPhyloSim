@@ -51,7 +51,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{protracted}{Integer, determining the time span in generations a new species stays 'incipient' before turning into a 'good' species. Default is 0.}
 
-\item{airmat}{matrix determining the environment of the simulation, with \code{y} rows and \code{x} columns (the grid dimensions); values must be between 0 and 1. A single value (the default) gives an environmental gradient along \code{x} that rises from 0 to 1 and falls back.}
+\item{airmat}{matrix determining the environment of the simulation, with \code{y} rows and \code{x} columns (the grid dimensions); values must be between 0 and 1. A single value (the default) gives an environmental gradient along \code{x} that rises from 0 to 1 and falls back (1 - |2i/x - 1| in column i = 0, ..., x - 1, so the maximum is below 1 if x is odd).}
 
 \item{scenario}{String, further information you want to add to the parameter set in order to refer to a model run more conveniently.}
 
