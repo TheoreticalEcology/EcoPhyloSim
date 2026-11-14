@@ -7,7 +7,7 @@
 chunkwiseCleanup(dir = ".", nCores = "auto")
 }
 \arguments{
-\item{dir}{Directory to which the results of chunkwiseCalculateSummaries and runPhylosimAnalysis were saved.}
+\item{dir}{Directory to which the results of runPhylosimAnalysis (and chunkwiseCalculateSummaries) were saved.}
 
 \item{nCores}{"auto" or number of parallel cores to use}
 }
@@ -15,7 +15,7 @@ chunkwiseCleanup(dir = ".", nCores = "auto")
 None. Writes summary_clean_FROM-TO and param_clean_FROM-TO files to dir/cleaned_up.
 }
 \description{
-Reads in summary files created with chunkwiseCalculateSummaries, and parameter files created with runPhylosimAnalysis and removes crashed simulations (those where summaries == NA). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
+Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes crashed simulations (those where summaries == NA). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
 }
 \author{
 Tankred Ott
