@@ -24,7 +24,7 @@
 * The `plot()`, `print()` and `summary()` methods for `PhyloSim` and `PhylosimList` objects use the argument names of the generics (`x`, `object`), so calls such as `plot(simu = s)` no longer work (#113).
 * `collessImbalance()` and `summary()` use only extant species by default (`dropFossils = TRUE`), as `calculateSummaryStatistics()` already did (#117).
 * The non-functional Leipzig model (`type = "Leipzig"`) and its C++ code were removed, and `runSimulation()` no longer accepts `type = "Rneutral"`. Unknown values of `type` now give an error instead of returning `NULL` (#112).
-* `NeutralMod()` was rewritten: argument names as in `createCompletePar()` (`xdim`/`ydim` renamed to `x`/`y`), new defaults (`x = 50`, `y = 50`, `runs = 100`, `specRate = 1`), local dispersal, density dependence, speciation at single births, and a `PhyloSim` object as output (#112).
+* `NeutralMod()` was rewritten: argument names as in `createCompletePar()` (`xdim`/`ydim` renamed to `x`/`y`), new defaults (`x = 50`, `y = 50`, `runs = 100`, `specRate = 1`), local dispersal, density dependence, speciation at single births, and a `PhyloSim` object as output; the dead cell is never its own parent, as in `runSimulation()` (#112, #81).
 
 ## Bug fixes
 
