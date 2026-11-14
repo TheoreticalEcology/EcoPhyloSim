@@ -81,6 +81,8 @@
 #'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
 #'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
 #'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
+#' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
+#'   (see \code{\link{createCompletePar}}).
 #'
 #' @return A list with one element per entry in \code{runs}, each containing the raw
 #'   simulation output for that generation: \code{Species} (species identity per grid
@@ -91,7 +93,7 @@
 #'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 #'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 #' @export
-callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny) {
-    .Call(`_PhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny)
+callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth) {
+    .Call(`_PhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth)
 }
 

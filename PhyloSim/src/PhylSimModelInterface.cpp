@@ -105,6 +105,8 @@ using namespace Rcpp;
 //'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
 //'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
 //'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
+//' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
+//'   (see \code{\link{createCompletePar}}).
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -119,7 +121,7 @@ using namespace Rcpp;
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
                bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, int seed,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
-               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny) {
+               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -148,6 +150,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile << "airmatR = " << airmatR.begin() <<", " << airmatR.end() << ";" << std::endl;
     debugFile << "NumericVector soilmatR = " << soilmatR << ";" << std::endl;
     debugFile << "soilmatR = " << soilmatR.begin() <<", " << soilmatR.end() << ";" << std::endl;
+    debugFile << "double nicheWidth = " << nicheWidth << ";" << std::endl;
     debugFile.close();
 #endif
 
@@ -159,6 +162,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     if (densityCutoff > std::min(x, y)) Rcpp::stop("callModel(): densityCutoff must not exceed min(x, y)");
     if (mort && mortStrength < 1) Rcpp::stop("callModel(): mortStrength must be >= 1");
     if (!(specRate >= 0 && std::isfinite(specRate))) Rcpp::stop("callModel(): specRate must be finite and >= 0");
+    if (!(nicheWidth > 0 && std::isfinite(nicheWidth))) Rcpp::stop("callModel(): nicheWidth must be finite and > 0");
     if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
     for (int i = 1; i < runs.length(); i++) {
         if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
@@ -166,6 +170,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     R_xlen_t nCells = (R_xlen_t) x * y;
     if (airmatR.length() != 1 && airmatR.length() != nCells)
         Rcpp::stop("callModel(): airmatR must have length 1 or x * y");
+    for (double a : airmatR) if (!(a >= 0 && a <= 1)) Rcpp::stop("callModel(): airmatR values must be between 0 and 1");
     if (soilmatR.length() != 1 && (soilmatR.length() != nCells || airmatR.length() == 1))
         Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
 
@@ -184,7 +189,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
                               dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
-                              redQueenStrength, protracted, airmat, soilmat);
+                              redQueenStrength, protracted, airmat, soilmat, nicheWidth);
     if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
     else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
 

@@ -76,7 +76,7 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
                      int DensityCutoff, unsigned int mortalityStrength,
                      double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                      int protracted,
-                     std::vector<double> airmat, std::vector<double> soilmat) {
+                     std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth) {
 
     m_Cutoff = dispersalCutoff;
     m_Neutral = neutral;
@@ -99,6 +99,7 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     m_redQueen = redQueen;
     m_redQueenStrength = redQueenStrength;
     m_protracted = protracted;
+    m_nicheWidth = nicheWidth;
 
     //	func.seedrand(1500);
 
@@ -123,6 +124,7 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
             this->m_Individuals[cols][rows].m_dispersalDistance = m_Cutoff / 2.0;
             this->m_Individuals[cols][rows].m_envStrength = m_envStrength;
             this->m_Individuals[cols][rows].m_compStrength = m_compStrength;
+            this->m_Individuals[cols][rows].m_nicheWidth = m_nicheWidth;
 
             //this->individuals[cols][rows].Species->date_of_extinction = runs;
         }
@@ -235,10 +237,10 @@ GlobalEnvironment::GlobalEnvironment(int xsize, int ysize, int type, bool neutra
                                      bool repro, unsigned int runs, double specRate, int dispersalCutoff,
                                      int densityCutoff, unsigned int mortalityStrength, double envStrength,
                                      double compStrength, int fission, double redQueen, double redQueenStrength,
-                                     int protracted, std::vector<double> airmat, std::vector<double> soilmat) :
+                                     int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth) :
         Landscape(xsize, ysize, type, neutral, dd, env, mort, repro, runs, specRate, dispersalCutoff, densityCutoff,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
-                  soilmat) {
+                  soilmat, nicheWidth) {
 
 }
 
@@ -581,10 +583,10 @@ LocalEnvironment::LocalEnvironment(int xsize, int ysize, int type, bool neutral,
                                    bool repro, unsigned int runs, double specRate, int dispersalCutoff,
                                    int densityCutoff, unsigned int mortalityStrength, double envStrength,
                                    double compStrength, int fission, double redQueen, double redQueenStrength,
-                                   int protracted, std::vector<double> airmat, std::vector<double> soilmat) :
+                                   int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth) :
         Landscape(xsize, ysize, type, neutral, dd, env, mort, repro, runs, specRate, dispersalCutoff, densityCutoff,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
-                  soilmat) {
+                  soilmat, nicheWidth) {
 
 }
 
