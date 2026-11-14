@@ -202,7 +202,7 @@ clarkEvans <- function (mat, ...) {
   for (i in 1:length(ids)) {
     pos <- which(mat == ids[i])
     col <- ceiling(pos / nRow)
-    row <- pos %% nCol
+    row <- (pos - 1) %% nRow + 1 # fixes #163 (wrong row index)
     pp <- spatstat.geom::ppp(x=col, y=row, window=spatstat.geom::owin(xrange = c(0, nCol), yrange = c(0, nRow)))
     ce <- spatstat.explore::clarkevans(pp, ...)
     if (!is.infinite(ce) && !is.na(ce) && !is.nan(ce)) {
