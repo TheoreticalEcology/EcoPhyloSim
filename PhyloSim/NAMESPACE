@@ -41,7 +41,6 @@ export(sac)
 export(specRich)
 import(Rcpp)
 import(ape)
-importFrom(adephylo,distTips)
 importFrom(foreach,
   "%do%",
   "%dopar%",
@@ -64,6 +63,7 @@ importFrom(graphics,
   par,
   plot.new,
   polygon,
+  rect,
   text,
   title
 )

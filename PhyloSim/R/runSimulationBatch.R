@@ -14,8 +14,6 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
   #start timing
   ptm <- proc.time() 
   
-  # TODO getParametersXML(XMLfile)
-  
   if (parallel != FALSE){
     cat("running", length(pars), "batch simulations with parallelization\n")
     

@@ -1,0 +1,11 @@
+date <- c(meta$`Date/Publication`, meta$Packaged, format(Sys.Date()))[1]
+
+bibentry(
+  bibtype = "Manual",
+  title = "{EcoPhyloSim}: Analysis of Phylogenetic and Biogeographic Patterns, Inferring Species Community Assembly",
+  author = c(person("Paul", "Bauche"),
+             person("Florian", "Hartig", comment = c(ORCID = "0000-0002-6255-9059"))),
+  year = substr(date, 1, 4),
+  note = paste("R package version", meta$Version),
+  url = "https://github.com/TheoreticalEcology/EcoPhyloSim"
+)
