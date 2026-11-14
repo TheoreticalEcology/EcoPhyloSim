@@ -14,6 +14,7 @@
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
 * `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `density` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
+* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `densityCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `density` > 0, `2 * densityCut + 1` must not exceed `min(x, y)` (#152).
 * The `Model` element of the output of `runSimulation()` keeps the numeric values of `density` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).
 * Default plot sizes in `sac()` are log-spaced, as documented (#115).

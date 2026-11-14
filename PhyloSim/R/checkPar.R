@@ -42,14 +42,20 @@ checkPar <- function(par) {
     stop("airmat must be a single value or have x * y = ", x * y, " values, not ",
          length(par[["airmatR"]]), ".", call. = FALSE)
   }
-  local <- is.numeric(par[["dispersal"]]) && par[["dispersal"]] > 0
-  if (local && 2 * par[["dispersal"]] > min(x, y)) {
-    stop("dispersal = ", par[["dispersal"]], " is too large for a grid of ", x, " x ", y,
-         ": 2 * dispersal must not exceed min(x, y).", call. = FALSE)
+  if (par[["specRate"]] > x * y) {
+    stop("specRate = ", par[["specRate"]], " must not exceed x * y = ", x * y, ".", call. = FALSE)
   }
-  if (par[["densityCut"]] > min(x, y)) {
-    stop("densityCut = ", par[["densityCut"]], " must not exceed min(x, y) = ", min(x, y), ".",
-         call. = FALSE)
+  # fixes #152 (wider kernels wrap around the torus and count cells repeatedly)
+  local <- is.numeric(par[["dispersal"]]) && par[["dispersal"]] > 0
+  if (local && 2 * floor(2 * par[["dispersal"]]) + 1 > min(x, y)) {
+    stop("dispersal = ", par[["dispersal"]], " is too large for a grid of ", x, " x ", y,
+         ": 2 * floor(2 * dispersal) + 1 must not exceed min(x, y).", call. = FALSE)
+  }
+  maxCut <- if (par[["density"]] > 0) (min(x, y) - 1) %/% 2 else min(x, y)
+  if (par[["densityCut"]] > maxCut) {
+    stop("densityCut = ", par[["densityCut"]], " is too large for a grid of ", x, " x ", y,
+         ": densityCut must not exceed min(x, y), and 2 * densityCut + 1 must not exceed min(x, y) ",
+         "if density > 0.", call. = FALSE)
   }
   # fixes #98 (reproduction fitness is not implemented in the non-neutral global model)
   if (!local && par[["fitnessActsOn"]] != "mortality" &&

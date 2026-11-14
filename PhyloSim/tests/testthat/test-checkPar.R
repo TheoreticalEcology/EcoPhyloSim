@@ -36,11 +36,16 @@ test_that("createCompletePar() checks the size and values of airmat", {
 })
 
 test_that("createCompletePar() checks combinations of parameters", {
-  expect_error(smallPar(dispersal = 6), "dispersal")
+  expect_silent(smallPar(specRate = 100, dispersal = 2.4, density = 0.5, densityCut = 4))
+  expect_silent(smallPar(densityCut = 10))
   expect_error(smallPar(densityCut = 11), "densityCut")
   expect_error(smallPar(x = 1, y = 1), "at least 2 cells") # #81
   expect_message(smallPar(nicheWidth = 5, environment = 0.5), "outside")
   expect_message(smallPar(nicheWidth = 0.001, environment = 0.5), "outside")
+  expect_error(smallPar(specRate = 101), "specRate") # #150
+  # kernels must fit into the grid without wrapping onto the same cells (#152)
+  expect_error(smallPar(dispersal = 2.5), "dispersal")
+  expect_error(smallPar(density = 0.5, densityCut = 5), "densityCut")
 })
 
 test_that("fitnessActsOn = 'reproduction' is rejected only where it is not implemented (#98)", {
@@ -69,7 +74,7 @@ test_that("runSimulation() checks parameter lists changed after createCompletePa
   p2 <- p; p2$density <- 2;         expect_error(runSimulation(p2), "density")
 })
 
-test_that("callModel() stops on input that would crash R (#13)", {
+test_that("callModel() stops on invalid input (#13)", {
   args <- list(x = 10, y = 10, dispersal = 3, runs = 2, specRate = 1, dens = TRUE, env = FALSE,
                neutral = FALSE, mort = TRUE, mortStrength = 10, repro = FALSE, dispersalCutoff = 2,
                densityCutoff = 1, seed = 1, envStrength = 1, compStrength = 0.5, fission = 0,
@@ -81,11 +86,16 @@ test_that("callModel() stops on input that would crash R (#13)", {
   expect_error(call(x = 1, y = 1), "x and y") # #81
   expect_error(call(dispersal = 0), "dispersal")
   expect_error(call(dispersalCutoff = 0), "dispersalCutoff")
-  expect_error(call(dispersalCutoff = 11), "dispersalCutoff")
-  expect_error(call(densityCutoff = 11), "densityCutoff")
+  expect_error(call(dispersalCutoff = 4, densityCutoff = 4, specRate = 100), NA)
+  expect_error(call(dispersalCutoff = 5), "dispersalCutoff")
+  expect_error(call(densityCutoff = 5), "densityCutoff")
+  expect_error(call(densityCutoff = 0), "densityCutoff")
+  expect_error(call(dens = FALSE, densityCutoff = 10), NA)
+  expect_error(call(dens = FALSE, densityCutoff = 11), "densityCutoff")
   expect_error(call(mortStrength = 0), "mortStrength")
   expect_error(call(specRate = NaN), "specRate")
   expect_error(call(nicheWidth = 0), "nicheWidth must be")
+  expect_error(call(specRate = 101), "specRate")
   expect_error(call(runs = integer(0)), "runs")
   expect_error(call(runs = c(5, 2)), "runs")
   expect_error(call(airmatR = numeric(0)), "airmatR")
