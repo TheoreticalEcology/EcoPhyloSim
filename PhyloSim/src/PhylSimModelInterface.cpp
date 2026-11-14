@@ -162,6 +162,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     if (densityCutoff > std::min(x, y)) Rcpp::stop("callModel(): densityCutoff must not exceed min(x, y)");
     if (mort && mortStrength < 1) Rcpp::stop("callModel(): mortStrength must be >= 1");
     if (!(specRate >= 0 && std::isfinite(specRate))) Rcpp::stop("callModel(): specRate must be finite and >= 0");
+    if (!(nicheWidth > 0 && std::isfinite(nicheWidth))) Rcpp::stop("callModel(): nicheWidth must be finite and > 0");
     if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
     for (int i = 1; i < runs.length(); i++) {
         if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
@@ -169,6 +170,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     R_xlen_t nCells = (R_xlen_t) x * y;
     if (airmatR.length() != 1 && airmatR.length() != nCells)
         Rcpp::stop("callModel(): airmatR must have length 1 or x * y");
+    for (double a : airmatR) if (!(a >= 0 && a <= 1)) Rcpp::stop("callModel(): airmatR values must be between 0 and 1");
     if (soilmatR.length() != 1 && (soilmatR.length() != nCells || airmatR.length() == 1))
         Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
 

@@ -18,7 +18,7 @@ test_that("createCompletePar() rejects invalid single parameters", {
   expect_error(smallPar(specRate = -1), "specRate")
   expect_error(smallPar(density = 1.2), "density") # #96
   expect_error(smallPar(environment = -0.1), "environment")
-  expect_error(smallPar(nicheWidth = 0), "nicheWidth")
+  expect_error(smallPar(nicheWidth = 0), "'nicheWidth'")
   expect_error(smallPar(fitnessActsOn = "birth"), "fitnessActsOn")
   expect_error(smallPar(fitnessBaseMortalityRatio = 0), "fitnessBaseMortalityRatio") # #94
   expect_error(smallPar(densityCut = 0), "densityCut")
@@ -38,6 +38,8 @@ test_that("createCompletePar() checks the size and values of airmat", {
 test_that("createCompletePar() checks combinations of parameters", {
   expect_error(smallPar(dispersal = 6), "dispersal")
   expect_error(smallPar(densityCut = 11), "densityCut")
+  expect_message(smallPar(nicheWidth = 5, environment = 0.5), "outside")
+  expect_message(smallPar(nicheWidth = 0.001, environment = 0.5), "outside")
 })
 
 test_that("fitnessActsOn = 'reproduction' is rejected only where it is not implemented (#98)", {
@@ -81,9 +83,11 @@ test_that("callModel() stops on input that would crash R (#13)", {
   expect_error(call(densityCutoff = 11), "densityCutoff")
   expect_error(call(mortStrength = 0), "mortStrength")
   expect_error(call(specRate = NaN), "specRate")
+  expect_error(call(nicheWidth = 0), "nicheWidth must be")
   expect_error(call(runs = integer(0)), "runs")
   expect_error(call(runs = c(5, 2)), "runs")
   expect_error(call(airmatR = numeric(0)), "airmatR")
   expect_error(call(airmatR = rep(0.5, 7)), "airmatR")
+  expect_error(call(airmatR = rep(1.5, 100)), "airmatR")
   expect_error(call(soilmatR = rep(0.5, 100)), "soilmatR")
 })

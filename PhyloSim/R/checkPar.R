@@ -58,5 +58,10 @@ checkPar <- function(par) {
          "with environment, density, redQueen or redQueenStrength > 0. ",
          "Use local dispersal (dispersal >= 0.5) or fitnessActsOn = 'mortality'.", call. = FALSE)
   }
+  # Valid, but probably not intended
+  w <- par[["nicheWidth"]]
+  if (par[["environment"]] > 0 && (w < 0.003 || w > 3)) {
+    message("nicheWidth = ", w, " is outside [0.003, 3], so environmental filtering is very weak.")
+  }
   invisible(par)
 }
