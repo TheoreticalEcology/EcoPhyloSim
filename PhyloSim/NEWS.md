@@ -59,6 +59,7 @@
 * `localPlots()` and `sac()` failed with "subscript out of bounds" if the grid is not square (`x != y`); on square grids, the `positions` of the subplots had x and y swapped. The fix changes `sac()` results for a fixed seed (#151).
 * `sac()`: a vector in `which.result` gave an error (#151).
 * `runSimulation()`: species that went extinct in the last generation before a census were kept by `ape::drop.fossil()`; with `prunePhylogeny = TRUE`, the species pool of the `dispersion` statistic of `calculateSummaryStatistics()` contained extinct ancestors (#147).
+* `runSimulation()`: without `airmat`, the default environmental gradient exceeded 1 for an odd number of columns `x` (e.g., 1.2 for `x = 5`); results for odd `x` change (#142).
 * `calculateSummaryStatistics()`: the Clark-Evans index `ce` used a wrong row for each cell, so that cells were moved to other rows or, on grids with more columns than rows, dropped; `ce` changes on all grids (#163).
 
 ## Documentation
