@@ -30,7 +30,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
     #rootDist <- adephylo::distRoot(extantPhylogeny, 1)
   }
   
-  cols <- rainbow(nSpecies,start=0)
+  cols <- speciesColors(extantPhylogeny)
   
   tipNumbers <- as.numeric(sapply(list(extantPhylogeny$tip.label), substring, 2))
   
@@ -42,7 +42,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
       layout(mat = matrix(1:4, nrow = 2, byrow = T), widths = c(0.5,1), heights = c(0.15,0.8))
       par(mar = c(0,0,0,0), oma = c(2,2,2,2))
       plot(NULL,frame = F, yaxt='n', xaxt='n', ann=FALSE, xlim = c(0,7), ylim = c(0,3))
-      text(1:4 - 0.5, 0, colnames(traits), srt = 45, pos = 4)
+      text(1:4 - 0.5, 0, colnames(traits), srt = 60, pos = 4, cex = 0.8)
       plot.new()
       size = dev.size()[2]/3
       plot(rep(1:4, each = nSpecies), rep(1:nSpecies, 4), cex = size*traits, pch = 16, frame = F, yaxt='n', xaxt='n', ann=FALSE, xlim = c(0,7))
@@ -75,7 +75,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
       par(mar = c(0,0,0,0), oma = c(2,2,2,2))
       plot.new()
       plot(NULL,frame = F, yaxt='n', xaxt='n', ann=FALSE, xlim = c(0,7), ylim = c(0,3))
-      text(1:4 - 0.5, 0, colnames(traits), srt = 45, pos = 4)
+      text(1:4 - 0.5, 0, colnames(traits), srt = 60, pos = 4, cex = 0.8)
       plot.new()
       plot(extantPhylogeny, tip.color = cols, cex = 1.3)
       size = dev.size()[2]/3
@@ -95,6 +95,19 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
     }
   }
   par(mfrow=oldpar$mfrow, mar=oldpar$mar, oma=oldpar$oma)
+}
+
+# Colors of the species in a phylogeny, named by tip label. Colors follow the
+# order in which ape plots the tips, so that related species get similar
+# colors. The viridis palette is colorblind-safe; its lightest colors are not
+# used, as they are hard to read as tip labels.
+speciesColors <- function(phylo, alpha = 1) {
+  phylo <- ape::reorder.phylo(phylo, "cladewise") # edge order = plotting order of the tips
+  n <- length(phylo$tip.label)
+  palette <- hcl.colors(n + ceiling(n / 8), "viridis", alpha = alpha)[seq_len(n)]
+  cols <- character(n)
+  cols[phylo$edge[phylo$edge[, 2] <= n, 2]] <- palette
+  setNames(cols, phylo$tip.label)
 }
 
 

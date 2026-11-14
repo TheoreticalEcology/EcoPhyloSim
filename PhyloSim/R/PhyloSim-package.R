@@ -19,9 +19,9 @@
 #'
 #'
 #' @author Paul Bauche, Florian Hartig
-#' @importFrom grDevices colorRampPalette dev.size grey rainbow rgb
+#' @importFrom grDevices colorRampPalette dev.size grey hcl.colors rgb
 #' @importFrom graphics barplot hist image layout lines mtext par plot.new polygon text title
-#' @importFrom stats binomial cophenetic density dist ecdf glm median na.omit quantile rmultinom sd
+#' @importFrom stats binomial cophenetic density dist ecdf glm median na.omit quantile rmultinom sd setNames
 #' 
 #' @example /inst/examples/phylosim-help.R
 #'  
