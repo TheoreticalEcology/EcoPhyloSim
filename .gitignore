@@ -38,3 +38,4 @@ cmake-build-debug
 .Rhistory
 Rplots.pdf
 .claude/
+PhyloSim/data-raw/cache/
