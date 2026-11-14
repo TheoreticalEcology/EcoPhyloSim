@@ -209,9 +209,11 @@ Some consequences of this formula:
 | `densityCut` | radius $R_D$ of the competition neighborhood | 1 | integer $\ge 1$, $\le \min(x, y)$; $2R_D + 1 \le \min(x, y)$ if `density` > 0 |
 
 **Environment.** If no `airmat` is given, the environment varies only along the
-x-axis: it increases linearly in steps of $2/x$ from 0 in the first column to 1
-in column $x/2 + 1$ and then decreases again, so for even $x$ all values except
-the minimum and maximum occur in two bands. A user-defined environment can be
+x-axis: it is $1 - |2i/x - 1|$ in column $i = 0, \dots, x - 1$, i.e., it
+increases linearly in steps of $2/x$ from 0 in the first column to its maximum in
+the middle and then decreases again. The maximum is 1 for even $x$ and $(x-1)/x$
+for odd $x$; for even $x$ all values except the minimum and maximum occur in two
+bands. A user-defined environment can be
 passed as a matrix with values in $[0, 1]$ (`airmat`).
 
 ## Speciation mechanisms
@@ -259,9 +261,6 @@ discussed in the issues of the package repository:
 
 - `dispersal` has an effect only in steps of 0.5
   ([#141](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/141)).
-- For odd $x$, the default environment exceeds 1 in the middle column (maximum
-  $(x+1)/x$;
-  [#142](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/142)).
 - With protracted speciation, the offspring of an incipient individual do not
   inherit the incipient state
   ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
