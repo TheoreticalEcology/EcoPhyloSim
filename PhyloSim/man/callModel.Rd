@@ -5,7 +5,7 @@
 \title{Core phylosim model}
 \usage{
 callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
-  mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength,
+  mortStrength, repro, dispersalCutoff, densityCutoff, envStrength,
   compStrength, fission, redQueen, redQueenStrength, protracted, airmatR,
   soilmatR, prunePhylogeny, nicheWidth)
 }
@@ -66,8 +66,6 @@ density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
 \code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
 \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.}
 
-\item{seed}{Integer, sets the random seed.}
-
 \item{envStrength}{Numeric between 0 and 1, strength of the environmental filtering
 effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
 influence of the environment on individual fitness. Corresponds to \code{environment}
@@ -126,4 +124,5 @@ internally by \code{\link{runSimulation}} and is not normally called directly by
 user -- most parameters correspond directly to the (user-facing) arguments of
 \code{\link{createCompletePar}}, but several categorical/continuous parameters there
 are split here into separate on/off switches and strength values (see the parameter descriptions below).
+It draws from R's random number generator, so set the seed with \code{set.seed()} before the call.
 }

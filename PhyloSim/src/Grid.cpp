@@ -39,7 +39,6 @@
 //	m_Xdimensions = 256;
 //	m_Ydimensions = 256;
 //	m_LandscapeSize = m_Xdimensions * m_Ydimensions;
-//	m_RandomGenerator.seedrand(1500);
 //
 //
 //
@@ -100,8 +99,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     m_redQueenStrength = redQueenStrength;
     m_protracted = protracted;
     m_nicheWidth = nicheWidth;
-
-    //	func.seedrand(1500);
 
     // Construct grid of individuals
     this->m_Individuals = new Individual *[m_Xdimensions];
@@ -295,7 +292,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         int y_parent = 0;
 
         unsigned int numberOfRuns = 0;
-        double seedSum = 0.0;
         int new_parent = 0;
         unsigned int array_length;
 
@@ -303,7 +299,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         //double spread = 0;
 
         std::vector<double> weights(m_LandscapeSize); // fixes #149 (heap instead of stack)
-        std::vector<double> cumWeights(m_LandscapeSize);
 
         // all possible parent permutations
         std::vector <std::pair<int, int> > parents(m_LandscapeSize);
@@ -329,17 +324,11 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                     weights[array_length] = m_Individuals[kernel_x][kernel_y].getFitness(
                             m_Environment[kernel_x * m_Ydimensions + kernel_y].first, m_Env, m_DD, generation,
                             m_redQueenStrength, m_redQueen);
-                    seedSum += weights[array_length];
                     array_length++;
                 }
             }
 
-            // TODO this seems inefficient, can just calculate cumweights directly
-
-            cumWeights[0] = weights[0];
-            for (unsigned int i = 1; i < m_LandscapeSize; i++) {
-                cumWeights[i] = weights[i] + cumWeights[i - 1];
-            }
+            std::partial_sum(weights.begin(), weights.end(), weights.begin()); // cumulative weights
 
         } // END  if (m_reproduction)
 
@@ -381,7 +370,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
             do { // fixes #81
                 if (m_reproduction) {
-                    new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), m_LandscapeSize - 1, seedSum);
+                    new_parent = m_RandomGenerator.multinomialDraw(weights, m_LandscapeSize);
                 } else {
                     new_parent = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
                 }
@@ -601,7 +590,6 @@ void LocalEnvironment::reproduce(unsigned int generation) {
     int x_parent = 0, kernel_x = 0;
     int y_parent = 0, kernel_y = 0;
     unsigned int array_length;
-    double seedSum = 0.0;
     int new_parent;
     unsigned int numberOfRuns = 0;
     m_KernelSize = ((2 * m_Cutoff + 1) * (2 * m_Cutoff + 1) - 1);
@@ -649,7 +637,6 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
         std::vector<double> weights(m_KernelSize); // fixes #149 (heap instead of stack)
         array_length = 0;
-        seedSum = 0.0;
 
         for (int relativeX = -m_Cutoff; relativeX <= m_Cutoff; relativeX++) {
             int yLims = floor(sqrt(m_Cutoff * m_Cutoff - relativeX * relativeX)); // avoid diagonal bias
@@ -674,23 +661,13 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                                                                                                     relativeX,
                                                                                                     relativeY));
                     } else throw 11;
-                    seedSum += weights[array_length];
                     array_length += 1;
                 }
             }
         }
 
-        // calculate cummulative weights for the multinomial function
-        // TODO could be moved in the upper loop
-        // TODO check multinomial implementation correct, should cumweights start with 0?
-
-        std::vector<double> cumWeights(array_length);
-        cumWeights[0] = weights[0];
-        for (unsigned int i = 1; i < array_length; i++) {
-            cumWeights[i] = weights[i] + cumWeights[i - 1];
-        }
-
-        new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
+        std::partial_sum(weights.begin(), weights.begin() + array_length, weights.begin()); // cumulative weights
+        new_parent = m_RandomGenerator.multinomialDraw(weights, array_length);
         x_parent = parents[new_parent].first;
         y_parent = parents[new_parent].second;
 

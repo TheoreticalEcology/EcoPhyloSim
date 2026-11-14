@@ -12,6 +12,7 @@
 #include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 #include "./RandomGen.h"
 #include "Individual.h"
 #include "Grid.h"
@@ -32,6 +33,7 @@ using namespace Rcpp;
 //' user -- most parameters correspond directly to the (user-facing) arguments of
 //' \code{\link{createCompletePar}}, but several categorical/continuous parameters there
 //' are split here into separate on/off switches and strength values (see the parameter descriptions below).
+//' It draws from R's random number generator, so set the seed with \code{set.seed()} before the call.
 //'
 //' @param x Integer, dimension of the model landscape in x-direction.
 //' @param y Integer, dimension of the model landscape in y-direction.
@@ -76,7 +78,6 @@ using namespace Rcpp;
 //'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
 //'   \code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
 //'   \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.
-//' @param seed Integer, sets the random seed.
 //' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
 //'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
 //'   influence of the environment on individual fitness. Corresponds to \code{environment}
@@ -121,7 +122,7 @@ using namespace Rcpp;
 //' @export
 // [[Rcpp::export]]
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
-               bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, int seed,
+               bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth) {
 #ifdef DEBUG
@@ -141,7 +142,6 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile << "bool repro = " << repro << ";" << std::endl;
     debugFile << "int dispersalCutoff = " << dispersalCutoff << ";" << std::endl;
     debugFile << "int densityCutoff = " << densityCutoff << ";" << std::endl;
-    debugFile << "int seed = " << seed << ";" << std::endl;
     debugFile << "double envStrength = " << envStrength << ";" << std::endl;
     debugFile << "double compStrength = " << compStrength << ";" << std::endl;
     debugFile << "int fission = " << fission << ";" << std::endl;
@@ -178,8 +178,6 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     if (soilmatR.length() != 1 && (soilmatR.length() != nCells || airmatR.length() == 1))
         Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
 
-    RandomGen ran;
-    ran.seedrand(seed); // seed is int while seedrand expects unsigned int
 
     std::string tempSaveLoc = "./";
 
@@ -285,4 +283,15 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 
 
     return outList;
+}
+
+// Internal, for tests only: counts how often multinomialDraw() returns each index of weights.
+// [[Rcpp::export]]
+IntegerVector multinomialDrawCounts(NumericVector weights, int nDraws) {
+    RandomGen ran;
+    std::vector<double> cumWeights(weights.size());
+    std::partial_sum(weights.begin(), weights.end(), cumWeights.begin());
+    IntegerVector counts(weights.size());
+    for (int i = 0; i < nDraws; i++) counts[ran.multinomialDraw(cumWeights, weights.size())]++;
+    return counts;
 }
