@@ -37,6 +37,7 @@ test_that("createCompletePar() checks the size and values of airmat", {
 test_that("createCompletePar() checks combinations of parameters", {
   expect_error(smallPar(dispersal = 6), "dispersal")
   expect_error(smallPar(densityCut = 11), "densityCut")
+  expect_error(smallPar(x = 1, y = 1), "at least 2 cells") # #81
 })
 
 test_that("fitnessActsOn = 'reproduction' is rejected only where it is not implemented (#98)", {
@@ -74,6 +75,7 @@ test_that("callModel() stops on input that would crash R (#13)", {
   call <- function(...) utils::capture.output(do.call(callModel, utils::modifyList(args, list(...))))
   expect_error(call(), NA)
   expect_error(call(x = 0), "x and y")
+  expect_error(call(x = 1, y = 1), "x and y") # #81
   expect_error(call(dispersal = 0), "dispersal")
   expect_error(call(dispersalCutoff = 0), "dispersalCutoff")
   expect_error(call(dispersalCutoff = 11), "dispersalCutoff")

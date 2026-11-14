@@ -152,7 +152,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 #endif
 
     // fixes #13 (input that would crash R or never finish; the R side checks more in checkPar())
-    if (x < 1 || y < 1) Rcpp::stop("callModel(): x and y must be >= 1");
+    if (x < 1 || y < 1 || (x == 1 && y == 1)) Rcpp::stop("callModel(): x and y must be >= 1 and x * y >= 2");
     if (dispersal != 1 && dispersal != 3) Rcpp::stop("callModel(): dispersal must be 1 (global) or 3 (local)");
     if (dispersal == 3 && (dispersalCutoff < 1 || dispersalCutoff > std::min(x, y)))
         Rcpp::stop("callModel(): dispersalCutoff must be between 1 and min(x, y)");
