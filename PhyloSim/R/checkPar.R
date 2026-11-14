@@ -14,6 +14,8 @@ checkPar <- function(par) {
   checkmate::assert_number(par[["specRate"]], lower = 0, finite = TRUE, .var.name = "specRate", add = coll)
   checkmate::assert_number(par[["density"]], lower = 0, upper = 1, .var.name = "density", add = coll)
   checkmate::assert_number(par[["environment"]], lower = 0, upper = 1, .var.name = "environment", add = coll)
+  checkmate::assert_number(par[["nicheWidth"]], lower = .Machine$double.eps, finite = TRUE,
+                           .var.name = "nicheWidth", add = coll) # > 0
   checkmate::assert_choice(par[["fitnessActsOn"]], c("mortality", "reproduction", "both"),
                            .var.name = "fitnessActsOn", add = coll)
   checkmate::assert_int(par[["fitnessBaseMortalityRatio"]], lower = 1,
@@ -56,6 +58,11 @@ checkPar <- function(par) {
     stop("fitnessActsOn = '", par[["fitnessActsOn"]], "' is not implemented for global dispersal ",
          "with environment, density, redQueen or redQueenStrength > 0. ",
          "Use local dispersal (dispersal >= 0.5) or fitnessActsOn = 'mortality'.", call. = FALSE)
+  }
+  # Valid, but probably not intended
+  w <- par[["nicheWidth"]]
+  if (par[["environment"]] > 0 && (w < 0.003 || w > 3)) {
+    message("nicheWidth = ", w, " is outside [0.003, 3], so environmental filtering is very weak.")
   }
   invisible(par)
 }

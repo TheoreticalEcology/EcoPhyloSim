@@ -36,7 +36,12 @@ test_that("extant species end at the present and no branch length is negative (#
   }
 })
 
-test_that("environmental filtering correlates traits with the environment", {
-  simu <- quietSimulation(x = 30, y = 30, runs = 1000, environment = 1, dispersal = 1, seed = 1)
-  expect_gt(cor(c(simu$Output[[1]]$traitMat), c(simu$Output[[1]]$envMat)), 0.5)
+test_that("environmental filtering correlates traits with the environment, less so with a very narrow niche", {
+  corTraitEnv <- function(...) {
+    out <- quietSimulation(x = 30, y = 30, runs = 1000, environment = 1, dispersal = 1, seed = 1, ...)$Output[[1]]
+    cor(c(out$traitMat), c(out$envMat))
+  }
+  r <- corTraitEnv()
+  expect_gt(r, 0.5)
+  expect_lt(suppressMessages(corTraitEnv(nicheWidth = 0.001)), r - 0.3)
 })

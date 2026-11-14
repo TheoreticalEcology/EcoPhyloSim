@@ -1,5 +1,5 @@
 #' @title Neutral model in R
-#' @description A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is independent of the C++ model of \code{\link{runSimulation}} and returns an object of class \code{PhyloSim} with a species matrix only.
+#' @description A simple neutral model of community assembly (Hubbell 2001), written in R, for teaching and testing. It is a separate implementation that follows the rules of the C++ model of \code{\link{runSimulation}}, with the differences listed in Details, and returns an object of class \code{PhyloSim} with a species matrix only.
 #' @param x Integer, dimension of the landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)
 #' @param y Integer, dimension of the landscape in y-direction
 #' @param dispersal \code{"global"}, or a function with one argument \code{n} that returns \code{n} non-negative dispersal distances in cells (see Details)

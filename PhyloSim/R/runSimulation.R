@@ -67,7 +67,8 @@ runSimulation <- function(par)
                       protracted = par$protracted, 
                       airmatR = par[["airmatR"]], 
                       soilmatR = par[["soilmatR"]],
-                      prunePhylogeny = par$prunePhylogeny)  
+                      prunePhylogeny = par$prunePhylogeny,
+                      nicheWidth = par$nicheWidth)
     
     runtime <- as.numeric((proc.time() - ptm)[3])
     

@@ -7,7 +7,7 @@
 callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
   mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength,
   compStrength, fission, redQueen, redQueenStrength, protracted, airmatR,
-  soilmatR, prunePhylogeny)
+  soilmatR, prunePhylogeny, nicheWidth)
 }
 \arguments{
 \item{x}{Integer, dimension of the model landscape in x-direction.}
@@ -104,6 +104,9 @@ exposed as a separate argument in \code{createCompletePar}.}
 phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
 ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
 If FALSE, the full phylogeny with all species is returned; its size grows with the run length.}
+
+\item{nicheWidth}{Numeric, standard deviation of the Gaussian environmental niche
+(see \code{\link{createCompletePar}}).}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

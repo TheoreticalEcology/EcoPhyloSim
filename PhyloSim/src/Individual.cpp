@@ -30,7 +30,7 @@ Individual::Individual() {
     //this ->m_Weight = 1.0;
     // END OBSOLETE
 
-    this->m_nicheWidth = 0.03659906; // environmental niche width, see getFitness
+    this->m_nicheWidth = 0.03659906; // environmental niche width (standard deviation), see getFitness
     this->m_Mean = 0.5; // environmental trait
     this->m_CompetitionMarker = 0.5; // competition trait
     this->m_NeutralMarker = 0.5; // neutral trait
