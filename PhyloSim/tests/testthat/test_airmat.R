@@ -9,3 +9,12 @@ test_that("airmat is used cell by cell also for non-square grids", {
     expect_equal(env, air)
   }
 })
+
+test_that("the default environment stays in [0, 1] for odd and even x (#142)", {
+  for (x in 5:6) {
+    p <- createCompletePar(x = x, y = 2, runs = 1, environment = 0.5, seed = 1)
+    env <- suppressWarnings(runSimulation(p))$Output[[1]]$envMat
+    expect_equal(env[1, ], 1 - abs(2 * (0:(x - 1)) / x - 1))
+    expect_equal(env[2, ], env[1, ])
+  }
+})

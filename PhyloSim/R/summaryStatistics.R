@@ -2,7 +2,7 @@
 #' @title Summary Statistics
 #' @description Calculates the summary statistics for a simulation of class PhyloSim.
 #' @param simulation Simulation output of the class "PhyloSim"
-#' @param strict Logical. If true the output of the function will be NA if at least one summary statistic could not be calculated.
+#' @param strict Logical. If TRUE, the output of the function is NA if at least one summary statistic could not be calculated. Default is FALSE.
 #' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @details Computes the following summary statistics from one result of a simulation run. If calculateSummaries = TRUE in \code{\link{createCompletePar}}, \code{\link{runSimulation}} stores the summary statistics of the last result in `Output[[1]]$summaries`:
 #' \describe{
@@ -19,7 +19,7 @@
 #'   \item{varPart_2}{Variance in community composition explained by competition (see \code{\link[vegan]{varpart}}).}
 #'   \item{ce}{Clark-Evans index of spatial clustering.}
 #'   \item{nb8}{Index of local species clustering among neighboring grid cells.}
-#'   \item{envIntercept, env, envSqr}{Coefficients relating species occurrence to the environmental value.}
+#'   \item{envSorting}{Share of the variance of the environment across all cells that is explained by species identity, 1 - sum((e - e_s)^2) / sum((e - mean(e))^2), where e is the environment of a cell and e_s the mean environment of the cells occupied by its species. 0 if all species occupy the same mix of environments, 1 if each species occupies a single environmental value; NA if the environment is constant. Without environmental sorting, the expected value is about (S - 1) / (N - 1) for S species in N cells, so it increases with the number of species; with local dispersal, spatial clustering alone gives values above 0.}
 #' }
 #' The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter).
 #' @return A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
@@ -27,7 +27,7 @@
 #' @export
 #' 
 
-calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NULL) {
+calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NULL) {
   summaryStatistics <- list(racAuc=NA,
                             sacAuc=NA,
                             alphaDiversity = NA,
@@ -41,9 +41,7 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NUL
                             varPart_2 = NA,
                             ce = NA,
                             nb8 = NA,
-                            envIntercept = NA,
-                            env = NA,
-                            envSqr = NA)
+                            envSorting = NA)
   
   # use one result for all statistics (fixes #134)
   checkmate::assert_int(which.result, lower = 1, upper = length(simulation$Output), null.ok = TRUE)
@@ -148,11 +146,8 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NUL
   # nb8
   summaryStatistics$nb8 <- nb8Idx(result$specMat)
   
-  # env influence index
-  envIndices <- envIdx(result)
-  summaryStatistics$envIntercept <- envIndices[1]
-  summaryStatistics$env <- envIndices[2]
-  summaryStatistics$envSqr <- envIndices[3]
+  # environmental sorting of species (replaces GLM coefficients that were NaN under strong filtering, #126)
+  summaryStatistics$envSorting <- envSorting(result)
   
   if (strict == TRUE) {
     if (sum(is.na(summaryStatistics)) > 0) {
@@ -210,7 +205,7 @@ clarkEvans <- function (mat, ...) {
   for (i in 1:length(ids)) {
     pos <- which(mat == ids[i])
     col <- ceiling(pos / nRow)
-    row <- pos %% nCol
+    row <- (pos - 1) %% nRow + 1 # fixes #163 (wrong row index)
     pp <- spatstat.geom::ppp(x=col, y=row, window=spatstat.geom::owin(xrange = c(0, nCol), yrange = c(0, nRow)))
     ce <- spatstat.explore::clarkevans(pp, ...)
     if (!is.infinite(ce) && !is.na(ce) && !is.nan(ce)) {
@@ -218,6 +213,7 @@ clarkEvans <- function (mat, ...) {
       n <- n + 1
     }
   }
+  if (n == 0) return(NA_real_)
   return(ceSum/n)
 }
 
@@ -291,46 +287,11 @@ nb8Idx <- function (mat) {
   return(sum(nbRates))
 }
 
-envIdx <- function (result) {
-  envMat <- result$envMat
-  specMat <- result$specMat
-  
-  specIDs <- unique(as.vector(specMat))
-  nSpec <- length(specIDs)
-  envs <- apply(envMat, 2, function (x) return(x[1]))
-  envsSqr <- envs ^ 2
-  
-  mat <- matrix(NA, ncol = nSpec + 2, nrow = ncol(specMat))
-  colnames(mat) <- c(specIDs, 'env', 'envSqr')
-  
-  mat[,ncol(mat) - 1] <- envs
-  mat[,ncol(mat)] <- envsSqr
-  
-  fits <- rep(list(NA), nSpec)
-  
-  for (i in 1:ncol(specMat)) {
-    specCounts <- rep(0, nSpec)
-    for (j in 1:nrow(specMat)) {
-      idx <- which(specMat[j, i] == specIDs)
-      specCounts[idx] <- specCounts[idx] + 1
-    }
-    mat[i, 1:nSpec] <- specCounts
-  }
-  
-  x <- rep(0, 3)
-  n <- 0
-  for (i in 1:nSpec) {
-    fits[[i]] <- tryCatch(glm(cbind(mat[,i], nrow(specMat) - mat[,i]) ~ mat[,ncol(mat)-1] + mat[,ncol(mat)],
-                              family = binomial), 
-                          warning = function (x) return(NA))
-    
-    if (!is.na(fits[[i]][1])) {
-      x <- x + fits[[i]]$coefficients
-      n <- n + 1
-    }
-  }
-  names(x) <- c('intercep', 'env', 'envSqr')
-  return (x / n)
+envSorting <- function (result) {
+  env <- as.vector(result$envMat)
+  totalSS <- sum((env - mean(env))^2)
+  if (length(unique(env)) < 2) return(NA_real_) # constant environment
+  1 - sum((env - stats::ave(env, as.vector(result$specMat)))^2) / totalSS
 }
 
 
