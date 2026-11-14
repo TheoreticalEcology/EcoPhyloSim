@@ -5,11 +5,15 @@
 #   Rscript PhyloSim/data-raw/packageBehavior.R run main 8 density    # selected blocks
 #   Rscript PhyloSim/data-raw/packageBehavior.R run main 8 part=1/3   # a third of the tasks
 #   Rscript PhyloSim/data-raw/packageBehavior.R combine
+#   Rscript PhyloSim/data-raw/packageBehavior.R combine <archive folder>
 #
 # Each simulation is an independent task with a fixed seed. Its summary is saved
 # at once in PhyloSim/data-raw/cache/ (not in git); finished tasks are skipped,
 # so an interrupted run resumes where it stopped, and parts can run on different
-# machines. "combine" aggregates the cache into PhyloSim/data/packageBehavior.rda.
+# machines. "combine" aggregates the cache into PhyloSim/data/packageBehavior.rda,
+# which contains only what the vignette uses. With an archive folder (outside the
+# repository, as the cache is lost when a worktree is removed), it also saves
+# the full results, the raw cache and the script in <folder>/<date>_<commit>.
 
 library(PhyloSim)
 
@@ -18,8 +22,8 @@ dataFile <- "PhyloSim/data/packageBehavior.rda"
 
 ## Settings ----------------------------------------------------------------
 
-# generations: length of runs per block ("default" for all others); the main run
-# lengths are at least twice the time to equilibrium found in the pilot run
+# generations: length of runs per block ("default" for all others); the pilot
+# shows how close the indicators are to equilibrium at the end (see the vignette)
 modes <- list(
   pilot = list(reps = 5, generations = c(default = 50000, density = 100000)),
   main  = list(reps = 30, generations = c(default = 50000, density = 100000, neutral = 200000))
@@ -31,7 +35,7 @@ censusTimes <- function(G) sort(unique(c(round(10^seq(log10(50), log10(G), lengt
 
 base <- list(x = 50, dispersal = "1", specRate = 2, density = 0, densityCut = 1,
              environment = 0, fitnessBaseMortalityRatio = 10, protracted = 0,
-             redQueen = 0, redQueenStrength = 0)
+             redQueen = 0, redQueenStrength = 0, nicheWidth = 0.03659906)
 
 grid <- function(...) expand.grid(..., stringsAsFactors = FALSE)
 design <- list(
@@ -46,7 +50,10 @@ design <- list(
                       grid(protracted = 0, redQueen = c(0.01, 0.1), redQueenStrength = 100)),
   gridSize    = grid(x = c(20, 50, 100)),
   # neutral, density dependence, environment and both, for global and local dispersal
-  assembly    = grid(environment = c(0, 1), density = c(0, 1), dispersal = c("global", "1"))
+  assembly    = grid(environment = c(0, 1), density = c(0, 1), dispersal = c("global", "1")),
+  # width of the environmental niche (default 0.03659906), with environmental filtering
+  nicheWidth  = grid(nicheWidth = c(0.01, 0.03659906, 0.1, 0.3), environment = 1,
+                     dispersal = c("global", "1"))
 )
 
 # One row per simulation: block, setting, replicate, all parameters and seed
@@ -85,9 +92,11 @@ censusStats <- function(sim, i) {
   o <- sim$Output[[i]]
   ab <- as.vector(table(o$specMat))
   p <- ab / sum(ab)
-  # extant species only (the phylogeny also contains extinct ancestors)
-  phylo <- tryCatch(ape::keep.tip(o$phylogeny, paste0("s", unique(c(o$specMat)))),
-                    error = function(e) NULL)
+  # extant species only (before #147, the phylogeny also contains extinct species
+  # as tips); multi2di() is a safeguard for polytomies, on which gammaStat() gives
+  # wrong values (runSimulation() resolves them already by default)
+  phylo <- tryCatch(ape::multi2di(ape::keep.tip(o$phylogeny, paste0("s", unique(c(o$specMat)))),
+                                  random = FALSE), error = function(e) NULL)
   enoughTips <- !is.null(phylo) && ape::Ntip(phylo) >= 3
   # species age from the species ID: IDs are counted up at each speciation, at
   # a roughly constant rate (largest ID / generation); NA if only one species
@@ -104,7 +113,7 @@ censusStats <- function(sim, i) {
     corTraitEnv = suppressWarnings(cor(c(o$traitMat), c(o$envMat))),
     sdCompetitionTrait = sd(c(o$compMat)),
     colless = if (enoughTips) tryCatch(collessImbalance(list(Output = list(list(phylogeny = phylo))),
-                                                        norm = "yule"),
+                                                        norm = "yule", dropFossils = FALSE),
                                        error = function(e) NA) else NA,
     gamma = if (enoughTips) tryCatch(ape::gammaStat(phylo), error = function(e) NA) else NA,
     meanSpeciesAge = mean(age),
@@ -121,7 +130,7 @@ cndd <- function(sim, last) {
   sub$Model$runs <- sim$Model$runs[last]
   d <- getMortalityData(sub, radius = 2)
   d <- d[d$interval == 1, ]
-  pooled <- tryCatch(coef(glm(died ~ con + factor(species), binomial, data = d))[["con"]],
+  pooled <- if (length(unique(d$species)) < 2) NA else tryCatch(coef(glm(died ~ con + factor(species), binomial, data = d))[["con"]],
                      error = function(e) NA)
   bySpecies <- do.call(rbind, lapply(split(d, d$species), function(s) {
     if (nrow(s) < 50 || length(unique(s$con)) < 2) return(NULL)
@@ -132,8 +141,7 @@ cndd <- function(sim, last) {
 }
 
 runTask <- function(task) {
-  # long runs need several GB (the phylogeny keeps extinct species); wait until
-  # at least 30 GB of memory are free (Windows only, otherwise no check)
+  # wait until at least 30 GB of memory are free (Windows only, otherwise no check)
   freeGB <- function() tryCatch(as.numeric(system2("powershell", c("-NoProfile", "-Command",
     "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"), stdout = TRUE)) / 1024^2,
     error = function(e) NA)
@@ -150,6 +158,7 @@ runTask <- function(task) {
     runs = sort(unique(c(censusTimes(task$generations), task$generations - 5:1))),
     specRate = task$specRate,
     density = task$density, densityCut = task$densityCut, environment = task$environment,
+    nicheWidth = task$nicheWidth,
     fitnessBaseMortalityRatio = task$fitnessBaseMortalityRatio, protracted = task$protracted,
     redQueen = task$redQueen, redQueenStrength = task$redQueenStrength, seed = task$seed)
   out <- tryCatch({
@@ -191,37 +200,37 @@ combineMode <- function(mode) {
   settings <- unique(params[!names(params) %in% c("rep", "seed")])
 
   # replicate mean, sd and n of each indicator per setting and census
-  long <- do.call(rbind, lapply(res[ok], function(r) cbind(r$task[keys], r$census)))
+  long <- do.call(rbind, lapply(res[ok], function(r) data.frame(r$task[keys], r$census, row.names = NULL)))
   indicators <- setdiff(names(long), c(keys, "generation"))
   census <- do.call(rbind, lapply(indicators, function(v) {
     a <- aggregate(long[[v]], long[c(keys, "generation")], meanSdN)
     data.frame(a[c(keys, "generation")], indicator = v, a$x)
   }))
 
-  sacLong <- do.call(rbind, lapply(res[ok], function(r) cbind(r$task[keys], r$sac)))
+  sacLong <- do.call(rbind, lapply(res[ok], function(r) data.frame(r$task[keys], r$sac, row.names = NULL)))
   a <- aggregate(sacLong$sr.Mean, sacLong[c(keys, "size")], meanSdN)
   sacAgg <- data.frame(a[c(keys, "size")], a$x)
 
   racLong <- do.call(rbind, lapply(res[ok], function(r)
-    cbind(r$task[keys], rank = seq_along(r$rac), abundance = r$rac)))
+    data.frame(r$task[keys], rank = seq_along(r$rac), abundance = r$rac, row.names = NULL)))
   a <- aggregate(racLong$abundance, racLong[c(keys, "rank")], meanSdN)
   racAgg <- data.frame(a[c(keys, "rank")], a$x)
 
   decayLong <- do.call(rbind, lapply(res[ok], function(r)
-    if (!is.null(r$decay)) cbind(r$task[keys], r$decay)))
+    if (!is.null(r$decay)) data.frame(r$task[keys], r$decay, row.names = NULL)))
   decayAgg <- if (!is.null(decayLong)) {
     a <- aggregate(decayLong$sameSpecies, decayLong[c(keys, "distance")], meanSdN)
     data.frame(a[c(keys, "distance")], a$x)
   }
   # pooled CNDD coefficient per setting, and per-species slopes of all runs
   cnddLong <- do.call(rbind, lapply(res[ok], function(r)
-    if (!is.null(r$cndd)) cbind(r$task[keys], cndd = r$cndd)))
+    if (!is.null(r$cndd)) data.frame(r$task[keys], cndd = r$cndd, row.names = NULL)))
   cnddAgg <- if (!is.null(cnddLong)) {
     a <- aggregate(cnddLong$cndd, cnddLong[keys], meanSdN)
     data.frame(a[keys], a$x)
   }
   cnddSpecies <- do.call(rbind, lapply(res[ok], function(r)
-    if (!is.null(r$cnddSpecies)) cbind(r$task[c(keys, "rep")], r$cnddSpecies)))
+    if (!is.null(r$cnddSpecies)) data.frame(r$task[c(keys, "rep")], r$cnddSpecies, row.names = NULL)))
 
   list(settings = settings, census = census, sac = sacAgg, rac = racAgg,
        decay = decayAgg, cndd = cnddAgg, cnddSpecies = cnddSpecies,
@@ -251,6 +260,16 @@ if (length(args) && args[1] == "run") {
   tasks <- tasks[!file.exists(tasks$file), ]
   dir.create(cacheDir, showWarnings = FALSE, recursive = TRUE)
   message(nrow(tasks), " simulations to run on ", nCores, " cores")
+  # record the run and keep a copy of this script in the cache (read by "combine")
+  script <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+  copy <- sprintf("packageBehavior-run-%s-%s.R", mode, format(Sys.time(), "%Y%m%d-%H%M"))
+  file.copy(script, file.path(cacheDir, copy))
+  cat(sprintf("%s: run %s, %d simulations on %d cores, package %s, script %s (md5 %s)\n",
+              format(Sys.time()), mode, nrow(tasks), nCores, packageVersion("PhyloSim"), copy,
+              tools::md5sum(script)),
+      sprintf("commit: %s (git HEAD at the start; the installed package should match it)\n",
+              tryCatch(system("git rev-parse --short HEAD", intern = TRUE), error = function(e) "unknown")),
+      file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
   cl <- parallel::makeCluster(nCores)
   parallel::clusterExport(cl, c("censusTimes", "censusStats", "distanceDecay", "cndd"))
   parallel::clusterEvalQ(cl, library(PhyloSim))
@@ -260,13 +279,43 @@ if (length(args) && args[1] == "run") {
                    1 + (2 * suppressWarnings(as.numeric(tasks$dispersal)))^2)
   neighborhood <- ifelse(tasks$density > 0, 1 + tasks$densityCut^2, 1)
   tasks <- tasks[order(-tasks$generations * tasks$x^2 * kernel * neighborhood), ]
-  parallel::parLapplyLB(cl, split(tasks, seq_len(nrow(tasks))), runTask)
+  # chunk.size = 1: each worker takes the next single task (the default splits the
+  # sorted tasks into 2 chunks per worker, so one worker gets all the longest ones)
+  parallel::parLapplyLB(cl, split(tasks, seq_len(nrow(tasks))), runTask, chunk.size = 1)
   parallel::stopCluster(cl)
 } else if (length(args) && args[1] == "combine") {
-  packageBehavior <- c(lapply(setNames(names(modes), names(modes)), combineMode),
-                       list(info = list(date = Sys.time(),
-                                        version = as.character(packageVersion("PhyloSim")),
-                                        commit = system("git rev-parse --short HEAD", intern = TRUE),
-                                        modes = modes, sessionInfo = sessionInfo())))
+  full <- Filter(Negate(is.null), lapply(setNames(names(modes), names(modes)), combineMode))
+  # metadata for reproducibility; RUNINFO.txt (written at each start of "run")
+  # records the commit and the copy and checksum of the script that was used
+  si <- sessionInfo()
+  runInfo <- file.path(cacheDir, "RUNINFO.txt")
+  info <- list(run = if (file.exists(runInfo)) readLines(runInfo), combined = Sys.time(),
+               package = as.character(packageVersion("PhyloSim")),
+               R = si$R.version$version.string, platform = si$platform, os = si$running,
+               cpu = Sys.getenv("PROCESSOR_IDENTIFIER"),
+               packages = vapply(c(si$otherPkgs, si$loadedOnly), `[[`, character(1), "Version"),
+               modes = modes,
+               runs = vapply(full, function(f) nrow(f$runtime), integer(1)),
+               errors = vapply(full, function(f) nrow(f$errors), integer(1)),
+               simulationHours = vapply(full, function(f) sum(f$runtime$runtime) / 3600, numeric(1)))
+  # the package data set contains only what the vignette uses: the time series of
+  # the pilot, and for the main run the indicators at the last census
+  main <- full$main[c("settings", "census", "sac", "rac", "decay", "cndd", "cnddSpecies")]
+  if (!is.null(full$main)) main$census <- with(main$census,
+    main$census[generation == ave(generation, block, setting, FUN = max), ])
+  packageBehavior <- list(pilot = full$pilot[c("settings", "census")], main = main, info = info)
   save(packageBehavior, file = dataFile, compress = "xz")
+  # optional archive outside the package (Rscript ... combine <archive folder>):
+  # full results, the raw cache and the script, in a folder <date>_<commit>
+  if (length(args) > 1) {
+    line <- grep("commit", info$run, value = TRUE)[1]
+    commit <- if (is.na(line)) character(0) else regmatches(line, regexpr("[0-9a-f]{7,40}", line))
+    dir <- file.path(args[2], paste(format(Sys.Date()), if (length(commit)) commit else "unknown", sep = "_"))
+    dir.create(dir, recursive = TRUE)
+    saveRDS(c(full, list(info = info)), file.path(dir, "packageBehavior-full.rds"))
+    file.copy(list.files(cacheDir, "\\.(txt|R)$", full.names = TRUE), dir)
+    utils::tar(file.path(dir, "cache.tar.gz"), list.files(cacheDir, "\\.rds$", full.names = TRUE),
+               compression = "gzip")
+    message("archived in ", dir)
+  }
 }

@@ -1,6 +1,6 @@
 ---
 title: "The PhyloSim R Package"
-author: "Paul Bauche, Florian Hartig, Christian Buschbeck, Stefan Paul"
+author: "Florian Hartig, Paul Bauche, Bingxue Wu"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
@@ -25,56 +25,87 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r titlefig, echo = FALSE, out.width = "70%", fig.cap = "The basic output of the PhyloSim simulation: spatial distribution, phylogeny and traits in a biogeographic region."}
-knitr::include_graphics("PlotSpatial.png")
-```
+**Abstract.** PhyloSim simulates the joint ecological and evolutionary dynamics
+of a species community in space. Individuals on a grid die and are replaced by
+offspring that disperse locally or globally, inherit and evolve traits, and are
+selected by the environment and by competition with their neighbors, while new
+species arise by speciation. The simulation records the spatial distribution of
+the species, their traits and their phylogeny, and the package provides
+functions to plot and summarize these outputs, such as species–area curves,
+rank–abundance curves and measures of phylogenetic structure. This vignette
+describes the model, shows how to run it and analyze its output, and documents
+how the main patterns produced by the model respond to its parameters, compared
+with expectations from theory and earlier studies.
 
-Tutorial for the PhyloSim package. Comments and contact:
-Florian Hartig, Theoretical Ecology, University of Regensburg [website](https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig).
+**Quick start.** A simulation on a grid of 50 × 50 cells with local dispersal,
+run for 1,000 generations:
 
-**Warning for the user:** consider this package to be in a beta-stage.
-
-**To obtain the package:** the package is not on CRAN yet. Follow the
-instructions on <https://github.com/TheoreticalEcology/EcoPhyloSim> to install
-the development version, e.g.
-
-```{r install, eval = FALSE}
-devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
-                         subdir = "PhyloSim",
-                         dependencies = TRUE,
-                         build_vignettes = TRUE)
-
-?PhyloSim
-browseVignettes("PhyloSim")
+```{r quickstart, results = 'hide', fig.width = 7, fig.height = 5, fig.cap = "Phylogeny, mean traits and spatial distribution of the species at the end of the quick-start simulation."}
+library(PhyloSim)
+pars <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = 1000,
+                          specRate = 2, seed = 1)
+simu <- runSimulation(pars)
+plot(simu)
 ```
 
 **To cite the package:** use the citation information provided with the package.
 
-```{r citation}
+```{r citation, warning = FALSE}
 citation("PhyloSim")
 ```
 
-This work is licensed under a Creative Commons
-Attribution-NonCommercial-NoDerivatives 4.0 International License.
+# Model description
 
-# Model description and running the model
+The model is an individual-based, spatially explicit simulation of a species
+community. The figure gives an overview of one generation; the sections below
+describe the state variables, the ecological processes and the speciation
+mechanisms. The symbols refer to the arguments of `createCompletePar()`; the
+tables give their default values and the ranges that `createCompletePar()` and
+`runSimulation()` check (see also `?createCompletePar`).
 
-## Overview
-
-The PhyloSim package is a modeling environment for neutral and non-neutral biogeographic simulations. It generates a) spatial distribution and diversity metrics, b) phylogeny and c) traits from four basic processes: i) dispersal, ii) (adaptive) environmental preferences, iii) (adaptive) competitive traits, and iv) speciation in a stochastic simulation.
-
-The package allows the user to choose between a number of options for each of these processes, and provides functions for analyzing the results, including standard biogeographic and phylogenetic summaries such as species-area curves, rank-abundance curves or phylogenetic balance and diversity.
+```{r schema, echo = FALSE, fig.width = 6.5, fig.height = 4.2, fig.cap = "One generation of the model. Deaths and replacements are repeated until x · y individuals have died; then new species arise, and the state is recorded at the generations given in runs."}
+op <- par(mar = c(0, 0, 0, 0))
+plot(NULL, xlim = c(-0.5, 10), ylim = c(0.3, 7), axes = FALSE, xlab = "", ylab = "")
+box3 <- function(x, y, label, w = 4.2, h = 0.75, col = "#e8f0f7") {
+  rect(x - w / 2, y - h / 2, x + w / 2, y + h / 2, col = col, border = "#0072B2")
+  text(x, y, label, cex = 0.75)
+}
+ys <- c(6.3, 5.1, 3.9, 2.7, 1.5)
+box3(2.6, ys[1], "Draw a random cell")
+box3(2.6, ys[2], "Does the individual die?\nfitness < U(0, 1), or every k-th draw")
+box3(2.6, ys[3], "Choose a parent\nglobal or dispersal kernel")
+box3(2.6, ys[4], "Offspring inherits species and traits;\ntraits evolve")
+box3(2.6, ys[5], "Update the competition term\nof the neighbors")
+box3(7.6, 3.9, "Speciation:\nPoisson(specRate) new species", col = "#fbeee6")
+box3(7.6, 2.7, "Record the state\n(generations in runs)", col = "#fbeee6")
+arrows(2.6, ys[-5] - 0.38, 2.6, ys[-1] + 0.38, length = 0.07)
+# survives: draw the next cell
+segments(0.5, ys[2], 0.2, ys[2]); segments(0.2, ys[2], 0.2, ys[1])
+arrows(0.2, ys[1], 0.5, ys[1], length = 0.07)
+text(0.2, mean(ys[1:2]), "survives", srt = 90, cex = 0.65, pos = 2, offset = 0.3)
+# repeat until x * y individuals have died, then speciation
+segments(4.7, ys[5], 5.1, ys[5]); segments(5.1, ys[5], 5.1, ys[1])
+arrows(5.1, ys[1], 4.7, ys[1], length = 0.07)
+text(5.15, 5.4, "repeat until\nx · y deaths", cex = 0.65, pos = 4)
+arrows(5.1, 3.9, 5.5, 3.9, length = 0.07)
+arrows(7.6, 3.52, 7.6, 3.08, length = 0.07)
+# next generation
+segments(7.6, 2.32, 7.6, 0.6); segments(7.6, 0.6, 9.85, 0.6); segments(9.85, 0.6, 9.85, 6.85)
+segments(9.85, 6.85, 2.6, 6.85); arrows(2.6, 6.85, 2.6, 6.68, length = 0.07)
+text(9.85, 3.6, "next generation", srt = 90, cex = 0.65, pos = 2, offset = 0.15)
+par(op)
+```
 
 ## State variables
 
 **The grid:** the simulation runs on a spatially discrete grid. Each cell is
-occupied by one individual at any time. Additionally an environmental gradient
-can be included. To avoid boundary effects the boundaries of the grid are
-wrapped.
+occupied by one individual at any time. Each cell has an environmental value
+(see Environment below). To avoid boundary effects, the boundaries of the grid
+are wrapped (torus).
 
-**Individuals:** each individual has three traits: an environmental trait, a
-competition trait, and a neutral trait. The properties of these traits are
-described in more detail in the section on ecological processes.
+**Individuals:** each individual has three traits in $[0, 1]$: an
+environmental trait, a competition trait and a neutral trait. Their dynamics
+are described in the section on ecological processes.
 
 **Species and phylogeny:** each individual belongs to a species. Species
 properties are described by the mean of the respective traits of all
@@ -83,49 +114,67 @@ individual trait evolution process. Further, each species contains information
 about its parent species and the species that emerged from it, which gives rise
 to the overall phylogeny.
 
+**Initial state:** at the start, all individuals belong to one species and all
+their traits are 0.5.
+
+| Argument | Meaning | Default | Range |
+|---|---|---|---|
+| `x`, `y` | grid dimensions (cells) | 50, 50 | integers $\ge 1$, $x \cdot y \ge 2$ |
+| `airmat` | environment of the cells (see Environment below) | 1 (default gradient) | single value or matrix with $y$ rows and $x$ columns, values in $[0, 1]$ |
+
 ## Ecological processes
 
 The simulation runs over a defined number of generations. In each generation,
 individuals die and are replaced by offspring with slightly changed traits
-(steps 1--3 below), and then new species arise (next section). The symbols
-below refer to the arguments of `createCompletePar()` (see also the table in
-the section Parameters).
+(steps 1--3 below), until $x \cdot y$ individuals have died; then new species
+arise (next section), and the state of the community is recorded if the
+generation is one of those given in `runs`.
 
 **1. Mortality and replacement.** Cells are drawn at random (with replacement)
-until $N = x \cdot y$ individuals have died, so some individuals die several
-times per generation and others not at all. If fitness acts (`environment`,
-`density`, `redQueen` or `redQueenStrength` > 0), a drawn individual $i$ dies
+until $J = x \cdot y$ individuals have died, so some individuals die several
+times per generation and others not at all. If fitness acts on mortality
+(`environment`, `density`, `redQueen` or `redQueenStrength` > 0, and
+`fitnessActsOn` is `"mortality"` or `"both"`), a drawn individual $i$ dies
 only if its fitness $w_i$ (step 3 below) is smaller than a uniform random
 number $u \sim U(0, 1)$; otherwise it survives and the next cell is drawn.
 Every $k$-th draw, with $k$ = `fitnessBaseMortalityRatio`, kills the drawn
 individual regardless of its fitness. $k$ therefore controls the strength of
-selection: with $k = 1$ all deaths are random and the model is neutral even if
-`environment` or `density` are > 0. If fitness does not act, every draw kills,
-which gives the neutral model.
+selection: with $k = 1$ all deaths are random, and the model is neutral if
+fitness acts only on mortality, even if `environment` or `density` are > 0. If
+fitness does not act on mortality, every draw kills.
 
 The dead individual is replaced by the offspring of a parent. With global
-dispersal, the parent is drawn uniformly from all other cells (the dead
-individual is never its own parent,
-[#81](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/81)). With local dispersal, it is drawn from the cells within
-the radius $R$ (excluding the cell itself), with weights
+dispersal, the parent is drawn uniformly from all other cells; the dead
+individual is never its own parent. With local dispersal, it is drawn from the
+cells within the radius $R$ (excluding the cell itself), with weights
 
-$$ w_d = \exp\left(-\frac{d}{\delta}\right), $$
+$$ K(d) = \exp\left(-\frac{d}{\delta}\right), $$
 
 where $d$ is the Euclidean distance, $R = \lfloor 2 \cdot \texttt{dispersal}
 \rfloor$ and $\delta = R / 2$; only multiples of 0.5 of `dispersal` therefore
 have an effect. The neighborhood is a discretized circle: all cells with
 $|\Delta x| \le R$ and $|\Delta y| \le \lfloor\sqrt{R^2 - \Delta x^2}\rfloor$.
+If fitness acts on reproduction (`fitnessActsOn = "reproduction"` or
+`"both"`, possible only with local dispersal unless the model is neutral), the
+weights of the potential parents are multiplied by their fitness, if
+`environment` or `density` is > 0.
+
+| Argument | Meaning | Default | Range |
+|---|---|---|---|
+| `fitnessBaseMortalityRatio` | every $k$-th draw kills regardless of fitness | 10 | integer $\ge 1$; 1 gives a neutral model if fitness acts only on mortality |
+| `fitnessActsOn` | whether fitness acts on mortality, reproduction or both | `"mortality"` | `"mortality"`, `"reproduction"`, `"both"`; with global dispersal only if `environment`, `density`, `redQueen` and `redQueenStrength` are 0 |
+| `dispersal` | `"global"` (or 0), or the dispersal distance | `"global"` | `"global"`, 0 or $\ge 0.5$ with $2R + 1 \le \min(x, y)$; only multiples of 0.5 have an effect |
 
 **2. Trait evolution.** The offspring inherits the species and the three traits
 (environmental, competition and neutral trait) of its parent. Each trait then
 changes by a small random step and is attracted towards the mean trait of its
 species:
 
-$$ \mathrm{newtrait} = (1 - w_s)\cdot p + w_s \cdot s + r, $$
+$$ t' = (1 - \alpha)\cdot t_{\mathrm{p}} + \alpha \cdot \bar t + r, $$
 
-where $p$ is the parent's trait value, $s$ is the mean trait value of the
-species, $w_s = 0.2$ is a fixed attraction weight, and $r$ is drawn uniformly
-from $[-0.01, 0.01]$. Values outside $[0, 1]$ are reflected at the boundary.
+where $t'$ is the offspring's trait value, $t_{\mathrm{p}}$ the parent's,
+$\bar t$ is the mean trait value of the species, $\alpha = 0.2$ is a fixed
+attraction weight, and $r$ is drawn uniformly from $[-0.01, 0.01]$. Values outside $[0, 1]$ are reflected at the boundary.
 
 **3. Fitness.** The fitness of individual $i$ is the sum of an environmental
 and a competition term, each included only if the corresponding parameter is
@@ -134,12 +183,12 @@ and a competition term, each included only if the corresponding parameter is
 $$ w_i = \underbrace{e \cdot \exp\left(-\frac{(E_i - t_i)^2}{2\sigma^2}\right) + 1 - e}_{\text{if } e > 0} \; + \; \underbrace{c \cdot D_i + 1 - c}_{\text{if } c > 0}, $$
 
 where $e$ = `environment`, $E_i$ is the environment of the cell, $t_i$ is the
-environmental trait of the individual, $\sigma = 0.0366$ is a fixed niche
-width, and $c$ = `density`. $D_i$ is the mean absolute difference between the
-competition trait $c_i$ of the individual and those of its neighbors within
+environmental trait of the individual, $\sigma$ = `nicheWidth` is the width of
+the niche, and $c$ = `density`. $D_i$ is the mean absolute difference between
+the competition trait $a_i$ of the individual and those of its neighbors within
 the radius $R_D$ = `densityCut` (same discretized circle as for dispersal),
 
-$$ D_i = \frac{\sum_{j \ne i} |c_i - c_j|}{n}, $$
+$$ D_i = \frac{\sum_{j \ne i} |a_i - a_j|}{n}, $$
 
 where $n$ is the number of cells in the neighborhood, including the focal cell.
 $D_i$ is updated whenever an individual in the neighborhood is replaced.
@@ -152,13 +201,18 @@ Some consequences of this formula:
 - All individuals start with the same traits (0.5), so $D_i = 0$ at the start
   and density dependence acts only after the competition traits have diverged.
 
+| Argument | Meaning | Default | Range |
+|---|---|---|---|
+| `environment` | weight $e$ of the environmental fitness term | 0 | $[0, 1]$ |
+| `nicheWidth` | width $\sigma$ (standard deviation) of the environmental niche | 0.0366 | $> 0$; a message outside $[0.003, 3]$ (if `environment` > 0) |
+| `density` | weight $c$ of the competition fitness term | 0 | $[0, 1]$ |
+| `densityCut` | radius $R_D$ of the competition neighborhood | 1 | integer $\ge 1$, $\le \min(x, y)$; $2R_D + 1 \le \min(x, y)$ if `density` > 0 |
+
 **Environment.** If no `airmat` is given, the environment varies only along the
 x-axis: it increases linearly in steps of $2/x$ from 0 in the first column to 1
 in column $x/2 + 1$ and then decreases again, so for even $x$ all values except
-the minimum and maximum occur in two bands; for odd $x$, the maximum is
-$(x+1)/x$ ([#142](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/142)). A
-user-defined environment can be passed as a matrix with values in $[0, 1]$
-(`airmat`).
+the minimum and maximum occur in two bands. A user-defined environment can be
+passed as a matrix with values in $[0, 1]$ (`airmat`).
 
 ## Speciation mechanisms
 
@@ -167,19 +221,19 @@ number of new species is drawn from a Poisson distribution with mean
 `specRate`, and for each of them an individual is chosen at random. `specRate`
 is thus the expected number of new species per generation in the whole grid,
 not a rate per individual. The founding individual keeps its traits, which
-become the initial trait means of the new species (no trait change at
-speciation, see
-[#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).
+become the initial trait means of the new species (see Known limitations).
 
 All speciation mechanisms implemented in the model are summarized below:
 
-- **Point Mutation:** the default, see above.
-- **Fission Type 1:** a species is randomly chosen and every second individual
-  of the species becomes part of a new species.
-- **Fission Type 2:** a species is randomly chosen and geographically split in
-  two parts. One part evolves to a new species, the other part is not affected.
-- **Protracted Speciation:** based on @rosindell2010, a species undergoes an
-  'incipient' stage before becoming a new species. In the implementation, the
+- **Point speciation:** the default, see above.
+- **Fission type 1:** an individual is drawn at random, so that species are
+  chosen in proportion to their abundance; every second individual of its
+  species becomes part of a new species.
+- **Fission type 2:** as type 1, but the species is split geographically at the
+  mean x-coordinate of its individuals. One part becomes a new species, the
+  other part is not affected.
+- **Protracted speciation:** based on @rosindell2010, a species undergoes an
+  incipient stage before becoming a new species. In the implementation, the
   chosen individual becomes a new species only if it survives `protracted`
   generations; its offspring do not inherit the incipient state. `specRate` is
   then the expected number of incipient individuals per generation.
@@ -190,114 +244,145 @@ All speciation mechanisms implemented in the model are summarized below:
   minus one; without environment and density dependence, the base fitness is
   set to 0.01.
 
-## Parameters
+| Argument | Meaning | Default | Range |
+|---|---|---|---|
+| `specRate` | expected number of new species per generation in the whole grid | 1 | $\ge 0$, $\le x \cdot y$ |
+| `fission` | speciation by fission: 0 (none), 1 or 2 | 0 | 0, 1, 2 |
+| `protracted` | generations an incipient species must survive | 0 | integer $\ge 0$ |
+| `redQueenStrength`, `redQueen` | strength $s$ and decay $q$ of the novelty advantage | 0, 0 | $\ge 0$ |
 
-`createCompletePar()` and `runSimulation()` check all ranges in the table,
-except that only multiples of 0.5 of `dispersal` have an effect (see
-`?createCompletePar`).
+## Known limitations
 
-| Argument | Meaning | Range |
-|---|---|---|
-| `x`, `y` | grid dimensions (cells); the grid is a torus | integers $\ge 1$, $x \cdot y \ge 2$ |
-| `dispersal` | `"global"` (or 0), or the dispersal distance (see step 1) | `"global"`, 0 or $\ge 0.5$ with $2 \cdot$ `dispersal` $\le \min(x, y)$; steps of 0.5 |
-| `specRate` | expected number of new species per generation in the whole grid | $\ge 0$ |
-| `environment` | weight $e$ of the environmental fitness term | $[0, 1]$ |
-| `density` | weight $c$ of the competition fitness term | $[0, 1]$ |
-| `densityCut` | radius $R_D$ of the competition neighborhood | integer $\ge 1$, $\le \min(x, y)$ |
-| `fitnessBaseMortalityRatio` | every $k$-th draw kills regardless of fitness | integer $\ge 1$; 1 gives a neutral model |
-| `fission` | speciation by fission: 0 (none), 1 or 2 | 0, 1, 2 |
-| `protracted` | generations an incipient species must survive | integer $\ge 0$ |
-| `redQueenStrength`, `redQueen` | strength $s$ and decay $q$ of the novelty advantage | $\ge 0$ |
-| `fitnessActsOn` | whether fitness acts on mortality (described here), reproduction or both | `"mortality"` (default), `"reproduction"`, `"both"`; see `?createCompletePar` |
+::: {.limitation}
+Some properties of the current implementation can be unexpected; they are
+discussed in the issues of the package repository:
 
-## Running the model in R
+- `dispersal` has an effect only in steps of 0.5
+  ([#141](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/141)).
+- For odd $x$, the default environment exceeds 1 in the middle column (maximum
+  $(x+1)/x$;
+  [#142](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/142)).
+- With protracted speciation, the offspring of an incipient individual do not
+  inherit the incipient state
+  ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
+- Because the two fitness terms are added, the model is neutral if
+  `environment` and `density` are both > 0 and their sum is $\le 1$
+  ([#144](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/144)).
+- If fitness acts on reproduction, the recruits are not selected at the cell
+  where they settle
+  ([#165](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/165)).
+- New species keep the traits of their founding individual; a trait change at
+  speciation is not implemented
+  ([#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).
+- Density dependence develops only after thousands of generations, so short
+  runs show little of its effect
+  ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
+- `es()` calculates the expected number of species of the neutral model with
+  $\theta = 2 \cdot$ `specRate`, about twice the value that fits the model
+  (see the chapter Emerging patterns;
+  [#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)).
+:::
 
-The first thing to do is, obviously, loading the package:
+# Running the model
 
-```{r library, message = FALSE}
-library(PhyloSim)
+## Installation
+
+The package is not on CRAN yet. Follow the instructions on
+<https://github.com/TheoreticalEcology/EcoPhyloSim> to install the development
+version, e.g.
+
+```{r install, eval = FALSE}
+devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
+                         subdir = "PhyloSim",
+                         dependencies = TRUE,
+                         build_vignettes = TRUE)
+
+?PhyloSim
+browseVignettes("PhyloSim")
 ```
+
+## Running a simulation
 
 Running the model consists of two consecutive steps. First, a list of parameters
-is generated based on the user's settings.
+is generated with `createCompletePar()`:
 
 ```{r createpar}
-par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500, 1000),
-                         density = 1, environment = 0.5, specRate = 1, type = "base")
+pars <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500, 1000),
+                          density = 1, environment = 0.5, specRate = 1, seed = 42)
 ```
 
-In this example, an area of 50*50 cells provides the basis for one simulation
-with outputs recorded after 500 and 1000 generations. The dispersal is set to
+In this example, an area of 50 × 50 cells provides the basis for one simulation
+with outputs recorded after 500 and 1,000 generations. The dispersal is set to
 global, meaning each individual could reproduce in every cell of the grid.
-Further, the density as well as the environment have an influence on the
-individuals. For further explanations and more settings see:
+Further, both density dependence and the environment influence the
+individuals. Besides the model parameters described above, `createCompletePar()`
+has arguments that control the run and its output:
 
-```{r createpar-help, eval = FALSE}
-?createCompletePar
-```
+| Argument | Meaning | Default |
+|---|---|---|
+| `runs` | generation(s) at which the state is recorded; values must not decrease | 100 |
+| `seed` | random seed; if `NULL`, a seed is drawn and stored in `$Model$seed` of the result | `NULL` |
+| `prunePhylogeny` | if `TRUE`, the phylogeny contains only the extant species; if `FALSE`, also all extinct species as tips | `TRUE` |
+| `convertToBinaryTree` | resolve polytomies of the phylogeny (at random) | `TRUE` |
+| `calculateSummaries` | calculate summary statistics (`calculateSummaryStatistics()`) for the last recorded generation | `FALSE` |
+| `scenario` | a label stored with the parameters | `NULL` |
 
-The list of parameters is now used to execute the simulation:
+The list of parameters is then used to run the simulation:
 
 ```{r runsim, results = 'hide'}
-simu <- runSimulation(par)
+simu <- runSimulation(pars)
 ```
 
-The output is saved as an object of type `PhyloSim`. Each `PhyloSim` object
-contains two lists, `$Output` and `$Model`. All model results are saved in the
-`Output` list.
+This simulation took `r round(simu$Model$runtime, 1)` seconds. Note that 1,000
+generations are enough for a first look, but some outputs, in particular with
+density dependence and the phylogeny, need several thousand generations to
+reach equilibrium (see the section on the time to equilibrium below).
 
-In this example, the output consists of two results, the simulation after 500
-and 1000 generations. They contain the spatial species matrix, the
-(environmental) trait matrix, the environmental matrix (representing the
-environment), the competition matrix and the neutral matrix, as well as the
-phylogeny in two formats.
+The result is an object of class `PhyloSim` with two lists: `$Model` contains
+the parameters of the run, and `$Output` contains one element per generation
+in `runs`, here two. Each of them contains:
 
-To access them, the easiest way is to use indices:
+| Element | Content |
+|---|---|
+| `specMat` | species of each cell (matrix with $y$ rows and $x$ columns) |
+| `traitMat`, `compMat`, `neutMat` | environmental, competition and neutral trait of each cell |
+| `envMat` | environment of each cell |
+| `phylogeny` | phylogeny of the species (class `phylo` of the package ape; 0 if only one species is left) |
+| `phyloTXT` | the phylogeny as Newick text |
+| `summaries` | summary statistics if `calculateSummaries = TRUE`, stored in the first element of `$Output` only |
 
 ```{r output1}
-Output1 <- simu$Output[[1]]
-str(Output1)
+str(simu$Output[[1]], max.level = 1)
 ```
 
-The simulation settings are saved in the model object:
-
-```{r model}
-str(simu$Model)
-```
+Branch lengths of the phylogeny are in generations, with each recorded state
+placed half a generation after the events of its generation (see
+`?runSimulation`).
 
 The `PhyloSim` object serves as the basis of all further analysis. It can
 directly be passed to all other functions. If the `PhyloSim` object contains
 multiple results, they can be accessed by the `which.result` argument in most
 functions. By default, the last result is used.
 
+## Several simulations
+
 Often, users will want to run several simulations with different or equal
-parameters. For this purpose, the `runSimulationBatch` function allows running a
-list of parameter combinations. The function can make use of parallel computing
-and returns an object of class `PhylosimList`, which is essentially a list of
-`PhyloSim` objects. In the following example, two slightly different parameter
-sets are created and processed one after the other. For larger batches,
-`parallel = 2` runs them on two cores.
+parameters. For this purpose, the `runSimulationBatch()` function runs a list
+of parameter combinations, optionally in parallel, and returns an object of
+class `PhylosimList`, which is essentially a list of `PhyloSim` objects. In the
+following example, two slightly different parameter sets are run one after
+the other; for larger batches, `parallel = 2` runs them on two cores.
 
 ```{r runbatch, results = 'hide'}
-par1 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                          density = 1, environment = 0.5, specRate = 1, type = "base")
-
-par2 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                          density = 1, environment = 1, specRate = 1, type = "base")
-
-parmBatch <- list(par1, par2)
-
-simuBatch <- runSimulationBatch(parmBatch, parallel = FALSE)
+pars1 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
+                           density = 1, environment = 0.5, specRate = 1, seed = 1)
+pars2 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
+                           density = 1, environment = 1, specRate = 1, seed = 2)
+simuBatch <- runSimulationBatch(list(pars1, pars2), parallel = FALSE)
 ```
 
-The `simuBatch` object contains two `PhyloSim` objects saved in a list. You can
-easily access them separately by indexing. For example:
-
-```{r batch-index}
-simu1 <- simuBatch[[1]]
-```
-
-An overview of the basic classes and functions to run simulations is provided
+The single simulations can be accessed by indexing, e.g. `simuBatch[[1]]`. An
+overview of the basic classes and functions to run simulations is provided
 below.
 
 ```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
@@ -306,73 +391,71 @@ knitr::include_graphics("runsimulation.svg")
 
 # Plots and summary statistics
 
-After the description of the simulation environment in the previous chapter, the
-present one explains plots and summary statistics that can be created from the
+This chapter explains plots and summary statistics that can be created from the
 `PhyloSim` and `PhylosimList` objects.
 
 ## Plot functions
 
-The PhyloSim package contains multiple functions to visualize the results of the
+The package contains several functions to visualize the results of a
 simulation, which are summarized in the overview figure at the end of this
-chapter.
+section.
 
-**`plotSpatialPhylo`:** the easiest way to get an overview of the results of one
-simulation is the `plotSpatialPhylo` function, which is also the default plot
-function for a `PhyloSim` object.
+**`plotSpatialPhylo()`:** the easiest way to get an overview of the results of
+one simulation is `plotSpatialPhylo()`, which is also the default plot method
+for a `PhyloSim` object.
 
-```{r plotspatialphylo, fig.width = 7, fig.height = 5, fig.cap = "The plotSpatialPhylo plot consists of three different figures: a phylogeny that shows the evolutionary history of the species, a trait plot that shows the trait values for each of the species (coded by size), and the spatial distribution of individuals, with colors matching the colors in the phylogeny. Which of these figures are plotted can be triggered with the arguments plot and plotTraits (see help)."}
-plotSpatialPhylo(simu, plot = "both", plotTraits = TRUE, which.result = NULL)
+```{r plotspatialphylo, fig.width = 7, fig.height = 5, fig.cap = "Phylogeny of the species (left), their mean traits (middle; point size) and their spatial distribution (right), with colors matching the colors in the phylogeny. The arguments plot and plotTraits select the panels."}
+plotSpatialPhylo(simu)
 ```
 
-**Species-area curve (SAC):** the SAC shows the accumulated species richness as
-a function of area. It is calculated by creating plots of different sizes in the
-meta-community.
+**Species–area curve:** `sac()` computes the mean number of species in square
+subplots of increasing size, placed at random in the grid.
 
-```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species richness as a function of the plot size of a local community. A positively bent curve indicates clustering of a species community. A negatively bent curve indicates a more neutral distribution of species within the community."}
-sac(simu, which.result = NULL)
+```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the chapter Emerging patterns)."}
+sac(simu)
 ```
 
-**Rank-abundance curve (RAC):** the rank-abundance curve shows the abundance of
-each species within the meta-community.
+**Rank–abundance curve:** `rac()` shows the abundance of each species in the
+whole grid against its rank.
 
-```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank-abundance curve (RAC). Each species is given a rank according to its abundance (highest abundance = rank 1), then abundance is plotted against rank. A linear curve indicates a less stable or neutral community supporting only a few highly abundant species, whereas an S-shaped curve indicates a more stable community."}
-rac(simu, which.result = NULL)
+```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The chapter Emerging patterns compares such curves with the expectation of neutral theory."}
+rac(simu)
 ```
 
-**Trait plots:** for a closer look at the traits you can visualize them using
-the `plotTraitDistribution` function.
+**Trait plots:** `plotTraitDistribution()` shows the three traits of the
+individuals.
 
-```{r traitdist, fig.width = 7, fig.height = 6, fig.cap = "The plotTraitDistribution plot consists of three figures for the three traits in the model (environmental trait, competition trait, neutral trait). The upper panel illustrates the trait magnitude as a function of the environment for different species, the middle panel the spatial distribution of the given trait, and the lower panel a histogram of the given trait."}
-plotTraitDistribution(simu = simu, which.result = NULL, type = "all")
+```{r traitdist, fig.width = 7, fig.height = 6, fig.cap = "Environmental, competition and neutral trait (columns): trait against the environment of the cell (top), spatial distribution (middle) and histograms per species (bottom; colors as in plotSpatialPhylo)."}
+plotTraitDistribution(simu, type = "all")
 ```
 
-**Reconstructed phylogenies:** the function `phyloReconstruct` uses the species'
-traits to construct a phylogeny for the given community. These phylogenies can
-then be compared to the real phylogeny of the community.
+**Reconstructed phylogenies:** `phyloReconstruct()` clusters the species by the
+mean of their neutral trait (hierarchical clustering with `hclust()`). The
+result can be compared with the true phylogeny of the simulation.
 
-```{r phylorecon, fig.width = 7, fig.height = 4, fig.cap = "Reconstructed phylogeny (left) and real phylogeny (right). There are differences in the species that make up the resulting communities as well as in their assembly."}
-Phyl   <- ape::drop.fossil(simu$Output[[2]]$phylogeny)
-rePhyl <- phyloReconstruct(simu)
+```{r phylorecon, fig.width = 7, fig.height = 4, fig.cap = "Phylogeny reconstructed from the mean neutral traits of the species (left) and the true phylogeny of the extant species (right)."}
+reconstructed <- phyloReconstruct(simu)
+true <- simu$Output[[length(simu$Output)]]$phylogeny
 
-par(mfrow = c(1, 2))
-plot(rePhyl, main = "reconstructed Phylogeny")
-plot(Phyl, main = "real Phylogeny")
+op <- par(mfrow = c(1, 2))
+plot(reconstructed, main = "Reconstructed phylogeny")
+plot(true, main = "True phylogeny")
+par(op)
 ```
 
-**Highlight local communities:** the function `highlightLocalPhylo` highlights
-the phylogeny of a local community within a metacommunity.
+**Highlight local communities:** `highlightLocalPhylo()` highlights the species
+of a local community, a randomly placed subplot, in the phylogeny of the whole
+grid (the metacommunity).
 
-```{r highlight-large, fig.width = 6, fig.height = 5.4, fig.cap = "Highlights a relatively large local community."}
+```{r highlight-large, fig.width = 6, fig.height = 5.4, fig.cap = "Species of a subplot of 10 × 10 cells (highlighted) in the phylogeny of the metacommunity."}
 highlightLocalPhylo(simu, size = 10, n = 1)
 ```
 
-```{r highlight-small, fig.width = 6, fig.height = 5.4, fig.cap = "Highlights a relatively small local community."}
+```{r highlight-small, fig.width = 6, fig.height = 5.4, fig.cap = "Species of a subplot of 5 × 5 cells (highlighted) in the phylogeny of the metacommunity."}
 highlightLocalPhylo(simu, size = 5, n = 1)
 ```
 
-Both figures show the phylogeny of the same metacommunity but highlight different
-local plots with different plot sizes (10 and 5). The larger plot is richer in
-species than the smaller one.
+The larger subplot contains more species than the smaller one.
 
 ```{r plotsfig, echo = FALSE, out.width = "70%", fig.cap = "Overview of the plotting functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. The arrows illustrate what is used as input parameter for the functions."}
 knitr::include_graphics("plots.svg")
@@ -380,37 +463,78 @@ knitr::include_graphics("plots.svg")
 
 ## Summary statistics
 
-Quite a few of the functions, such as species-area curves and local
-phylogenies, are based on the `localPlots` function, a simple observation model
-that creates random subplots of a given size within the metacommunity.
+Single statistics of a simulation can be calculated directly, e.g. the number
+of species and the Yule-normalized Colless index of the phylogeny (an index of
+tree imbalance):
+
+```{r stats}
+specRich(simu)
+collessImbalance(simu, norm = "yule")
+```
+
+`calculateSummaryStatistics()` computes a set of common statistics at once,
+among others alpha, beta and gamma diversity, the imbalance and gamma
+statistic of the phylogeny, phylogenetic dispersion and spatial indices. It
+takes some seconds, as the phylogenetic dispersion is computed with a null
+model:
+
+```{r summarystats, eval = FALSE}
+calculateSummaryStatistics(simu)
+```
+
+Several functions, such as species–area curves and the null models below, are
+based on `localPlots()`, a simple observation model that creates random
+subplots of a given size within the metacommunity and returns their species,
+environment and competition traits and positions:
 
 ```{r localplots}
-localPlots(simu, size = 10, n = 2)
+str(localPlots(simu, size = 10, n = 2), max.level = 1)
+```
+
+**Mortality data:** `getMortalityData()` returns, for each individual, the number
+of its conspecific neighbors and whether it died until the next recorded
+generation, which allows estimating conspecific negative density dependence
+as in field studies (see the chapter Emerging patterns). For this, the state
+should be recorded in consecutive generations:
+
+```{r mortality-run, results = 'hide'}
+simuM <- runSimulation(createCompletePar(x = 30, y = 30, dispersal = 1, density = 1,
+                                         runs = c(4000, 4001), seed = 3))
+```
+
+```{r mortality}
+mort <- getMortalityData(simuM)
+head(mort)
 ```
 
 ## Null models
 
-To compare patterns in the results of the simulations with random expectations,
-the package comprises a set of null models. The null model creates subplots from
-the metacommunity and tests them against random expectations.
+To compare patterns in the simulations with random expectations, the package
+contains null models. `nullModel()` places subplots in the metacommunity and
+compares their mean pairwise phylogenetic distance (MPD) with that of random
+communities of the same size drawn from the species abundances of the whole
+grid:
 
-**The `nullModel` function:**
-
-```{r nullmodel, eval = FALSE}
+```{r nullmodel}
 pValues <- nullModel(simu = simu, abundance = FALSE, localPlotSize = 10,
                      numberOfPlots = 20, repetitions = 100, fun = "mpd")
+round(pValues, 2)
 ```
 
-**The `calculatePhylogeneticDispersion` function:** this and its associated plot
-functions are convenience functions for a rather specialized application -- the
-function calculates null models for all runs in a `PhylosimList` object and for
-different plot sizes. Which null model is used is determined by the `type`
-argument with the following options:
+Each value is the share of random communities whose MPD is at most the
+observed one. Small values mean that the species of a subplot are more closely
+related than expected by chance (phylogenetic clustering), large values that
+they are less closely related (phylogenetic overdispersion).
 
-- `"PhylMeta"`: equivalent to the `nullModel` function with `abundance = FALSE`.
-- `"PhylSample"`: equivalent to the `nullModel` function with `abundance = TRUE`.
-- `"PhylPool"`: uses `picante::ses.mpd` with `null.model = "phylogeny.pool"`.
-- `"SamplePool"`: uses `picante::ses.mpd` with `null.model = "sample.pool"`.
+**`calculatePhylogeneticDispersion()`:** this and its associated plot function
+are convenience functions for a rather specialized application: they calculate
+null models for all runs in a `PhylosimList` object and for different plot
+sizes. Which null model is used is determined by the `type` argument:
+
+- `"PhylMeta"`: equivalent to `nullModel()` with `abundance = FALSE`.
+- `"PhylSample"`: equivalent to `nullModel()` with `abundance = TRUE`.
+- `"PhylPool"`: uses `picante::ses.mpd()` with `null.model = "phylogeny.pool"`.
+- `"SamplePool"`: uses `picante::ses.mpd()` with `null.model = "sample.pool"`.
 
 ```{r calcphyldis, eval = FALSE}
 pValuesBatch <- calculatePhylogeneticDispersion(simuBatch, plotlengths = 3,
@@ -418,9 +542,11 @@ pValuesBatch <- calculatePhylogeneticDispersion(simuBatch, plotlengths = 3,
                                                 type = "PhylMeta")
 ```
 
-The result can be visualized with the `plotPhylogeneticDispersion` function:
+The result can be visualized with `plotPhylogeneticDispersion()`. The figure
+uses example results stored in the package (`pPD.pvalues`, `pPD.positions`);
+they illustrate the plot only.
 
-```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "Different combinations of dispersal limitation (y-axis), environmental trait (upper x-axis) and density dependence (lower x-axis). The color shows the phylogenetic pattern (over- or underdispersed)."}
+```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "Phylogenetic dispersion for combinations of dispersal limitation (rows), environmental filtering (upper axis) and density dependence (lower axis). The color shows whether the local communities are phylogenetically clustered or overdispersed."}
 data("pPD.pvalues")
 data("pPD.positions")
 
@@ -434,7 +560,7 @@ This chapter shows how the main outputs of the model respond to its
 parameters, and compares them with what theory and earlier studies lead us to
 expect. For the neutral model, some expectations are exact analytical
 results; for the other processes, the literature mostly predicts the direction
-of an effect. The parameters are varied one at a time around a reference
+of an effect. The parameters are varied one or two at a time around a reference
 setting (50 × 50 cells, `dispersal = 1`, `specRate = 2`, all other parameters
 at their defaults), with replicate runs per setting. The simulations take
 hours to days, so they are not run when this vignette is built: they were run
@@ -458,14 +584,26 @@ expectations that the following sections test.
 | Neutral model | mortality independent of the number of conspecific neighbors | by definition |
 | Dispersal limitation | spatial clusters of conspecifics; similarity decreasing with distance; steeper species–area curves within the grid | @durrett1996, @rosindell2007, @chave2002, @chaveleigh2002 |
 | Environmental filtering | traits match the environment, more so with local dispersal; effect on richness can be positive or negative | @mouquet2003, @stein2014, @allouche2012 |
-| Density dependence | more species, more even abundances, fewer conspecific neighbors, more dispersed competition traits; mortality increases with the number of conspecific neighbors | @chave2002, @levi2019, @scheffer2006, @comita2010 |
+| Strength of selection | effects of environment and density dependence increase with `fitnessBaseMortalityRatio`; neutral at 1 | model definition |
+| Density dependence | more species, more even abundances, fewer conspecific neighbors, more dispersed competition traits | @chave2002, @levi2019, @scheffer2006 |
+| Environment and density dependence | effects can mask each other; neutral if both are > 0 and their sum is ≤ 1 | @kraft2015 |
 | Protracted speciation | fewer species | @rosindell2010, see below |
 | Red Queen | younger species | @odwyer2014 |
+| Assembly processes and dispersal | environmental filtering increases, density dependence reduces aggregation; both increase richness; dispersal changes how strongly each shows | @kraft2015, @mouquet2003, @adler2005 |
+| CNDD from mortality | coefficient close to 0 without and positive with density dependence; per-species estimates biased towards stronger CNDD of rare species | @comita2010, @hulsmann2024, @detto2019 |
+| Grid size | richness increases with the number of individuals, faster with local dispersal | @ewens1972, @durrett1996 |
+| Niche width | richness possibly highest at an intermediate width; best match of traits and environment for narrow niches | @allouche2012 |
 
 ```{css, echo = FALSE}
 .expectation {
   background-color: #f2f6fa;
   border-left: 4px solid #0072B2;
+  padding: 0.4em 1em;
+  margin: 1em 0;
+}
+.limitation {
+  background-color: #fbf3ec;
+  border-left: 4px solid #D55E00;
   padding: 0.4em 1em;
   margin: 1em 0;
 }
@@ -505,8 +643,9 @@ legendPanel <- function(...) {
 # 95% confidence intervals as error bars (skips intervals of width 0)
 ciBars <- function(x, m, ci, col) {
   ok <- is.finite(ci) & ci > 0
-  arrows(x[ok], m[ok] - ci[ok], x[ok], m[ok] + ci[ok], angle = 90, code = 3,
-         length = 0.02, col = col)
+  # (very short intervals give harmless "zero-length arrow" warnings)
+  suppressWarnings(arrows(x[ok], m[ok] - ci[ok], x[ok], m[ok] + ci[ok], angle = 90, code = 3,
+                          length = 0.02, col = col))
 }
 
 # setting number of a block with the given parameter values
@@ -607,13 +746,23 @@ ewensRac <- function(theta, J, reps = 200) {
 
 ## Time to equilibrium
 
-All results below refer to the state of the model at the end of the runs,
-which should be in equilibrium. In the neutral model, abundances change only by
-drift, which is slower in larger communities. We therefore expect the time to
-equilibrium to grow with the number of cells, and to be longer for indicators
-that depend on
-the whole history of the community (the phylogeny) than for those that depend
-on the current abundances.
+All results below refer to the state of the model at the end of the runs. In
+the main runs, each setting was simulated
+`r packageBehavior$info$modes$main$reps` times for
+`r format(packageBehavior$info$modes$main$generations[["default"]], big.mark = ",")`
+generations
+(`r format(packageBehavior$info$modes$main$generations[["density"]], big.mark = ",")`
+with density dependence,
+`r format(packageBehavior$info$modes$main$generations[["neutral"]], big.mark = ",")`
+in the neutral block).
+
+::: {.expectation}
+**Expectation.** In the neutral model, abundances change only by drift, which
+is slower in larger communities. We therefore expect the time to equilibrium
+to grow with the number of cells, and to be longer for indicators that depend
+on the whole history of the community (the phylogeny) than for those that
+depend on the current abundances.
+:::
 
 To check how long the model needs to reach equilibrium, a pilot run simulated
 each setting for
@@ -623,7 +772,12 @@ generations
 for density dependence) with
 `r packageBehavior$info$modes$pilot$reps` replicates. The figure shows the
 replicate mean (line) and the variation between replicates (band: mean ± sd)
-of each indicator over time for five settings.
+of each indicator over time for five settings. Most indicators settle within
+a few thousand generations, but with environmental filtering the gamma
+statistic and the spread of the competition trait still changed slowly at the
+end of the runs ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)),
+so the results for these indicators describe a slowly changing rather than a
+fully stationary state.
 
 ```{r equilibrium, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators over time in the pilot runs: replicate mean (line) and mean ± standard deviation across replicates (band)."}
 cases <- data.frame(
@@ -658,7 +812,7 @@ eqTime <- function(d, block, setting, indicator) {
 }
 tab <- sapply(seq_len(nrow(cases)), function(k)
   sapply(names(labels), eqTime, d = pilot, block = cases$block[k], setting = cases$setting[k]))
-dimnames(tab) <- list(labels, cases$label)
+dimnames(tab) <- list(labels, gsub("\n", " ", cases$label))
 knitr::kable(tab, caption = "Generations to equilibrium in the pilot runs.")
 ```
 
@@ -678,13 +832,12 @@ $$E(S) = \sum_{i=0}^{J-1} \frac{\theta}{\theta + i}, \qquad
 \theta = \frac{(J-1)\,\nu}{1-\nu} \approx \texttt{specRate}.$$
 For large $J$ and small $\nu$, this $\theta$ is about half of the fundamental
 biodiversity number $2J\nu$ used in other formulations of neutral theory
-[@vallade2003]; `es()` uses $2J\nu$
-(see [#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)). The
+[@hubbell2001; @vallade2003]; `es()` uses $2J\nu$ (see Known limitations). The
 same theory predicts that two random individuals belong to the same species
 with probability $1/(1+\theta)$. With global dispersal, space plays no role, so
 this is also the expected share of conspecific neighbors. The theory also gives
 the expected abundance distribution [@vallade2003], which we compare with the
-rank-abundance curve of the model.
+rank–abundance curve of the model.
 
 For the tree of the extant species, neutral theory predicts more imbalance
 than a Yule tree, because the speciation probability of a species is
@@ -695,7 +848,7 @@ the slowdown of branching towards the present (negative gamma statistic) that
 is typical of empirical trees [@davies2011; @manceau2015; @phillimore2008].
 :::
 
-```{r neutral, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Neutral model with global dispersal against the speciation rate, for three grid sizes (replicate mean and 95% confidence interval). Left: species richness; dashed: Ewens sampling formula, dotted: es(). Right: share of conspecific neighbors; dashed: 1/(1 + theta)."}
+```{r neutral, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Neutral model with global dispersal against the speciation rate, for three grid sizes (replicate mean and 95% confidence interval). Left: species richness; dashed: Ewens sampling formula, dotted: es(). Right: share of conspecific neighbors; dashed: 1/(1 + θ)."}
 op <- par(mfrow = c(1, 2))
 f <- final(main, "neutral", "richness")
 g <- final(main, "neutral", "conspecificNeighbors")
@@ -723,7 +876,7 @@ for (k in seq_along(sizes)) {
 par(op)
 ```
 
-```{r neutral-rac, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Rank-abundance curve of the neutral model with global dispersal (50 x 50 cells, specRate = 2; replicate mean) and the expectation from the Ewens sampling formula (dashed)."}
+```{r neutral-rac, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Rank–abundance curve of the neutral model with global dispersal (50 × 50 cells, specRate = 2; replicate mean) and the expectation from the Ewens sampling formula (dashed)."}
 s <- settingId(main, "neutral", specRate = 2, x = 50)
 r <- main$rac[main$rac$block == "neutral" & main$rac$setting == s, ]
 r <- r[order(r$rank), ]
@@ -751,7 +904,7 @@ are steep at small areas when dispersal is short relative to the area
 response(main, "dispersal", "dispersal")
 ```
 
-```{r dispersal-sac, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Species-area curves within the grid (mean number of species in square subplots of the given area) for different dispersal distances."}
+```{r dispersal-sac, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Species–area curves within the grid (mean number of species in square subplots of the given area) for different dispersal distances."}
 s <- main$sac[main$sac$block == "dispersal", ]
 st <- main$settings[main$settings$block == "dispersal", ]
 plot(s$size, s$mean, type = "n", log = "xy", xlab = "Subplot area (cells)",
@@ -833,7 +986,7 @@ competition trait differs from those of its neighbors. Because the traits
 within a species are similar, this acts like conspecific negative density
 dependence, as in the Janzen-Connell hypothesis. Such density dependence is
 expected to increase species richness and to make abundances more even
-[@chave2002; @levi2019], more so for larger neighborhoods [@levi2019]; its
+[@chave2002; @levi2019]; its
 effect depends on how far offspring disperse relative to the neighborhood
 [@adler2005]. It should reduce the share of conspecific neighbors. Competition
 on a trait favors dissimilar trait values, so the spread of the competition
@@ -852,23 +1005,21 @@ response(main, "density", "density", group = "densityCut")
 place, and density dependence favors dissimilar neighbors, so the two
 processes can mask each other in the patterns [@kraft2015]. Because the two
 fitness terms are added, the model is neutral if both are > 0 and
-`environment + density` ≤ 1 (see the description of mortality above and
-[#144](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/144)).
+`environment + density` ≤ 1 (see Known limitations).
 :::
 
 ```{r envdensity, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against environment, for three strengths of density dependence."}
 response(main, "envDensity", "environment", group = "density")
 ```
 
-## Speciation mechanisms
+## Protracted speciation
 
 ::: {.expectation}
 **Expectation.** In the model, protracted speciation completes only if the
-founding individual survives `protracted` generations (see above and
-[#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)). An
-individual survives a generation with probability of about $e^{-1}$, so in the
+founding individual survives `protracted` generations (see Known limitations). An
+individual survives a generation with probability of about $\exp(-1)$, so in the
 neutral model protracted speciation should act like a speciation rate reduced
-by a factor of about $e^{-p}$, and richness should decrease accordingly. In
+by a factor of about $\exp(-p)$, with $p$ = `protracted`, and richness should decrease accordingly. In
 the original model of protracted speciation, in which the whole incipient
 lineage becomes a new species [@rosindell2010], the effects are different;
 there, protracted speciation also slows down branching towards the present
@@ -888,8 +1039,8 @@ response(main, "speciation", "protracted",
 
 The age of a species is estimated from its ID: species are numbered in the
 order of their origin, and new species arise at a roughly constant rate, so the
-age of species $k$ at generation $G$ is about $G(1 - k/k_{max})$, where
-$k_{max}$ is the largest ID in the phylogeny.
+age of species $i$ at generation $G$ is about $G(1 - i/i_{max})$, where
+$i_{max}$ is the largest ID in the phylogeny.
 
 ::: {.expectation}
 **Expectation.** In neutral models, species persist for a long time, longer
@@ -899,7 +1050,7 @@ Queen advantage of young species should make species younger
 [@odwyer2014].
 :::
 
-```{r ages, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Mean species age (left) and rank correlation between age and abundance (right). Circles: neutral model with global dispersal against the speciation rate (50 x 50 cells). At specRate = 2, for dispersal = 1: without (square) and with a Red Queen advantage (triangles)."}
+```{r ages, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Mean species age (left) and rank correlation between age and abundance (right). Circles: neutral model with global dispersal against the speciation rate (50 × 50 cells). At specRate = 2, for dispersal = 1: without (square) and with a Red Queen advantage (triangles)."}
 op <- par(mfrow = c(1, 2))
 for (ind in c("meanSpeciesAge", "corAgeAbundance")) {
   f <- final(main, "neutral", ind)
@@ -963,11 +1114,16 @@ With density dependence, it should be positive. With environmental filtering
 and local dispersal, conspecific neighbors indicate suitable habitat, so
 mortality may decrease with their number, which would hide density dependence
 in such an analysis. In tropical forests, rare species show stronger CNDD than
-common ones [@comita2010; @hulsmann2024]; whether this emerges in the model
-is open.
+common ones [@comita2010; @hulsmann2024]. However, the number of conspecific
+neighbors is only a proxy for the actual interactions, and in survival analyses
+this biases the per-species estimates more for abundant than for rare species,
+which can create a negative relationship between CNDD and abundance even if it
+does not exist [@detto2019]. In the model, all species have the same density
+dependence, so a relationship between the per-species slopes and abundance,
+in particular in the neutral model, indicates such a bias.
 :::
 
-```{r cndd, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Left: CNDD coefficient per scenario and dispersal (replicate mean and 95% confidence interval; dashed: no effect). Right: CNDD slope of single species against their abundance with density dependence and local dispersal (all replicates; line: linear fit)."}
+```{r cndd, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Left: CNDD coefficient per scenario and dispersal (replicate mean and 95% confidence interval; dashed: no effect). Right: CNDD slope of single species against their abundance with local dispersal, without (neutral) and with density dependence (all replicates; lines: linear fits)."}
 op <- par(mfrow = c(1, 2))
 f <- merge(main$settings[a, ], main$cndd[main$cndd$block == "assembly", ])
 f$ci <- qt(0.975, pmax(f$n - 1, 1)) * f$sd / sqrt(f$n)
@@ -980,13 +1136,18 @@ axis(1, at = seq_along(sc), labels = sc)
 ciBars(xpos, f$mean, f$ci, cols[1 + (f$dispersal != "global")])
 abline(h = 0, lty = 2)
 legend("topleft", legend = c("global", "1"), pch = 16, col = cols[1:2], title = "dispersal", bty = "n")
-s <- main$cnddSpecies[main$cnddSpecies$block == "assembly" &
-                        main$cnddSpecies$setting == settingId(main, "assembly", environment = 0,
-                                                              density = 1, dispersal = "1"), ]
-plot(s$abundance, s$slope, log = "x", pch = 16, col = adjustcolor(cols[2], 0.4),
-     xlab = "Abundance", ylab = "CNDD slope")
-abline(lm(slope ~ log10(abundance), s), col = cols[2])
+sp <- lapply(c(neutral = 0, density = 1), function(dens)
+  main$cnddSpecies[main$cnddSpecies$block == "assembly" &
+                     main$cnddSpecies$setting == settingId(main, "assembly", environment = 0,
+                                                           density = dens, dispersal = "1"), ])
+all <- do.call(rbind, sp)
+plot(all$abundance, all$slope, log = "x", type = "n", xlab = "Abundance", ylab = "CNDD slope")
+for (k in seq_along(sp)) {
+  points(sp[[k]]$abundance, sp[[k]]$slope, pch = 16, col = adjustcolor(cols[k + 2], 0.4))
+  abline(lm(slope ~ log10(abundance), sp[[k]]), col = cols[k + 2], lwd = 2)
+}
 abline(h = 0, lty = 2)
+legend("topright", legend = names(sp), pch = 16, col = cols[3:4], bty = "n")
 par(op)
 ```
 
@@ -1014,8 +1175,17 @@ peak at an intermediate niche width. The correlation between trait and
 environment should be highest for narrow niches.
 :::
 
-```{r nichewidth, echo = FALSE, eval = !is.null(main$settings$nicheWidth), fig.width = 7, fig.height = 5, fig.cap = "Indicators against the niche width (environment = 1), for global and local dispersal."}
+```{r nichewidth, echo = FALSE, eval = "nicheWidth" %in% main$settings$block, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the niche width (environment = 1), for global and local dispersal."}
 response(main, "nicheWidth", "nicheWidth", group = "dispersal", log = "x")
 ```
+
+# Acknowledgements
+
+Stefan Paul, Betim Musa, Tankred Ott, Christian Buschbeck, Melina de Souza
+Leite and Andrea Ingrosso contributed code and documentation to the package;
+their contributions are listed in the file `CONTRIBUTORS.md` of the
+[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim). We
+thank Annika Groß and further contributors on GitHub for testing, bug fixes and
+improvements of the documentation.
 
 # References

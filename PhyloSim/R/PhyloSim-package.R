@@ -18,7 +18,7 @@
 #'The function \code{\link{phyloReconstruct}} creates a phylogeny from given neutral traits of a community in order to compare them with the existing phylogeny. The observed patterns in the simulation output can be tested against null models using the function \code{\link{nullModel}}.
 #'
 #'
-#' @author Paul Bauche, Florian Hartig
+#' @author Florian Hartig, Paul Bauche, Bingxue Wu
 #' @importFrom grDevices colorRampPalette dev.size grey rainbow rgb
 #' @importFrom graphics barplot hist image layout lines mtext par plot.new polygon text title
 #' @importFrom stats binomial cophenetic density dist ecdf glm median na.omit quantile rmultinom sd

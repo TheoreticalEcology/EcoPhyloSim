@@ -29,7 +29,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both". With global dispersal, "reproduction" and "both" are only implemented if environment, density, redQueen and redQueenStrength are 0.}
 
-\item{fitnessBaseMortalityRatio}{Integer, every \code{fitnessBaseMortalityRatio}-th individual drawn for death dies regardless of its fitness; the others die only if their fitness is below a uniform random number (if fitness acts on mortality). Must be greater than or equal to 1; 1 gives a neutral model.}
+\item{fitnessBaseMortalityRatio}{Integer, every \code{fitnessBaseMortalityRatio}-th individual drawn for death dies regardless of its fitness; the others die only if their fitness is below a uniform random number (if fitness acts on mortality). Must be greater than or equal to 1; 1 gives a neutral model if fitness acts only on mortality.}
 
 \item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y)}
 

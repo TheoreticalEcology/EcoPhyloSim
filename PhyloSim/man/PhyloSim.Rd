@@ -31,6 +31,6 @@ new.simulation <- runSimulation(par)
 plotSpatialPhylo(new.simulation)
 }
 \author{
-Paul Bauche, Florian Hartig
+Florian Hartig, Paul Bauche, Bingxue Wu
 }
 \keyword{internal}

@@ -6,15 +6,16 @@
 \format{
 A list with three entries: \code{pilot} (few replicates, long runs, used
 to check the time to equilibrium), \code{main} (more replicates, used for the
-responses to the parameters) and \code{info}. \code{pilot} and \code{main} are
-lists with
+responses to the parameters) and \code{info}. \code{pilot} contains
+\code{settings} and \code{census}, \code{main} all of the following:
 \describe{
 \item{settings}{data frame with one row per parameter setting: \code{block}
 (group of settings in which one or two parameters are varied), \code{setting}
 (number within the block), the arguments passed to
 \code{\link{createCompletePar}} and the number of generations}
 \item{census}{data frame with the replicate \code{mean}, \code{sd} and number of
-replicates \code{n} of each indicator per setting and census (\code{generation}):
+replicates \code{n} of each indicator per setting and census (\code{generation};
+in \code{main} only the last census):
 species richness, Shannon diversity, share of the 4 neighbors that belong to the
 same species, correlation between environmental trait and environment, sd of the
 competition trait, Colless index (Yule-normalized, \code{\link{collessImbalance}}),
@@ -36,13 +37,13 @@ the number of conspecifics within radius 2 in a logistic regression of death
 \item{cnddSpecies}{data frame with the \code{slope} of the same regression for
 single species (at least 50 observations) and their \code{abundance}, for each
 replicate (\code{rep})}
-\item{runtime}{data frame with the runtime (seconds) of each simulation}
-\item{errors}{data frame with the error messages of failed simulations}
-\item{specMat}{list with the species matrix at the last census of the first
-replicate of each setting}
 }
-\code{info} contains the date, package version, git commit, the number of
-replicates and generations (\code{modes}) and the \code{sessionInfo()} of the run.
+\code{info} contains metadata for reproducibility: the package commit and a
+checksum of the script used (\code{run}), the date, package and R versions,
+platform, operating system, processor, versions of the loaded packages, the
+number of replicates and generations (\code{modes}), and the number of runs,
+failed runs and the hours of simulation time (sum of the runtimes of the core
+simulations) per mode.
 }
 \source{
 created with the script \code{data-raw/packageBehavior.R} in the
