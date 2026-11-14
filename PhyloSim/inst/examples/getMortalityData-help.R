@@ -9,5 +9,5 @@ head(dat)
 mean(dat$died) # share of individuals that died within one generation
 
 # Mortality depending on the number of conspecific neighbors
-fit <- glm(died ~ con, family = binomial(link = "cloglog"), data = dat)
+fit <- glm(died ~ con, family = binomial, data = dat)
 summary(fit)

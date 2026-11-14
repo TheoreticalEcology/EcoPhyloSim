@@ -34,6 +34,6 @@ test_that("results with only one fitness mechanism are numerically reproducible"
                         style = "deparse", tolerance = 1e-6)
   expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, redQueen = 0.1, redQueenStrength = 1),
                         style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, positiveDD = 0.2),
+  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, positiveDD = 0.05),
                         style = "deparse", tolerance = 1e-6)
 })

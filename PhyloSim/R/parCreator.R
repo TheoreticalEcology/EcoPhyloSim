@@ -23,7 +23,7 @@
 #' @param convertToBinaryTree Logical, determining if the phylogeny should be converted into a binary tree
 #' @param negativeDDKernel Character, how the similarity \code{S} of an individual to its neighbors is measured for negative density dependence: "absolute" (default) uses the absolute difference in the competition trait, \code{S = 1 - D}, where \code{D} is the sum of the differences to the neighbors divided by the number of cells including the focal cell (so \code{S >= 1 / (k + 1)} for \code{k} neighbors); "gaussian" uses the mean of \code{exp(-0.5 * (difference / negativeDDWidth)^2)} over the neighbors; "species" uses the proportion of conspecifics among the neighbors, i.e., conspecific density dependence that acts from the first speciation on. The trait-based kernels act only once the competition traits have diverged, which takes thousands of generations, because all individuals start with the same traits.
 #' @param negativeDDWidth Numeric > 0, width of the Gaussian kernel for \code{negativeDDKernel = "gaussian"}; values above 1 give a message, as the competition trait lies between 0 and 1.
-#' @param negativeDDResponse "linear" (default) for the density term \code{1 - negativeDD * S}, or a function of the similarity \code{S} between 0 and 1 that returns the density term (between 0 and 1), e.g. \code{function(S) exp(-a * k * S)} for a constant hazard \code{a} per conspecific neighbor with \code{negativeDDKernel = "species"} and \code{k} neighbors. The function is evaluated before the run, exactly for each number of conspecifics with \code{negativeDDKernel = "species"}, otherwise at 1001 values with linear interpolation.
+#' @param negativeDDResponse "linear" (default) for the density term \code{1 - negativeDD * S}, or a function of the similarity \code{S} between 0 and 1 that returns the density term (between 0 and 1), e.g. \code{function(S) exp(-a * k * S)} for a survival (or establishment) factor \code{exp(-a)} per conspecific neighbor with \code{negativeDDKernel = "species"} and \code{k} neighbors. The function is evaluated before the run, exactly for each number of conspecifics with \code{negativeDDKernel = "species"}, otherwise at 1001 values with linear interpolation.
 #' @param positiveDD Numeric between 0 and 1, strength of positive density dependence (e.g. facilitation by mutualists): individuals with dissimilar neighbors within \code{positiveDDCut} are disadvantaged, with the fitness term \code{1 - positiveDD * (1 - S)}. As the grid is always full, this is the same as an advantage of individuals with similar neighbors. By default (0) there is none.
 #' @param positiveDDCut,positiveDDKernel,positiveDDWidth Radius, similarity measure (default "species") and Gaussian width for positive density dependence, as \code{negativeDDCut}, \code{negativeDDKernel} and \code{negativeDDWidth}.
 #' @param density,densityCut Deprecated names of \code{negativeDD} and \code{negativeDDCut}.
@@ -39,10 +39,12 @@ createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, 
 
   # old names, before negative and positive density dependence were separated
   if (!missing(density)) {
+    if (!missing(negativeDD)) stop("Give only 'negativeDD', not also the deprecated 'density'.", call. = FALSE)
     warning("Argument 'density' is deprecated; use 'negativeDD' instead.", call. = FALSE)
     negativeDD <- density
   }
   if (!missing(densityCut)) {
+    if (!missing(negativeDDCut)) stop("Give only 'negativeDDCut', not also the deprecated 'densityCut'.", call. = FALSE)
     warning("Argument 'densityCut' is deprecated; use 'negativeDDCut' instead.", call. = FALSE)
     negativeDDCut <- densityCut
   }

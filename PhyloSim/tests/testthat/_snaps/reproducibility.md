@@ -37,10 +37,9 @@
     list(abundances = c(397L, 329L, 42L, 30L, 22L, 16L, 16L, 14L, 
     11L, 11L, 6L, 2L, 1L, 1L, 1L, 1L), nTips = 16L, sac = c(1.56, 
     3.3, 5.48, 11.1))
-    
 
 ---
 
-    list(abundances = c(898L, 1L, 1L), nTips = 3L, sac = c(1.02, 
-    1.1, 1.18, 1.84))
+    list(abundances = c(893L, 5L, 1L, 1L), nTips = 4L, sac = c(1.06, 
+    1.12, 1.48, 2.44))
 

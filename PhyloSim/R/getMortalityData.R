@@ -31,9 +31,7 @@
 #'   cells in the neighborhood minus \code{con}. With \code{environment > 0},
 #'   fitness also depends on the difference between \code{envTrait} and
 #'   \code{env}. Density dependence only appears in these data if
-#'   \code{fitnessActsOn} includes \code{"mortality"}. As death rates multiply
-#'   in the model (see Details of \code{\link{createCompletePar}}), a complementary
-#'   log-log link fits better than a logit link.
+#'   \code{fitnessActsOn} includes \code{"mortality"}.
 #'
 #'   Surviving individuals appear in several rows; account for this, e.g., with a
 #'   random effect for \code{id}.

@@ -65,7 +65,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{negativeDDWidth}{Numeric > 0, width of the Gaussian kernel for \code{negativeDDKernel = "gaussian"}; values above 1 give a message, as the competition trait lies between 0 and 1.}
 
-\item{negativeDDResponse}{"linear" (default) for the density term \code{1 - negativeDD * S}, or a function of the similarity \code{S} between 0 and 1 that returns the density term (between 0 and 1), e.g. \code{function(S) exp(-a * k * S)} for a constant hazard \code{a} per conspecific neighbor with \code{negativeDDKernel = "species"} and \code{k} neighbors. The function is evaluated before the run, exactly for each number of conspecifics with \code{negativeDDKernel = "species"}, otherwise at 1001 values with linear interpolation.}
+\item{negativeDDResponse}{"linear" (default) for the density term \code{1 - negativeDD * S}, or a function of the similarity \code{S} between 0 and 1 that returns the density term (between 0 and 1), e.g. \code{function(S) exp(-a * k * S)} for a survival (or establishment) factor \code{exp(-a)} per conspecific neighbor with \code{negativeDDKernel = "species"} and \code{k} neighbors. The function is evaluated before the run, exactly for each number of conspecifics with \code{negativeDDKernel = "species"}, otherwise at 1001 values with linear interpolation.}
 
 \item{positiveDD}{Numeric between 0 and 1, strength of positive density dependence (e.g. facilitation by mutualists): individuals with dissimilar neighbors within \code{positiveDDCut} are disadvantaged, with the fitness term \code{1 - positiveDD * (1 - S)}. As the grid is always full, this is the same as an advantage of individuals with similar neighbors. By default (0) there is none.}
 

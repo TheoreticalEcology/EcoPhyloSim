@@ -430,8 +430,9 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                 double sum = 0.0;
                 for (unsigned int i = 0; i < m_LandscapeSize; i++) {
                     if ((int) i != target) {
-                        sum += recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
-                               DBL_MIN * 100.0;
+                        sum += (m_reproduction ? weights[i] : 1.0) *
+                               (recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
+                                DBL_MIN * 100.0);
                     }
                     cumRecruit[i] = sum;
                 }

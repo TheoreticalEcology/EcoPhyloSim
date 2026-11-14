@@ -77,12 +77,12 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
     stop("dispersal keeps landing on the dead cell; use larger distances")
   }
 
-  # fitness of a recruit of species s in the dead cell, as in the C++ model with the species kernels
-  recruitFitness <- function(s, cell) {
-    w <- 1
-    if (negativeDD > 0) w <- w * (1 - negativeDD * mean(mat[shift(cell, negNb[, 1], negNb[, 2])] == s))
-    if (positiveDD > 0) w <- w * (1 - positiveDD * (1 - mean(mat[shift(cell, posNb[, 1], posNb[, 2])] == s)))
-    w
+  # probability that a recruit of species s in the dead cell is rejected, i.e. 1 minus its fitness
+  # (1 - negativeDD * S_n) * (1 - positiveDD * (1 - S_p)), as in the C++ model with the species kernels
+  rejection <- function(s, cell) {
+    rn <- negativeDD * mean(mat[shift(cell, negNb[, 1], negNb[, 2])] == s)
+    rp <- positiveDD * (1 - mean(mat[shift(cell, posNb[, 1], posNb[, 2])] == s))
+    rn + rp - rn * rp
   }
 
   output <- list()
@@ -96,9 +96,9 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
       for (k in 1:maxTries) {
         recruit <- mat[drawParent(cell)]
         if (negativeDD == 0 && positiveDD == 0) break
-        if (stats::runif(1) < recruitFitness(recruit, cell)) break
+        if (stats::runif(1) > rejection(recruit, cell)) break
         if (k == maxTries && !is.function(dispersal)) { # exact draw, as in the C++ model (#165)
-          prob <- vapply(seq_len(counter), recruitFitness, numeric(1), cell = cell)[mat] + .Machine$double.xmin * 100
+          prob <- 1 - vapply(seq_len(counter), rejection, numeric(1), cell = cell)[mat] + .Machine$double.xmin * 100
           prob[cell] <- 0
           recruit <- mat[sample.int(J, 1, prob = prob)]
         }

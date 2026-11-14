@@ -9,8 +9,8 @@ checkPar <- function(par) {
     else if (!is.null(par[[old]])) warning("'", old, "' is ignored, as '", new, "' is also given.", call. = FALSE)
     par[[old]] <- NULL
   }
-  defaults <- list(negativeDDKernel = "absolute", negativeDDWidth = 0.1, negativeDDResponse = "linear",
-                   positiveDD = 0, positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1)
+  defaults <- formals(createCompletePar)[c("negativeDDKernel", "negativeDDWidth", "negativeDDResponse", "positiveDD",
+                                           "positiveDDCut", "positiveDDKernel", "positiveDDWidth")]
   for (n in names(defaults)) if (is.null(par[[n]])) par[[n]] <- defaults[[n]]
   coll <- checkmate::makeAssertCollection()
   checkmate::assert_count(par[["x"]], positive = TRUE, .var.name = "x", add = coll)
