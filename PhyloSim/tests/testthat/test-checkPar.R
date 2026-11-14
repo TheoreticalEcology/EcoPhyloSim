@@ -77,7 +77,7 @@ test_that("runSimulation() checks parameter lists changed after createCompletePa
 test_that("callModel() stops on invalid input (#13)", {
   args <- list(x = 10, y = 10, dispersal = 3, runs = 2, specRate = 1, dens = TRUE, env = FALSE,
                neutral = FALSE, mort = TRUE, mortStrength = 10, repro = FALSE, dispersalCutoff = 2,
-               densityCutoff = 1, seed = 1, envStrength = 1, compStrength = 0.5, fission = 0,
+               densityCutoff = 1, envStrength = 1, compStrength = 0.5, fission = 0,
                redQueen = 0, redQueenStrength = 0, protracted = 0, airmatR = 1, soilmatR = 1,
                prunePhylogeny = TRUE, nicheWidth = 0.03659906)
   call <- function(...) utils::capture.output(do.call(callModel, utils::modifyList(args, list(...))))

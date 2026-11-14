@@ -35,6 +35,7 @@
 * `localPlots()` stops with an error if `size` is not a whole number between 1 and the shorter side of the grid, and the default plot sizes of `sac()` go up to the shorter side of the grid instead of `sqrt(x * y)` (#151).
 * `runSimulation()`: the warning for results with only one species says that the phylogeny is set to 0 and how to avoid this, instead of "Cannot build Phylogeny" (#153).
 * `runSimulation()`: with `prunePhylogeny = TRUE` (the default), the phylogeny contains only the extant species, so that its size no longer grows with the run length; extinct ancestors become internal nodes. Each census is placed half a generation after the events of its generation, and the tree has no root edge (see `?runSimulation`), so tree statistics change slightly. Writing large phylogenies is faster (#147).
+* The C++ simulation uses R's random number generator, which `runSimulation()` sets from `seed` and restores afterwards, so that results for a given seed no longer depend on the compiler's random number library (but differ from earlier versions); `callModel()` has no `seed` argument any more, and `createCompletePar()` draws a missing `seed` from a larger range (#14).
 
 ## Bug fixes
 

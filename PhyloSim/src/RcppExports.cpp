@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // callModel
-List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral, bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, int seed, double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength, int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth);
-RcppExport SEXP _EcoPhyloSim_callModel(SEXP xSEXP, SEXP ySEXP, SEXP dispersalSEXP, SEXP runsSEXP, SEXP specRateSEXP, SEXP densSEXP, SEXP envSEXP, SEXP neutralSEXP, SEXP mortSEXP, SEXP mortStrengthSEXP, SEXP reproSEXP, SEXP dispersalCutoffSEXP, SEXP densityCutoffSEXP, SEXP seedSEXP, SEXP envStrengthSEXP, SEXP compStrengthSEXP, SEXP fissionSEXP, SEXP redQueenSEXP, SEXP redQueenStrengthSEXP, SEXP protractedSEXP, SEXP airmatRSEXP, SEXP soilmatRSEXP, SEXP prunePhylogenySEXP, SEXP nicheWidthSEXP) {
+List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral, bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength, int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth);
+RcppExport SEXP _EcoPhyloSim_callModel(SEXP xSEXP, SEXP ySEXP, SEXP dispersalSEXP, SEXP runsSEXP, SEXP specRateSEXP, SEXP densSEXP, SEXP envSEXP, SEXP neutralSEXP, SEXP mortSEXP, SEXP mortStrengthSEXP, SEXP reproSEXP, SEXP dispersalCutoffSEXP, SEXP densityCutoffSEXP, SEXP envStrengthSEXP, SEXP compStrengthSEXP, SEXP fissionSEXP, SEXP redQueenSEXP, SEXP redQueenStrengthSEXP, SEXP protractedSEXP, SEXP airmatRSEXP, SEXP soilmatRSEXP, SEXP prunePhylogenySEXP, SEXP nicheWidthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -29,7 +29,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type repro(reproSEXP);
     Rcpp::traits::input_parameter< int >::type dispersalCutoff(dispersalCutoffSEXP);
     Rcpp::traits::input_parameter< int >::type densityCutoff(densityCutoffSEXP);
-    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< double >::type envStrength(envStrengthSEXP);
     Rcpp::traits::input_parameter< double >::type compStrength(compStrengthSEXP);
     Rcpp::traits::input_parameter< int >::type fission(fissionSEXP);
@@ -40,7 +39,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type soilmatR(soilmatRSEXP);
     Rcpp::traits::input_parameter< bool >::type prunePhylogeny(prunePhylogenySEXP);
     Rcpp::traits::input_parameter< double >::type nicheWidth(nicheWidthSEXP);
-    rcpp_result_gen = Rcpp::wrap(callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth));
+    rcpp_result_gen = Rcpp::wrap(callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth));
+    return rcpp_result_gen;
+END_RCPP
+}
+// multinomialDrawCounts
+IntegerVector multinomialDrawCounts(NumericVector weights, int nDraws);
+RcppExport SEXP _EcoPhyloSim_multinomialDrawCounts(SEXP weightsSEXP, SEXP nDrawsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< int >::type nDraws(nDrawsSEXP);
+    rcpp_result_gen = Rcpp::wrap(multinomialDrawCounts(weights, nDraws));
     return rcpp_result_gen;
 END_RCPP
 }

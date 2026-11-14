@@ -35,7 +35,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y), and 2 * densityCut + 1 must not exceed min(x, y) if density > 0}
 
-\item{seed}{Integer, sets the random seed. If NULL (default), a random seed is drawn.}
+\item{seed}{Integer, the seed of R's random number generator for the simulation (see \code{\link{runSimulation}}). If NULL (default), a seed is drawn from R's random number stream, so that \code{set.seed()} before \code{createCompletePar()} also gives reproducible results.}
 
 \item{type}{Character, determining which model should be used. Currently only "base" (the default) is available. For a simple neutral model in R, see \code{\link{NeutralMod}}.}
 

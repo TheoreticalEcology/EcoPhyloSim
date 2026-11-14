@@ -2,7 +2,7 @@
 #' @description A model of species community assembly under different assembly mechanisms.  
 #' @param par a list of model parameters created with \link{createCompletePar}
 #' @return An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation. 
-#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. \cr\cr Branch lengths of the phylogeny are in generations. Speciation and extinction events of generation g are placed at time g, and the census of generation g (an entry in \code{runs}) at time g + 0.5, after all events of that generation. Tips of extant species therefore end half a generation after those of species that went extinct in the last generation, so that \code{ape::drop.fossil()} removes the latter. Internal nodes are labeled with the species from which the descendants emerged (nodes added by \code{convertToBinaryTree} have no label); the tree has no root edge. With \code{prunePhylogeny = TRUE} (the default), the phylogeny contains only the extant species; with \code{prunePhylogeny = FALSE}, it also contains all extinct species as tips. \cr\cr If a result contains only one species, no phylogeny can be built, and its `phylogeny` element is set to 0 with a warning. This is common in short runs, because all individuals start as one species and new species arise at a rate of `specRate` per generation.
+#' @details If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If `convertToBinaryTree = TRUE` (the default), the phylogeny is converted to a bifurcating one using `multi2di()` from the "ape" package. \cr\cr Branch lengths of the phylogeny are in generations. Speciation and extinction events of generation g are placed at time g, and the census of generation g (an entry in \code{runs}) at time g + 0.5, after all events of that generation. Tips of extant species therefore end half a generation after those of species that went extinct in the last generation, so that \code{ape::drop.fossil()} removes the latter. Internal nodes are labeled with the species from which the descendants emerged (nodes added by \code{convertToBinaryTree} have no label); the tree has no root edge. With \code{prunePhylogeny = TRUE} (the default), the phylogeny contains only the extant species; with \code{prunePhylogeny = FALSE}, it also contains all extinct species as tips. \cr\cr If a result contains only one species, no phylogeny can be built, and its `phylogeny` element is set to 0 with a warning. This is common in short runs, because all individuals start as one species and new species arise at a rate of `specRate` per generation. \cr\cr The simulation uses R's random number generator, set with \code{set.seed(par$seed, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection")}; the random number state of the R session is restored afterwards. Results for a given seed therefore do not depend on the compiler's random number library.
 #' @import Rcpp
 #' @useDynLib EcoPhyloSim, .registration = TRUE
 #' @export
@@ -12,6 +12,7 @@
 runSimulation <- function(par)
 {
   checkPar(par)
+  localSeed(par$seed)
   
   # GENERAL SETTINGS
   
@@ -57,7 +58,6 @@ runSimulation <- function(par)
                       repro = reproductiveFitness, 
                       dispersalCutoff = dispersalCut, 
                       densityCutoff = par$densityCut, 
-                      seed = par$seed, 
                       envStrength = par$envStrength, 
                       compStrength = par$compStrength, 
                       fission = par$fission, 

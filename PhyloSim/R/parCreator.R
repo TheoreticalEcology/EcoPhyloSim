@@ -16,7 +16,7 @@
 #' @param redQueenStrength Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty. Must not be negative.
 #' @param redQueen Numeric, determining the strength of the fitness decline of an aging species. Must not be negative.
 #' @param airmat matrix determining the environment of the simulation, with `y` rows and `x` columns (the grid dimensions); values must be between 0 and 1. A single value (the default) gives an environmental gradient along `x` that rises from 0 to 1 and falls back.
-#' @param seed Integer, sets the random seed. If NULL (default), a random seed is drawn.
+#' @param seed Integer, the seed of R's random number generator for the simulation (see \code{\link{runSimulation}}). If NULL (default), a seed is drawn from R's random number stream, so that \code{set.seed()} before \code{createCompletePar()} also gives reproducible results.
 #' @param type Character, determining which model should be used. Currently only "base" (the default) is available. For a simple neutral model in R, see \code{\link{NeutralMod}}.
 #' @param scenario String, further information you want to add to the parameter set in order to refer to a model run more conveniently. 
 #' @param calculateSummaries Logical, determining whether summary statistics should be calculated
@@ -43,7 +43,7 @@ createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, 
   soilmat = 1
   soilmat <- as.numeric(soilmat)
   
-  if (is.null(seed)) seed = sample(1:10000,1)
+  if (is.null(seed)) seed <- sample.int(.Machine$integer.max, 1)
   
   par = list(x=x,y=y,dispersal = dispersal, runs = runs, specRate = specRate, 
              density = density, environment = environment, nicheWidth = nicheWidth, fitnessActsOn=fitnessActsOn,
