@@ -23,8 +23,8 @@ devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
                          dependencies = T, 
                          build_vignettes = T)
 
-?PhyloSim
-browseVignettes("PhyloSim")
+?EcoPhyloSim
+browseVignettes("EcoPhyloSim")
 ```
 
 ### Example
@@ -32,7 +32,7 @@ browseVignettes("PhyloSim")
 
 ```{r}
 set.seed(123)
-library(PhyloSim)
+library(EcoPhyloSim)
 
 # Define a parameter set
 par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000,

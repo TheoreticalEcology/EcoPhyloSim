@@ -1,6 +1,6 @@
-library(PhyloSim)
+library(EcoPhyloSim)
 
-?PhyloSim
+?EcoPhyloSim
 
 
 # Define a parameter set

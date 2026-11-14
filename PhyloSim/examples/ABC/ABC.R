@@ -1,4 +1,4 @@
-library(PhyloSim)
+library(EcoPhyloSim)
 library(picante)
 
 getSummaries <- function(param){

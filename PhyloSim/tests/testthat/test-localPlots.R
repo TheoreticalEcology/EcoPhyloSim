@@ -49,8 +49,8 @@ test_that("localPlots works on non-square grids", {
     expect_equal(rows, (rows[1] - 1 + 0:(k - 1)) %% 4 + 1)
     expect_equal(cols, (cols[1] - 1 + 0:(k - 1)) %% 6 + 1)
     # positions are (x, y), i.e. (column, row)
-    expect_equal(out$positions[[i]][1], PhyloSim:::wrap_coordinates(cols[1] + k / 2 - 0.5, 6))
-    expect_equal(out$positions[[i]][2], PhyloSim:::wrap_coordinates(rows[1] + k / 2 - 0.5, 4))
+    expect_equal(out$positions[[i]][1], EcoPhyloSim:::wrap_coordinates(cols[1] + k / 2 - 0.5, 6))
+    expect_equal(out$positions[[i]][2], EcoPhyloSim:::wrap_coordinates(rows[1] + k / 2 - 0.5, 4))
   }
   pdf(NULL)
   on.exit(dev.off())

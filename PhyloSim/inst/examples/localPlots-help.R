@@ -1,4 +1,4 @@
-library(PhyloSim)
+library(EcoPhyloSim)
 xSize <- 30
 ySize <- 30
 nGenerations <- 300

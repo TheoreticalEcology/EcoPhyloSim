@@ -1,4 +1,4 @@
-library(PhyloSim)
+library(EcoPhyloSim)
 
 runs = 3
 

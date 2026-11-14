@@ -1,7 +1,8 @@
 #' @keywords internal
 #' @title Analyzing phylogenetic and biogeographic patterns and inferring species community assembly 
-#' @name PhyloSim
-#' @useDynLib PhyloSim, .registration = TRUE
+#' @name EcoPhyloSim
+#' @aliases PhyloSim
+#' @useDynLib EcoPhyloSim, .registration = TRUE
 #' @description
 #' This package is designed to simulate and analyze species community assembly processes. It allows the user to implement different mechanisms of community assembly such as environmental filtering, competitive exclusion or dispersal limitation. These mechanisms can be combined or activated separately, which allows the user to identify biogeographic or phylogenetic patterns exclusively correlated with a certain mechanism or combination of mechanisms.
 #' @details

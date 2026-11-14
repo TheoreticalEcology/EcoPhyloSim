@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r}
-library(PhyloSim)
+library(EcoPhyloSim)
 set.seed(123)
 ```
 
