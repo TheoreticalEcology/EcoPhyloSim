@@ -54,15 +54,22 @@ calculateSummaryStatistics <- function(simulation, strict=TRUE, which.result=NUL
     return(summaryStatistics)
   }
   
+  # area under the curve by the trapezoidal rule, as MESS::auc() (#167)
+  auc <- function(x, y) {
+    if (length(x) < 2) return(NA)
+    o <- order(x)
+    sum(diff(x[o]) * (y[o][-1] + y[o][-length(y)])) / 2
+  }
+
   # RAC
   rac <- rac(simulation, which.result = which.result, plot = F)
-  summaryStatistics$racAuc <- MESS::auc(x = rac$Rank,
-                                        y = rac$Abundance)
+  summaryStatistics$racAuc <- auc(x = rac$Rank,
+                                  y = rac$Abundance)
   
   # SAC
   sac <- sac(simulation, which.result = which.result, size = seq(1,15), plot = F)
-  summaryStatistics$sacAuc <- MESS::auc(x = sac$size,
-                                        y = sac$sr.Mean)
+  summaryStatistics$sacAuc <- auc(x = sac$size,
+                                  y = sac$sr.Mean)
   
   
   # alpha and beta diversity

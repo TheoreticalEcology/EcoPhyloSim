@@ -6,9 +6,7 @@ Version: 0.3.1
 Authors@R: c(person("Paul", "Bauche", role = "aut"),
     person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")),
     person("Christian", "Buschbeck", role = "ctb"),
-    person("Stefan", "Paul", role = "ctb"),
-    person("Arseny", "Kapoulkine", role = c("ctb", "cph"), comment = "Author of the included pugixml library"),
-    person("Kristen", "Wegner", role = "cph", comment = "Author of the pugxml library on which pugixml is based"))
+    person("Stefan", "Paul", role = "ctb"))
 Description: Simulates and analyzes species community
     assembly processes. It allows the user to implement different mechanisms of
     community assembly such as environmental filtering, competitive exclusion or
@@ -23,11 +21,7 @@ Imports:
     ape,
     doParallel,
     picante,
-    adephylo,
-    fields,
-    shape,
     foreach,
-    MESS,
     spatstat.geom,
     spatstat.explore,
     vegan,
