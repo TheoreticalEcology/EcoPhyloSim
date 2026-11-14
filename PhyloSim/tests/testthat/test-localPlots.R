@@ -31,3 +31,29 @@ test_that("localPlots rejects invalid n", {
   expect_error(localPlots(simu, size = 5, n = 0), "Assertion on 'n' failed")
   expect_error(localPlots(simu, size = 5, n = 1.5), "Assertion on 'n' failed")
 })
+
+test_that("localPlots works on non-square grids", {
+  # 4 rows (y) x 6 columns (x); each cell stores its row + 100 * column
+  m <- outer(1:4, 1:6, function(r, c) r + 100 * c)
+  fake <- fakeSimulation(m)
+  set.seed(1)
+  out <- localPlots(fake, size = c(1, 3, 4), n = 20)
+  expect_identical(out$envPlots, out$subPlots)
+  for (i in seq_along(out$subPlots)) {
+    p <- out$subPlots[[i]]
+    k <- c(1, 3, 4)[(i - 1) %% 3 + 1]
+    expect_equal(dim(as.matrix(p)), c(k, k))
+    # rows and columns of the plot are neighboring rows and columns of m (wrapped)
+    rows <- as.matrix(p)[, 1] %% 100
+    cols <- as.matrix(p)[1, ] %/% 100
+    expect_equal(rows, (rows[1] - 1 + 0:(k - 1)) %% 4 + 1)
+    expect_equal(cols, (cols[1] - 1 + 0:(k - 1)) %% 6 + 1)
+    # positions are (x, y), i.e. (column, row)
+    expect_equal(out$positions[[i]][1], EcoPhyloSim:::wrap_coordinates(cols[1] + k / 2 - 0.5, 6))
+    expect_equal(out$positions[[i]][2], EcoPhyloSim:::wrap_coordinates(rows[1] + k / 2 - 0.5, 4))
+  }
+  pdf(NULL)
+  on.exit(dev.off())
+  expect_silent(localPlots(fake, size = 3, n = 2, plot = TRUE))
+  expect_error(localPlots(fake, size = 5, n = 1), "Assertion on 'size' failed")
+})

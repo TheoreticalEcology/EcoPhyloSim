@@ -19,10 +19,10 @@ bruteCon <- function(sp, r) {
 }
 
 test_that("getCircularOffsets matches the C++ neighborhood", {
-  expect_equal(nrow(PhyloSim:::getCircularOffsets(1)), 4)
-  expect_equal(nrow(PhyloSim:::getCircularOffsets(3)), 28)
-  expect_equal(nrow(PhyloSim:::getCircularOffsets(0)), 0)
-  expect_error(PhyloSim:::getCircularOffsets(1.5))
+  expect_equal(nrow(EcoPhyloSim:::getCircularOffsets(1)), 4)
+  expect_equal(nrow(EcoPhyloSim:::getCircularOffsets(3)), 28)
+  expect_equal(nrow(EcoPhyloSim:::getCircularOffsets(0)), 0)
+  expect_error(EcoPhyloSim:::getCircularOffsets(1.5))
 })
 
 test_that("getMortalityData counts conspecific neighbors on the torus", {

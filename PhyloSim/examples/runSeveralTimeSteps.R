@@ -1,6 +1,6 @@
 
 
-library(PhyloSim)
+library(EcoPhyloSim)
 
 # Run the model
 

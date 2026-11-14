@@ -5,13 +5,13 @@ test_that("internal Colless index gives known values", {
   balanced <- ape::stree(8, type = "balanced")
 
   # caterpillar tree with n tips: sum of |left - right| = (n - 1)(n - 2) / 2
-  expect_equal(PhyloSim:::.collessIndex(caterpillar), 21)
-  expect_equal(PhyloSim:::.collessIndex(balanced), 0)
+  expect_equal(EcoPhyloSim:::.collessIndex(caterpillar), 21)
+  expect_equal(EcoPhyloSim:::.collessIndex(balanced), 0)
 
   # normalizations as in apTreeshape::colless(): yule = (21 - E[Yule]) / 8, pda = 21 / 8^1.5
-  expect_equal(PhyloSim:::.collessIndex(caterpillar, norm = "yule"), 1.661490, tolerance = 1e-6)
-  expect_equal(PhyloSim:::.collessIndex(caterpillar, norm = "pda"), 0.928078, tolerance = 1e-6)
-  expect_error(PhyloSim:::.collessIndex(caterpillar, norm = "other"))
+  expect_equal(EcoPhyloSim:::.collessIndex(caterpillar, norm = "yule"), 1.661490, tolerance = 1e-6)
+  expect_equal(EcoPhyloSim:::.collessIndex(caterpillar, norm = "pda"), 0.928078, tolerance = 1e-6)
+  expect_error(EcoPhyloSim:::.collessIndex(caterpillar, norm = "other"))
 })
 
 test_that("collessImbalance() uses only extant species by default", {
@@ -20,5 +20,5 @@ test_that("collessImbalance() uses only extant species by default", {
   phylo <- simu$Output[[1]]$phylogeny
   expect_gt(ape::Ntip(phylo), ape::Ntip(ape::drop.fossil(phylo)))
   expect_equal(collessImbalance(simu),
-               PhyloSim:::.collessIndex(ape::drop.fossil(phylo)))
+               EcoPhyloSim:::.collessIndex(ape::drop.fossil(phylo)))
 })

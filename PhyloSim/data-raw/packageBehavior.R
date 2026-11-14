@@ -1,6 +1,6 @@
 # Simulations for the vignette section on emerging patterns (#136).
 #
-# Run from the repository root, with PhyloSim installed:
+# Run from the repository root, with EcoPhyloSim installed:
 #   Rscript PhyloSim/data-raw/packageBehavior.R run pilot 2           # all blocks, 2 cores
 #   Rscript PhyloSim/data-raw/packageBehavior.R run main 8 density    # selected blocks
 #   Rscript PhyloSim/data-raw/packageBehavior.R run main 8 part=1/3   # a third of the tasks
@@ -15,7 +15,7 @@
 # repository, as the cache is lost when a worktree is removed), it also saves
 # the full results, the raw cache and the script in <folder>/<date>_<commit>.
 
-library(PhyloSim)
+library(EcoPhyloSim)
 
 cacheDir <- "PhyloSim/data-raw/cache"
 dataFile <- "PhyloSim/data/packageBehavior.rda"
@@ -265,14 +265,14 @@ if (length(args) && args[1] == "run") {
   copy <- sprintf("packageBehavior-run-%s-%s.R", mode, format(Sys.time(), "%Y%m%d-%H%M"))
   file.copy(script, file.path(cacheDir, copy))
   cat(sprintf("%s: run %s, %d simulations on %d cores, package %s, script %s (md5 %s)\n",
-              format(Sys.time()), mode, nrow(tasks), nCores, packageVersion("PhyloSim"), copy,
+              format(Sys.time()), mode, nrow(tasks), nCores, packageVersion("EcoPhyloSim"), copy,
               tools::md5sum(script)),
       sprintf("commit: %s (git HEAD at the start; the installed package should match it)\n",
               tryCatch(system("git rev-parse --short HEAD", intern = TRUE), error = function(e) "unknown")),
       file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
   cl <- parallel::makeCluster(nCores)
   parallel::clusterExport(cl, c("censusTimes", "censusStats", "distanceDecay", "cndd"))
-  parallel::clusterEvalQ(cl, library(PhyloSim))
+  parallel::clusterEvalQ(cl, library(EcoPhyloSim))
   # longest tasks first, for better load balancing (rough cost: cells x dispersal
   # kernel size x competition neighborhood size)
   kernel <- ifelse(tasks$dispersal == "global", 0.1,
@@ -290,7 +290,7 @@ if (length(args) && args[1] == "run") {
   si <- sessionInfo()
   runInfo <- file.path(cacheDir, "RUNINFO.txt")
   info <- list(run = if (file.exists(runInfo)) readLines(runInfo), combined = Sys.time(),
-               package = as.character(packageVersion("PhyloSim")),
+               package = as.character(packageVersion("EcoPhyloSim")),
                R = si$R.version$version.string, platform = si$platform, os = si$running,
                cpu = Sys.getenv("PROCESSOR_IDENTIFIER"),
                packages = vapply(c(si$otherPkgs, si$loadedOnly), `[[`, character(1), "Version"),

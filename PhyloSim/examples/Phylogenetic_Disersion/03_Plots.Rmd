@@ -17,7 +17,7 @@ You'll find the following sections:
 To store all the plots we create two subdirectories called 'plot100' and 'plot256' respectively.
 ```{r}
 setwd("C:/Users/Stefan/Desktop/New_Simulations")
-library(PhyloSim)
+library(EcoPhyloSim)
 
 outfolder100 = "plots100"
 dir.create(paste("./",outfolder100, sep = ""))

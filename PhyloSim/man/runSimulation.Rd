@@ -16,10 +16,10 @@ An object of class \code{PhyloSim}. This object contains the species matrix, the
 A model of species community assembly under different assembly mechanisms.
 }
 \details{
-If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If \code{convertToBinaryTree = TRUE} (the default), the phylogeny is converted to a bifurcating one using \code{multi2di()} from the "ape" package.
+If the runs argument of your parameter set contains more than one element, each interim step is saved in the PhyloSim object. \cr\cr For larger simulations consider \link{runSimulationBatch} to make use of parallel computing. \cr\cr It is possible that more than one new species arises per generation. This leads to a multifurcated phylogeny, yet many packages such as "ape" can only work with bifurcating trees. If \code{convertToBinaryTree = TRUE} (the default), the phylogeny is converted to a bifurcating one using \code{multi2di()} from the "ape" package. \cr\cr Branch lengths of the phylogeny are in generations. Speciation and extinction events of generation g are placed at time g, and the census of generation g (an entry in \code{runs}) at time g + 0.5, after all events of that generation. Tips of extant species therefore end half a generation after those of species that went extinct in the last generation, so that \code{ape::drop.fossil()} removes the latter. Internal nodes are labeled with the species from which the descendants emerged (nodes added by \code{convertToBinaryTree} have no label); the tree has no root edge. With \code{prunePhylogeny = TRUE} (the default), the phylogeny contains only the extant species; with \code{prunePhylogeny = FALSE}, it also contains all extinct species as tips. \cr\cr If a result contains only one species, no phylogeny can be built, and its \code{phylogeny} element is set to 0 with a warning. This is common in short runs, because all individuals start as one species and new species arise at a rate of \code{specRate} per generation.
 }
 \examples{
- library(PhyloSim)
+ library(EcoPhyloSim)
 # Define a parameter set
 par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = c(500, 1000),
         density = 0, environment = 0, specRate = 1, fission = 0, redQueen=0, redQueenStrength=0,
@@ -36,11 +36,8 @@ require(ape)
 # Get the phylogeny of the last run. In this example this is after 1000 runs.
 phylogeny <- simu$Output[[2]]$phylogeny
 
-# Only extant taxa
-extantPhylogeny <- drop.fossil(phylogeny)
-
-# Display the results
-plot(extantPhylogeny)
+# Display the results (with the default prunePhylogeny = TRUE, only extant species)
+plot(phylogeny)
 
 #Look at the species area relation
 sac(simu, size = c(1,10,30,50), rep = 100, plot= TRUE)

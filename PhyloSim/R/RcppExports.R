@@ -20,7 +20,7 @@
 #'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
 #'   intermediate states are saved at each value as well.
 #' @param specRate Numeric, speciation rate: mean number of speciation events per generation
-#'   (the realized number is drawn from a Poisson distribution).
+#'   (the realized number is drawn from a Poisson distribution); must not exceed \code{x * y}.
 #' @param dens Logical, whether density dependence is active. If \code{FALSE}, density
 #'   dependence is disabled (together with \code{env = FALSE} this yields the neutral
 #'   model). The strength of density dependence is set by \code{compStrength}.
@@ -46,10 +46,12 @@
 #'   if \code{dispersal = 1}); individuals only disperse within this distance. The
 #'   characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
 #'   sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
-#'   With \code{dispersal = 3}, it must be between 1 and \code{min(x, y)}.
+#'   With \code{dispersal = 3}, it must be at least 1, and \code{2 * dispersalCutoff + 1} must not
+#'   exceed \code{min(x, y)}.
 #' @param densityCutoff Integer, defines the effective spatial range of the competition /
 #'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
-#'   \code{densityCut} in \code{\link{createCompletePar}}.
+#'   \code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
+#'   \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.
 #' @param seed Integer, sets the random seed.
 #' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
 #'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
@@ -78,9 +80,11 @@
 #'   effect on simulation output. Retained for potential future use; not currently
 #'   exposed as a separate argument in \code{createCompletePar}.
 #' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the
-#'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
-#'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
-#'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
+#'   phylogeny during the run, which keeps the tree and memory use small; the result contains only the
+#'   extant species as tips. If FALSE, the full phylogeny with all species (extinct species as tips) is
+#'   returned; its size grows with the run length. See \code{\link{runSimulation}} for the time scale.
+#' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
+#'   (see \code{\link{createCompletePar}}).
 #'
 #' @return A list with one element per entry in \code{runs}, each containing the raw
 #'   simulation output for that generation: \code{Species} (species identity per grid
@@ -91,7 +95,7 @@
 #'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 #'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 #' @export
-callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny) {
-    .Call(`_PhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny)
+callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth) {
+    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth)
 }
 

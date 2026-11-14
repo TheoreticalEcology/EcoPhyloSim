@@ -1,4 +1,4 @@
-require(PhyloSim)
+require(EcoPhyloSim)
 
 # SET WD TO SOURCE FILE LOCATION !!!!
 

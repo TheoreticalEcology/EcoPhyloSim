@@ -12,13 +12,13 @@ You can install directly from gh, using the ‘devtools’ package:
                              dependencies = T, 
                              build_vignettes = T)
 
-    ?PhyloSim
-    browseVignettes("PhyloSim")
+    ?EcoPhyloSim
+    browseVignettes("EcoPhyloSim")
 
 ### Example
 
     set.seed(123)
-    library(PhyloSim)
+    library(EcoPhyloSim)
 
     # Define a parameter set
     par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000,

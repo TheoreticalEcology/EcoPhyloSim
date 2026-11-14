@@ -4,12 +4,14 @@
 \alias{calculateSummaryStatistics}
 \title{Summary Statistics}
 \usage{
-calculateSummaryStatistics(simulation, strict = TRUE)
+calculateSummaryStatistics(simulation, strict = TRUE, which.result = NULL)
 }
 \arguments{
 \item{simulation}{Simulation output of the class "PhyloSim"}
 
 \item{strict}{Logical. If true the output of the function will be NA if at least one summary statistic could not be calculated.}
+
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \value{
 A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
@@ -18,7 +20,7 @@ A list containing the summary statistics, or NA if strict = TRUE and at least on
 Calculates the summary statistics for a simulation of class PhyloSim.
 }
 \details{
-Computes the following summary statistics from a single simulation run:
+Computes the following summary statistics from one result of a simulation run. If calculateSummaries = TRUE in \code{\link{createCompletePar}}, \code{\link{runSimulation}} stores the summary statistics of the last result in \code{Output[[1]]$summaries}:
 \describe{
 \item{racAuc}{Area under the Rank Abundance Curve (see \code{\link{rac}}).}
 \item{sacAuc}{Area under the Species Area Curve (see \code{\link{sac}}).}

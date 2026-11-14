@@ -14,7 +14,7 @@ You'll find the following steps:
 1. Loading the package
 --------------------------------
 ```{r}
-library(PhyloSim)
+library(EcoPhyloSim)
 ```
 
 2. Defining the parameter sets

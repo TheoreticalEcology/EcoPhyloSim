@@ -18,7 +18,7 @@ Loading the package
 
 
 ```{r}
-library(PhyloSim)
+library(EcoPhyloSim)
 ```
 
 Defining the parameter sets

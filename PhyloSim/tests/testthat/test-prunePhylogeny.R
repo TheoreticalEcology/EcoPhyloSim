@@ -17,7 +17,7 @@ test_that("phylogenies are complete for several runs and early time points", {
   }
 })
 
-test_that("pruning removes extinct lineages and leaves the community unchanged (#140)", {
+test_that("pruning removes extinct lineages and leaves the community unchanged (#140, #147)", {
   runs <- c(1000, 3000)
   sims <- lapply(c(TRUE, FALSE), function(prune)
     runSimulation(createCompletePar(x = 20, y = 20, specRate = 8, runs = runs, seed = 1,
@@ -27,14 +27,30 @@ test_that("pruning removes extinct lineages and leaves the community unchanged (
     full <- sims[[2]]$Output[[i]]
     expect_identical(pruned$specMat, full$specMat)
     expect_identical(pruned$traitMat, full$traitMat)
-    # the extant species are related in the same way in both trees
+    # the pruned tree contains only the extant species (#147), related as in the full tree
     extant <- paste0("s", unique(c(pruned$specMat)))
-    expect_true(all(extant %in% pruned$phylogeny$tip.label))
-    expect_equal(ape::cophenetic.phylo(ape::keep.tip(pruned$phylogeny, extant))[extant, extant],
+    expect_setequal(pruned$phylogeny$tip.label, extant)
+    expect_true(ape::is.ultrametric(pruned$phylogeny))
+    expect_equal(ape::cophenetic.phylo(pruned$phylogeny)[extant, extant],
                  ape::cophenetic.phylo(ape::keep.tip(full$phylogeny, extant))[extant, extant])
-    # extinct species remain only as ancestors, i.e. also as internal nodes
-    extinct <- setdiff(pruned$phylogeny$tip.label, extant)
-    expect_true(all(extinct %in% pruned$phylogeny$node.label))
+    # simultaneous speciation events form polytomies, not zero-length edges or single-child nodes
+    for (phy in list(pruned$phylogeny, full$phylogeny)) {
+      expect_false(ape::has.singles(phy))
+      expect_true(all(phy$edge.length[phy$edge[, 2] > ape::Ntip(phy)] > 0))
+      expect_null(phy$root.edge)
+    }
+  }
+})
+
+test_that("species that died out in the last generation are removed by drop.fossil() (#147)", {
+  for (seed in 1:10) for (prune in c(TRUE, FALSE)) {
+    # suppressWarnings: some runs end with a single species (phylogeny set to 0)
+    o <- suppressWarnings(quietSimulation(x = 3, y = 3, specRate = 1, runs = 2000, seed = seed,
+                         convertToBinaryTree = FALSE, prunePhylogeny = prune))$Output[[1]]
+    extant <- paste0("s", unique(c(o$specMat)))
+    if (length(extant) < 2) next
+    expect_setequal(ape::drop.fossil(o$phylogeny)$tip.label, extant)
+    if (prune) expect_setequal(o$phylogeny$tip.label, extant)
   }
 })
 

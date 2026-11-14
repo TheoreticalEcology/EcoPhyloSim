@@ -25,10 +25,10 @@ test_that("the seed alone controls the phylogeny", {
 
 test_that("extant species end at the present and no branch length is negative (#81)", {
   # on small grids, global dispersal used to draw the dying individual as its own parent
-  for (args in list(list(), list(environment = 0.5), list(dispersal = 1))) {
+  for (args in list(list(), list(environment = 0.5), list(dispersal = 0.5))) {
     for (seed in 1:20) {
       par <- c(list(x = 3, y = 3, specRate = 1, runs = 2000, seed = seed, convertToBinaryTree = FALSE), args)
-      out <- suppressWarnings(do.call(quietSimulation, par))$Output[[1]] # "Cannot build Phylogeny" for one species
+      out <- suppressWarnings(do.call(quietSimulation, par))$Output[[1]] # warning for results with only one species (#153)
       if (!inherits(out$phylogeny, "phylo")) next # a single species gives no tree
       expect_true(all(out$phylogeny$edge.length >= 0))
       expect_length(setdiff(paste0("s", unique(c(out$specMat))), ape::drop.fossil(out$phylogeny)$tip.label), 0)
@@ -36,7 +36,12 @@ test_that("extant species end at the present and no branch length is negative (#
   }
 })
 
-test_that("environmental filtering correlates traits with the environment", {
-  simu <- quietSimulation(x = 30, y = 30, runs = 1000, environment = 1, dispersal = 1, seed = 1)
-  expect_gt(cor(c(simu$Output[[1]]$traitMat), c(simu$Output[[1]]$envMat)), 0.5)
+test_that("environmental filtering correlates traits with the environment, less so with a very narrow niche", {
+  corTraitEnv <- function(...) {
+    out <- quietSimulation(x = 30, y = 30, runs = 1000, environment = 1, dispersal = 1, seed = 1, ...)$Output[[1]]
+    cor(c(out$traitMat), c(out$envMat))
+  }
+  r <- corTraitEnv()
+  expect_gt(r, 0.5)
+  expect_lt(suppressMessages(corTraitEnv(nicheWidth = 0.001)), r - 0.3)
 })

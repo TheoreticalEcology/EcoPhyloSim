@@ -44,7 +44,7 @@ using namespace Rcpp;
 //'   The simulation runs until \code{max(runs)}; if \code{runs} has more than one element,
 //'   intermediate states are saved at each value as well.
 //' @param specRate Numeric, speciation rate: mean number of speciation events per generation
-//'   (the realized number is drawn from a Poisson distribution).
+//'   (the realized number is drawn from a Poisson distribution); must not exceed \code{x * y}.
 //' @param dens Logical, whether density dependence is active. If \code{FALSE}, density
 //'   dependence is disabled (together with \code{env = FALSE} this yields the neutral
 //'   model). The strength of density dependence is set by \code{compStrength}.
@@ -70,10 +70,12 @@ using namespace Rcpp;
 //'   if \code{dispersal = 1}); individuals only disperse within this distance. The
 //'   characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
 //'   sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
-//'   With \code{dispersal = 3}, it must be between 1 and \code{min(x, y)}.
+//'   With \code{dispersal = 3}, it must be at least 1, and \code{2 * dispersalCutoff + 1} must not
+//'   exceed \code{min(x, y)}.
 //' @param densityCutoff Integer, defines the effective spatial range of the competition /
 //'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
-//'   \code{densityCut} in \code{\link{createCompletePar}}.
+//'   \code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
+//'   \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.
 //' @param seed Integer, sets the random seed.
 //' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
 //'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
@@ -102,9 +104,11 @@ using namespace Rcpp;
 //'   effect on simulation output. Retained for potential future use; not currently
 //'   exposed as a separate argument in \code{createCompletePar}.
 //' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the
-//'   phylogeny during the run, which keeps the tree and memory use small; the result still contains extinct
-//'   ancestors of extant species as tips (use \code{ape::drop.fossil} to keep only extant species).
-//'   If FALSE, the full phylogeny with all species is returned; its size grows with the run length.
+//'   phylogeny during the run, which keeps the tree and memory use small; the result contains only the
+//'   extant species as tips. If FALSE, the full phylogeny with all species (extinct species as tips) is
+//'   returned; its size grows with the run length. See \code{\link{runSimulation}} for the time scale.
+//' @param nicheWidth Numeric, standard deviation of the Gaussian environmental niche
+//'   (see \code{\link{createCompletePar}}).
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -119,7 +123,7 @@ using namespace Rcpp;
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
                bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, int seed,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
-               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny) {
+               int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -148,24 +152,29 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile << "airmatR = " << airmatR.begin() <<", " << airmatR.end() << ";" << std::endl;
     debugFile << "NumericVector soilmatR = " << soilmatR << ";" << std::endl;
     debugFile << "soilmatR = " << soilmatR.begin() <<", " << soilmatR.end() << ";" << std::endl;
+    debugFile << "double nicheWidth = " << nicheWidth << ";" << std::endl;
     debugFile.close();
 #endif
 
     // fixes #13 (input that would crash R or never finish; the R side checks more in checkPar())
     if (x < 1 || y < 1 || (x == 1 && y == 1)) Rcpp::stop("callModel(): x and y must be >= 1 and x * y >= 2");
     if (dispersal != 1 && dispersal != 3) Rcpp::stop("callModel(): dispersal must be 1 (global) or 3 (local)");
-    if (dispersal == 3 && (dispersalCutoff < 1 || dispersalCutoff > std::min(x, y)))
-        Rcpp::stop("callModel(): dispersalCutoff must be between 1 and min(x, y)");
-    if (densityCutoff > std::min(x, y)) Rcpp::stop("callModel(): densityCutoff must not exceed min(x, y)");
+    if (dispersal == 3 && (dispersalCutoff < 1 || dispersalCutoff > (std::min(x, y) - 1) / 2))
+        Rcpp::stop("callModel(): dispersalCutoff must be >= 1, and 2 * dispersalCutoff + 1 must not exceed min(x, y)");
+    if (densityCutoff < 1 || densityCutoff > (dens ? (std::min(x, y) - 1) / 2 : std::min(x, y)))
+        Rcpp::stop("callModel(): densityCutoff must be >= 1 and <= min(x, y), and 2 * densityCutoff + 1 must not exceed min(x, y) if dens is true");
     if (mort && mortStrength < 1) Rcpp::stop("callModel(): mortStrength must be >= 1");
     if (!(specRate >= 0 && std::isfinite(specRate))) Rcpp::stop("callModel(): specRate must be finite and >= 0");
+    if (!(nicheWidth > 0 && std::isfinite(nicheWidth))) Rcpp::stop("callModel(): nicheWidth must be finite and > 0");
     if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
     for (int i = 1; i < runs.length(); i++) {
         if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
     }
     R_xlen_t nCells = (R_xlen_t) x * y;
+    if (specRate > nCells) Rcpp::stop("callModel(): specRate must not exceed x * y");
     if (airmatR.length() != 1 && airmatR.length() != nCells)
         Rcpp::stop("callModel(): airmatR must have length 1 or x * y");
+    for (double a : airmatR) if (!(a >= 0 && a <= 1)) Rcpp::stop("callModel(): airmatR values must be between 0 and 1");
     if (soilmatR.length() != 1 && (soilmatR.length() != nCells || airmatR.length() == 1))
         Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
 
@@ -184,7 +193,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
                               dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
-                              redQueenStrength, protracted, airmat, soilmat);
+                              redQueenStrength, protracted, airmat, soilmat, nicheWidth);
     if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
     else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
 

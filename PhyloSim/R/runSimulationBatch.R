@@ -14,19 +14,17 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
   #start timing
   ptm <- proc.time() 
   
-  # TODO getParametersXML(XMLfile)
-  
   if (parallel != FALSE){
     cat("running", length(pars), "batch simulations with parallelization\n")
     
     if (parallel == TRUE | parallel == "auto") cores <- parallel::detectCores() - 1
     if (is.numeric(parallel)) cores <- parallel
     cl <- parallel::makeCluster(cores)
-    # pass the library paths to the workers; otherwise they may not find PhyloSim (e.g. vignette build on CI, see #120)
+    # pass the library paths to the workers; otherwise they may not find EcoPhyloSim (e.g. vignette build on CI, see #120)
     parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
     doParallel::registerDoParallel(cl)
     
-    out <- foreach(i=1:length(pars), .packages = c("PhyloSim")) %dopar%{
+    out <- foreach(i=1:length(pars), .packages = c("EcoPhyloSim")) %dopar%{
       
       OUT <- runSimulation(pars[[i]])
       
@@ -40,14 +38,14 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
           OUT <- OUT$Output[[1]]$summaries
           class(OUT) <- "list"
         }
-        else stop("Phylosim::runSimulationBatch unrecognized argument to strip")
+        else stop("EcoPhyloSim::runSimulationBatch unrecognized argument to strip")
       }
       OUT
     }
     parallel::stopCluster(cl)
   } else {
     cat("running", length(pars), "batch simulations without parallelization\n")
-    out <- foreach(i=1:length(pars), .packages = c("PhyloSim")) %do%{
+    out <- foreach(i=1:length(pars), .packages = c("EcoPhyloSim")) %do%{
       
       cat("running parameter", i, "\n")
       
@@ -63,7 +61,7 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
           OUT <- OUT$Output[[1]]$summaries
           class(OUT) <- "list"
         }
-        else stop("Phylosim::runSimulationBatch unrecognized argument to strip")
+        else stop("EcoPhyloSim::runSimulationBatch unrecognized argument to strip")
       }
       OUT
     }

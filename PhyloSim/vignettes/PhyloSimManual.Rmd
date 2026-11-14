@@ -1,5 +1,5 @@
 ---
-title: "The PhyloSim R Package"
+title: "The EcoPhyloSim R Package"
 author: "Florian Hartig, Paul Bauche, Bingxue Wu"
 date: "`r Sys.Date()`"
 output:
@@ -10,7 +10,7 @@ output:
 bibliography: Vignette_bib.bib
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{The PhyloSim R Package}
+  %\VignetteIndexEntry{The EcoPhyloSim R Package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-**Abstract.** PhyloSim simulates the joint ecological and evolutionary dynamics
+**Abstract.** EcoPhyloSim simulates the joint ecological and evolutionary dynamics
 of a species community in space. Individuals on a grid die and are replaced by
 offspring that disperse locally or globally, inherit and evolve traits, and are
 selected by the environment and by competition with their neighbors, while new
@@ -41,7 +41,7 @@ with expectations from theory and earlier studies.
 run for 1,000 generations:
 
 ```{r quickstart, results = 'hide', fig.width = 7, fig.height = 5, fig.cap = "Phylogeny, mean traits and spatial distribution of the species at the end of the quick-start simulation."}
-library(PhyloSim)
+library(EcoPhyloSim)
 pars <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = 1000,
                           specRate = 2, seed = 1)
 simu <- runSimulation(pars)
@@ -50,8 +50,8 @@ plot(simu)
 
 **To cite the package:** use the citation information provided with the package.
 
-```{r citation, warning = FALSE}
-citation("PhyloSim")
+```{r citation}
+citation("EcoPhyloSim")
 ```
 
 # Model description
@@ -297,8 +297,8 @@ devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
                          dependencies = TRUE,
                          build_vignettes = TRUE)
 
-?PhyloSim
-browseVignettes("PhyloSim")
+?EcoPhyloSim
+browseVignettes("EcoPhyloSim")
 ```
 
 ## Running a simulation
@@ -385,7 +385,7 @@ The single simulations can be accessed by indexing, e.g. `simuBatch[[1]]`. An
 overview of the basic classes and functions to run simulations is provided
 below.
 
-```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
+```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the EcoPhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
 knitr::include_graphics("runsimulation.svg")
 ```
 
@@ -457,7 +457,7 @@ highlightLocalPhylo(simu, size = 5, n = 1)
 
 The larger subplot contains more species than the smaller one.
 
-```{r plotsfig, echo = FALSE, out.width = "70%", fig.cap = "Overview of the plotting functions in the PhyloSim package. Functions are represented by bubbles, objects by circles. The arrows illustrate what is used as input parameter for the functions."}
+```{r plotsfig, echo = FALSE, out.width = "70%", fig.cap = "Overview of the plotting functions in the EcoPhyloSim package. Functions are represented by bubbles, objects by circles. The arrows illustrate what is used as input parameter for the functions."}
 knitr::include_graphics("plots.svg")
 ```
 

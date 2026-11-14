@@ -12,7 +12,7 @@ localPlots(simu, which.result = NULL, size, n, community = FALSE,
 
 \item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.}
 
-\item{size}{A single value (or a vector) determining the edge length(s) of the generated subplots}
+\item{size}{A single value (or a vector) determining the edge length(s) of the generated subplots. Must not exceed the shorter side of the grid.}
 
 \item{n}{The number of subplots to be generated for each element of size}
 
@@ -32,7 +32,7 @@ Generates subplots from a metacommunity, simulating field conditions
 If nested == TRUE the subplots are produced in a sequential order. That means if your 'size' argument has the length 5 and your 'n' argument is 2 you will get ten subplots. The first five will be one group of nested plots and the last five the second group of nested plots.
 }
 \examples{
-library(PhyloSim)
+library(EcoPhyloSim)
 xSize <- 30
 ySize <- 30
 nGenerations <- 300

@@ -1,7 +1,8 @@
 #' @keywords internal
 #' @title Analyzing phylogenetic and biogeographic patterns and inferring species community assembly 
-#' @name PhyloSim
-#' @useDynLib PhyloSim, .registration = TRUE
+#' @name EcoPhyloSim
+#' @aliases PhyloSim
+#' @useDynLib EcoPhyloSim, .registration = TRUE
 #' @description
 #' This package is designed to simulate and analyze species community assembly processes. It allows the user to implement different mechanisms of community assembly such as environmental filtering, competitive exclusion or dispersal limitation. These mechanisms can be combined or activated separately, which allows the user to identify biogeographic or phylogenetic patterns exclusively correlated with a certain mechanism or combination of mechanisms.
 #' @details
@@ -19,9 +20,9 @@
 #'
 #'
 #' @author Florian Hartig, Paul Bauche, Bingxue Wu
-#' @importFrom grDevices colorRampPalette dev.size grey rainbow rgb
-#' @importFrom graphics barplot hist image layout lines mtext par plot.new polygon text title
-#' @importFrom stats binomial cophenetic density dist ecdf glm median na.omit quantile rmultinom sd
+#' @importFrom grDevices colorRampPalette dev.size grey hcl.colors rgb
+#' @importFrom graphics barplot hist image layout lines mtext par plot.new polygon rect text title
+#' @importFrom stats binomial cophenetic density dist ecdf glm median na.omit quantile rmultinom sd setNames
 #' 
 #' @example /inst/examples/phylosim-help.R
 #'  

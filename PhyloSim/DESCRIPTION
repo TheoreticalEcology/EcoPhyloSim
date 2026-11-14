@@ -1,4 +1,4 @@
-Package: PhyloSim
+Package: EcoPhyloSim
 Type: Package
 Title: Analysis of Phylogenetic and Biogeographic Patterns, Inferring Species
     Community Assembly
@@ -11,9 +11,7 @@ Authors@R: c(person("Florian", "Hartig", email = "florian.hartig@biologie.uni-re
     person("Tankred", "Ott", role = "ctb"),
     person("Christian", "Buschbeck", role = "ctb"),
     person("Melina", "de Souza Leite", role = "ctb"),
-    person("Andrea", "Ingrosso", role = "ctb"),
-    person("Arseny", "Kapoulkine", role = c("ctb", "cph"), comment = "Author of the included pugixml library"),
-    person("Kristen", "Wegner", role = "cph", comment = "Author of the pugxml library on which pugixml is based"))
+    person("Andrea", "Ingrosso", role = "ctb"))
 Description: Simulates and analyzes species community
     assembly processes. It allows the user to implement different mechanisms of
     community assembly such as environmental filtering, competitive exclusion or
@@ -28,11 +26,7 @@ Imports:
     ape,
     doParallel,
     picante,
-    adephylo,
-    fields,
-    shape,
     foreach,
-    MESS,
     spatstat.geom,
     spatstat.explore,
     vegan,
@@ -40,7 +34,7 @@ Imports:
 Suggests:
     knitr,
     rmarkdown,
-    testthat (>= 3.1.0),
+    testthat (>= 3.1.7),
     abctools,
     ranger,
     data.table,

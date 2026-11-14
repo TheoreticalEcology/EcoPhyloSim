@@ -1,18 +1,18 @@
 # Contributing to EcoPhyloSim
 
-Contributions to EcoPhyloSim and its R package PhyloSim are welcome! This document describes how to contribute effectively and what to expect from the process. Tasks of the EcoPhyloSim team (maintainers and collaborators with write access to this repository) are described in [Maintaining EcoPhyloSim](MAINTAINING.md).
+Contributions to EcoPhyloSim are welcome! This document describes how to contribute effectively and what to expect from the process. Tasks of the EcoPhyloSim team (maintainers and collaborators with write access to this repository) are described in [Maintaining EcoPhyloSim](MAINTAINING.md).
 
 ## Ways to contribute
 
 ### Asking for help and reporting issues
 
-PhyloSim is open-source software, and in the spirit of open source, questions and answers should be public, so that other people can profit from them as well. Please ask questions, report problems and suggest features on the [EcoPhyloSim issue tracker](https://github.com/TheoreticalEcology/EcoPhyloSim/issues), after searching the existing issues. If you have concerns posting to a public forum, you can also write to the maintainer by e-mail (run `maintainer("PhyloSim")` in R to get the address).
+EcoPhyloSim is open-source software, and in the spirit of open source, questions and answers should be public, so that other people can profit from them as well. Please ask questions, report problems and suggest features on the [EcoPhyloSim issue tracker](https://github.com/TheoreticalEcology/EcoPhyloSim/issues), after searching the existing issues. If you have concerns posting to a public forum, you can also write to the maintainer by e-mail (run `maintainer("EcoPhyloSim")` in R to get the address).
 
 It is easier to help you if your question is well structured. Typically, it contains:
 
 1. the motivation of the study,
-2. your PhyloSim code as you execute it (e.g., the parameters passed to `createCompletePar()`),
-3. PhyloSim results / error messages, and the output of `sessionInfo()`,
+2. your EcoPhyloSim code as you execute it (e.g., the parameters passed to `createCompletePar()`),
+3. EcoPhyloSim results / error messages, and the output of `sessionInfo()`,
 4. your question.
 
 For problems and errors, please always include a minimal reproducible example: code that runs as is in a fresh R session and shows the problem. See [How to make a great R reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example) and the [reprex](https://cran.r-project.org/package=reprex) package. Keep simulations small and fast (small grid, few generations) and set a seed. Problem reports without a reproducible example may be closed.
@@ -29,7 +29,7 @@ This policy applies to contributors outside the EcoPhyloSim team; only the discl
 
 **Issues, pull requests and comments created autonomously by AI agents or automated tools will not be accepted.** They will be closed or deleted without review.
 
-The maintainer must be able to understand, evaluate, and take long-term responsibility for every change integrated into PhyloSim. AI-generated code frequently appears correct but introduces subtle errors that are difficult to detect without deep familiarity with the codebase, and the burden of reviewing such contributions falls disproportionately on the maintainer. For a scientific simulation model where correctness is critical, this risk is not acceptable.
+The maintainer must be able to understand, evaluate, and take long-term responsibility for every change integrated into EcoPhyloSim. AI-generated code frequently appears correct but introduces subtle errors that are difficult to detect without deep familiarity with the codebase, and the burden of reviewing such contributions falls disproportionately on the maintainer. For a scientific simulation model where correctness is critical, this risk is not acceptable.
 
 This policy covers issues, pull requests and comments submitted autonomously by AI agents, as well as contributions where the submitter does not have a full, independent understanding of the proposed changes. Having a tool post a contribution at your explicit request, after you have checked its content, does not count as autonomous.
 
@@ -77,7 +77,7 @@ For everyone, including the EcoPhyloSim team: if AI tools wrote substantial part
 
 ## Code and documentation standards
 
-PhyloSim is an R package with a simulation model in C++ (via Rcpp); the package itself is in the subfolder `PhyloSim/`. Please follow these conventions for new and changed code (some existing code does not yet follow them):
+EcoPhyloSim is an R package with a simulation model in C++ (via Rcpp); the package itself is in the subfolder `PhyloSim/`. Please follow these conventions for new and changed code (some existing code does not yet follow them):
 
 - Use meaningful names; function and variable names in lowerCamelCase. Accessor functions start with `get` (e.g., `getSpecies()`, `getSpeciesTraits()`).
 - Help files and `NEWS.md` are written in American English; parameter descriptions start in lower case.
@@ -92,7 +92,6 @@ PhyloSim is an R package with a simulation model in C++ (via Rcpp); the package 
 
 - The simulation model is in `PhyloSim/src/`. Print with `Rcpp::Rcout` (and `Rcpp::Rcerr`), never with `std::cout`, `std::cerr` or `printf`; signal errors with `Rcpp::stop()`, never with `exit()` or `abort()`.
 - `PhyloSim/src/RcppExports.cpp` and `PhyloSim/R/RcppExports.R` are generated: after changing an `// [[Rcpp::export]]` function, run `Rcpp::compileAttributes("PhyloSim")`. `PhyloSim/src/RcppExportsIni.c` registers `callModel` and is maintained by hand: if the number of arguments of `callModel` changes, update both the `SEXP` declaration and the count in `CallEntries`.
-- `pugixml.cpp`, `pugixml.h` and `pugiconfig.h` are bundled third-party code; change them only where `R CMD check` requires it (as for the `.h` file names and `snprintf()` instead of `sprintf()`).
 - Changes to the model that change simulation results, even for the default parameters, must be stated in the pull request description (and, as every user-visible change, in `NEWS.md`).
 - `NeutralMod()` (`PhyloSim/R/neutralModelR.R`) follows the general rules of the C++ model, except for the differences listed in its help. If you change such a rule (e.g., which individual can be the parent of a new one), update `NeutralMod()`, its help and its tests in the same pull request.
 
@@ -112,6 +111,6 @@ PhyloSim is an R package with a simulation model in C++ (via Rcpp); the package 
 
 ## Attribution and authorship
 
-Contributors who make substantial contributions to PhyloSim will be acknowledged by name in `PhyloSim/NEWS.md` and/or as contributors in `PhyloSim/DESCRIPTION`, and listed in [CONTRIBUTORS.md](CONTRIBUTORS.md). Substantial contributions include, but are not limited to: adding a new model mechanism or a meaningful new function or test, identifying and fixing a non-trivial bug, or making significant improvements to the documentation or vignette.
+Contributors who make substantial contributions to EcoPhyloSim will be acknowledged by name in `PhyloSim/NEWS.md` and/or as contributors in `PhyloSim/DESCRIPTION`, and listed in [CONTRIBUTORS.md](CONTRIBUTORS.md). Substantial contributions include, but are not limited to: adding a new model mechanism or a meaningful new function or test, identifying and fixing a non-trivial bug, or making significant improvements to the documentation or vignette.
 
 Minor corrections such as fixing typos, correcting punctuation, or making small formatting adjustments do not typically result in named acknowledgement, as is standard in open-source scientific software. If you are uncertain whether a planned contribution would qualify, you are welcome to ask in the relevant issue.
