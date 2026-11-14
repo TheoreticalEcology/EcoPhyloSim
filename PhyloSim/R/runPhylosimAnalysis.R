@@ -588,7 +588,7 @@ summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
 summaryRedsaABC <- function (p, s, scale = TRUE, ...) {
   checkSuggested("abctools")
   weights <- abctools::saABC(p, s, plot = FALSE)$B
-  
+  x <- rep(TRUE, ncol(s)) # fixes #129 (x undefined if no weight is NA)
   if (any(is.na(weights))) {
     x <- apply(X = weights, MARGIN = 2, FUN = function(x) return(!any(is.na(x))))
     warning(paste("Linear regression problems: ill-conditioning? Ignored summaries leading to NAs! (", paste(names(x)[!x], collapse = ", "), ")"))
