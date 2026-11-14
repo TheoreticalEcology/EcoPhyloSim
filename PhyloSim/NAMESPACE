@@ -68,12 +68,9 @@ importFrom(graphics,
   title
 )
 importFrom(stats,
-  binomial,
   cophenetic,
-  density,
   dist,
   ecdf,
-  glm,
   median,
   na.omit,
   quantile,

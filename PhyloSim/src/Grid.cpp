@@ -137,8 +137,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     // Set up Environment
     // if no environment (airmat) is passed, generate one
     if ((airmat.size() == 1) && (soilmat.size() == 1)) {
-        m_SoilMoistureRange = 101.0; // percent
-
         for (int i = 0; i < m_Xdimensions; i++) {
             // fixes #142 (gradient above 1 for odd x); unchanged for even x
             m_AirTemperature = 1.0 - std::fabs(2.0 * i / m_Xdimensions - 1.0);
