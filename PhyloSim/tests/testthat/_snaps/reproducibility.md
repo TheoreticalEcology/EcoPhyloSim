@@ -1,7 +1,7 @@
 # simulation results are numerically reproducible
 
-    list(abundances = c(571L, 180L, 68L, 30L, 22L, 11L, 6L, 5L, 2L, 
-    1L, 1L, 1L, 1L, 1L), nTips = 14L, sac = c(2.18, 4.38, 7.26, 10.58
+    list(abundances = c(451L, 187L, 169L, 40L, 26L, 13L, 4L, 4L, 
+    2L, 2L, 1L, 1L), nTips = 13L, sac = c(2.56, 5.06, 6.98, 10.02
     ))
 
 ---

@@ -41,6 +41,7 @@
 * `runSimulation()` read memory outside of `airmat`, or crashed R, if its length did not match the grid; `callModel()` stops with an error instead of crashing R for invalid input such as `mortStrength < 1` (#13, #94, #118).
 * `runSimulation()`: the phylogeny was cut off, so that reading it failed, with `prunePhylogeny = FALSE`, for early values in `runs`, or with `fission`; with `prunePhylogeny = FALSE` and several values in `runs`, R crashed (#82, #97, #105).
 * `runSimulation()`: with `prunePhylogeny = TRUE`, the returned phylogeny contained extinct lineages without living descendants, and with either setting, each value in `runs` leaked a copy of all species ever created, so that memory use grew with the run length and the number of values in `runs`. Such lineages are now removed during the run; the simulated communities are unchanged. With `prunePhylogeny = FALSE`, the branches of extant species in intermediate results no longer extend to the last value in `runs` (#140).
+* `runSimulation()` with global dispersal: the dying individual could be its own parent, so that living species could get an extinction date (removed by `ape::drop.fossil()`, negative branch lengths, wrong species trait means); results with global dispersal change for a given seed. Grids must have at least 2 cells (#81).
 
 ## Documentation
 

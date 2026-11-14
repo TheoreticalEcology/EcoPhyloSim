@@ -266,8 +266,10 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             y_coordinate = m_RandomGenerator.randomInt(0, m_Ydimensions - 1);
 
             // choose random parent to "replace" individual
-            x_parent = m_RandomGenerator.randomInt(0, m_Xdimensions - 1);
-            y_parent = m_RandomGenerator.randomInt(0, m_Ydimensions - 1);
+            do { // fixes #81 (dying individual must not be its own parent)
+                x_parent = m_RandomGenerator.randomInt(0, m_Xdimensions - 1);
+                y_parent = m_RandomGenerator.randomInt(0, m_Ydimensions - 1);
+            } while (x_parent == x_coordinate && y_parent == y_coordinate);
 
             //std::cout << x_coordinate << "::" << x_parent << "::" << y_coordinate << "::" << y_parent << '\n';
 
@@ -379,11 +381,13 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
             m_Individuals[x_coordinate][y_coordinate].reportDeath(generation);
 
-            if (m_reproduction) {
-                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, m_LandscapeSize - 1, seedSum);
-            } else {
-                new_parent = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
-            }
+            do { // fixes #81
+                if (m_reproduction) {
+                    new_parent = m_RandomGenerator.multinomialDraw(cumWeights, m_LandscapeSize - 1, seedSum);
+                } else {
+                    new_parent = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
+                }
+            } while (new_parent == x_coordinate * m_Ydimensions + y_coordinate);
 
             x_parent = parents[new_parent].first;
             y_parent = parents[new_parent].second;
