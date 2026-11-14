@@ -10,18 +10,18 @@
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
 * `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
 * `createCompletePar()`: new argument `negativeDDResponse` sets the term of negative density dependence as a function of the similarity to the neighbors (#144).
-* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #108).
+* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
 
 ## Changes
 
 * `density` and `densityCut` in `createCompletePar()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
-* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral if `environment + negativeDD <= 1` (#144).
+* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral if `environment + negativeDD <= 1` (#144).
 * The package was renamed from PhyloSim to EcoPhyloSim because of a name clash with the archived CRAN package phylosim; class and function names are unchanged (#64).
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `negativeDD`, `positiveDD`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
 * `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `negativeDD` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
-* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `negativeDDCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `density` > 0, `2 * densityCut + 1` must not exceed `min(x, y)` (#152).
+* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `negativeDDCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `negativeDD` > 0, `2 * negativeDDCut + 1` must not exceed `min(x, y)` (#152).
 * The `Model` element of the output of `runSimulation()` keeps the numeric values of `negativeDD` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).
 * Default plot sizes in `sac()` are log-spaced, as documented (#115).
