@@ -26,6 +26,7 @@
 * License changed from GPL (>= 2) to GPL (>= 3).
 * EcoPhyloSim now requires R (>= 4.1.0), as required by its dependency vegan (#113).
 * adephylo, fields, MESS and shape were removed from Imports: adephylo was not used, and the few functions used from the others were replaced by base R code; `calculateSummaryStatistics()` gives the same values, and `plotPhylogeneticDispersion()` looks the same (#167).
+* The unused C++ code for reading parameters from XML files and the bundled pugixml library were removed, and with them the pugixml authors in `Authors@R` (#170).
 * The `plot()`, `print()` and `summary()` methods for `PhyloSim` and `PhylosimList` objects use the argument names of the generics (`x`, `object`), so calls such as `plot(simu = s)` no longer work (#113).
 * `collessImbalance()` and `summary()` use only extant species by default (`dropFossils = TRUE`), as `calculateSummaryStatistics()` already did (#117).
 * The non-functional Leipzig model (`type = "Leipzig"`) and its C++ code were removed, and `runSimulation()` no longer accepts `type = "Rneutral"`. Unknown values of `type` now give an error instead of returning `NULL` (#112).
