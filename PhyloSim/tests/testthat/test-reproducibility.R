@@ -19,7 +19,7 @@ test_that("simulation results are numerically reproducible", {
   skip_on_os("mac")
   expect_snapshot_value(snapshotSimulation(specRate = 2), style = "deparse", tolerance = 1e-6)
   expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1), style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, environment = 0.5, density = 0.5),
+  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, environment = 0.5, negativeDD = 0.5),
                         style = "deparse", tolerance = 1e-6)
 })
 
@@ -28,10 +28,12 @@ test_that("results with only one fitness mechanism are numerically reproducible"
   skip_on_os("mac")
   expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, environment = 1),
                         style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, density = 1, densityCut = 2),
+  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, negativeDD = 1, negativeDDCut = 2),
                         style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, density = 1, fitnessActsOn = "both"),
+  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, negativeDD = 1, fitnessActsOn = "both"),
                         style = "deparse", tolerance = 1e-6)
   expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, redQueen = 0.1, redQueenStrength = 1),
+                        style = "deparse", tolerance = 1e-6)
+  expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, positiveDD = 0.2),
                         style = "deparse", tolerance = 1e-6)
 })

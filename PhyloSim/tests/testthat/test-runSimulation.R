@@ -1,17 +1,17 @@
 context("run Simulation")
 
 test_that("Simulation is running correctly",{
-  par<-createCompletePar(x=50, y=50, dispersal="global",density=1)
+  par<-createCompletePar(x=50, y=50, dispersal="global",negativeDD=1)
   simu<-runSimulation(par)
   
-  expect_output(str(par), "List of 26")
+  expect_output(str(par), "List of 30")
   expect_is(simu, "PhyloSim")
   
   })
 
 test_that("SimulationBatch is running correctly",{
-  par1<-createCompletePar(x=50, y=50, dispersal="global",density=1)
-  par2<-createCompletePar(x=50, y=50, dispersal="global",density=0.5)
+  par1<-createCompletePar(x=50, y=50, dispersal="global",negativeDD=1)
+  par2<-createCompletePar(x=50, y=50, dispersal="global",negativeDD=0.5)
   parlist<-list(par1,par2)
   simuBatch<-runSimulationBatch(parlist)
 

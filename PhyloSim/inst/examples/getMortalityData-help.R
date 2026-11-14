@@ -1,7 +1,7 @@
 # Local dispersal and conspecific density dependence, burn-in of 300 generations,
 # then 6 consecutive recorded generations
-par <- createCompletePar(x = 30, y = 30, dispersal = 1, density = 1, densityCut = 2,
-                         densityKernel = "species", runs = 300:305, seed = 1)
+par <- createCompletePar(x = 30, y = 30, dispersal = 1, negativeDD = 1, negativeDDCut = 2,
+                         negativeDDKernel = "species", runs = 300:305, seed = 1)
 simu <- runSimulation(par)
 
 dat <- getMortalityData(simu)

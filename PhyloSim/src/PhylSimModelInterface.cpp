@@ -45,16 +45,17 @@ using namespace Rcpp;
 //'   intermediate states are saved at each value as well.
 //' @param specRate Numeric, speciation rate: mean number of speciation events per generation
 //'   (the realized number is drawn from a Poisson distribution); must not exceed \code{x * y}.
-//' @param dens Logical, whether density dependence is active. If \code{FALSE}, density
-//'   dependence is disabled (together with \code{env = FALSE} this yields the neutral
-//'   model). The strength of density dependence is set by \code{compStrength}.
+//' @param dens Logical, whether negative density dependence is active. If \code{FALSE}, it is
+//'   disabled (together with \code{env = FALSE} and \code{positiveStrength = 0} this yields the
+//'   neutral model). Its strength is set by \code{compStrength}.
 //' @param env Logical, whether environmental filtering is active. If \code{FALSE},
-//'   environmental filtering is disabled (together with \code{dens = FALSE} this yields
-//'   the neutral model). The strength of environmental filtering is set by \code{envStrength}.
+//'   environmental filtering is disabled (together with \code{dens = FALSE} and
+//'   \code{positiveStrength = 0} this yields the neutral model). The strength of environmental filtering is set by \code{envStrength}.
 //' @param neutral Logical, whether the neutral model is used: if TRUE (and \code{redQueen}
 //'   and \code{redQueenStrength} are 0), each death is replaced by the offspring of a random
 //'   parent without fitness differences. Only used for global dispersal (\code{dispersal = 1}).
-//'   \code{\link{runSimulation}} sets it to TRUE when density and environment are both 0.
+//'   \code{\link{runSimulation}} sets it to TRUE when negative and positive density dependence and
+//'   environment are all 0.
 //'   The neutral trait is computed in every case.
 //' @param mort Logical, whether fitness differences among individuals are expressed via
 //'   differential mortality. Corresponds to \code{fitnessActsOn = "mortality"} (or
@@ -74,17 +75,17 @@ using namespace Rcpp;
 //'   exceed \code{min(x, y)}.
 //' @param densityCutoff Integer, defines the effective spatial range of the competition /
 //'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
-//'   \code{densityCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
+//'   \code{negativeDDCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
 //'   \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.
 //' @param seed Integer, sets the random seed.
 //' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
 //'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
 //'   influence of the environment on individual fitness. Corresponds to \code{environment}
 //'   in \code{\link{createCompletePar}}.
-//' @param compStrength Numeric between 0 and 1, strength of the density-dependence /
+//' @param compStrength Numeric between 0 and 1, strength of the negative density-dependence /
 //'   competition effect (ignored if \code{dens = FALSE}); the higher the value, the
 //'   stronger the influence of trait-based competition on individual fitness. Corresponds
-//'   to \code{density} in \code{\link{createCompletePar}}.
+//'   to \code{negativeDD} in \code{\link{createCompletePar}}.
 //' @param fission Integer, which fission (speciation) type to use: 0 = none (default),
 //'   1 = every second individual of a species becomes part of a new species, 2 = the
 //'   population is geographically split into two parts, one of which becomes a new species.
@@ -115,12 +116,17 @@ using namespace Rcpp;
 //'   \code{\link{createCompletePar}}.
 //' @param densityKernel Integer, how similar neighbors are measured for density dependence:
 //'   1 = absolute difference of the competition trait, 2 = Gaussian kernel of the difference,
-//'   3 = species identity. Corresponds to \code{densityKernel} in \code{\link{createCompletePar}}.
+//'   3 = species identity. Corresponds to \code{negativeDDKernel} in \code{\link{createCompletePar}}.
 //' @param densityWidth Numeric > 0, width of the Gaussian kernel (only used if \code{densityKernel = 2}).
 //' @param densityTable Numeric vector with values between 0 and 1: the density term of fitness as a function
 //'   of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
 //'   the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates it from
-//'   \code{densityResponse} in \code{\link{createCompletePar}}.
+//'   \code{negativeDDResponse} in \code{\link{createCompletePar}}.
+//' @param positiveStrength Numeric between 0 and 1, strength of positive density dependence
+//'   (\code{positiveDD} in \code{\link{createCompletePar}}); 0 switches it off.
+//' @param positiveCutoff Integer >= 1, radius of the neighborhood for positive density dependence.
+//' @param positiveKernel Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.
+//' @param positiveWidth Numeric > 0, width of the Gaussian kernel for positive density dependence.
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -137,7 +143,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth,
                bool recruit = false, int densityKernel = 1, double densityWidth = 0.1,
-               NumericVector densityTable = NumericVector::create()) {
+               NumericVector densityTable = NumericVector::create(), double positiveStrength = 0,
+               int positiveCutoff = 1, int positiveKernel = 3, double positiveWidth = 0.1) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -184,6 +191,11 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     if (!(densityWidth > 0 && std::isfinite(densityWidth))) Rcpp::stop("callModel(): densityWidth must be finite and > 0");
     if (densityTable.length() == 1) Rcpp::stop("callModel(): densityTable must be empty or have length >= 2");
     for (double a : densityTable) if (!(a >= 0 && a <= 1)) Rcpp::stop("callModel(): densityTable values must be between 0 and 1");
+    if (!(positiveStrength >= 0 && positiveStrength <= 1)) Rcpp::stop("callModel(): positiveStrength must be between 0 and 1");
+    if (positiveKernel < 1 || positiveKernel > 3) Rcpp::stop("callModel(): positiveKernel must be 1, 2 or 3");
+    if (!(positiveWidth > 0 && std::isfinite(positiveWidth))) Rcpp::stop("callModel(): positiveWidth must be finite and > 0");
+    if (positiveCutoff < 1 || (positiveStrength > 0 && positiveCutoff > (std::min(x, y) - 1) / 2))
+        Rcpp::stop("callModel(): positiveCutoff must be >= 1, and 2 * positiveCutoff + 1 must not exceed min(x, y) if positiveStrength > 0");
     if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
     for (int i = 1; i < runs.length(); i++) {
         if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
@@ -212,6 +224,10 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     ddOptions.kernel = densityKernel;
     ddOptions.width = densityWidth;
     ddOptions.table.assign(densityTable.begin(), densityTable.end());
+    ddOptions.posStrength = positiveStrength;
+    ddOptions.posCutoff = positiveCutoff;
+    ddOptions.posKernel = positiveKernel;
+    ddOptions.posWidth = positiveWidth;
 
     Rcpp::List outList = Rcpp::List::create();
 

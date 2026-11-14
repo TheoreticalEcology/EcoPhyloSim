@@ -36,7 +36,8 @@ public:
 
     // Indicates whether the species dispersion depends on local conditions or not.
     bool m_Neutral;
-    bool m_DD;
+    bool m_DD; // negative density dependence
+    bool m_pDD; // positive density dependence
     bool m_Env;
     // switches to determine wheather fitness should affect mortality or reproduction
     bool m_mortality;
@@ -54,6 +55,8 @@ public:
     double m_Speciation_Rate;
 
     double cellsWithinDensityCutoff;
+    double cellsWithinPosCutoff;
+    double m_maxDeathRate;
     double m_nicheWidth;
     double m_envStrength;
     double m_compStrength;
@@ -65,6 +68,9 @@ public:
     std::vector<double> soilmat;
     int m_ddKernel;
     double m_ddWidth;
+    int m_posCutoff;
+    int m_posKernel;
+    double m_posWidth;
     std::vector<double> m_ddTable;
 
 
@@ -105,8 +111,12 @@ public:
 
     void densityUpdate(int x, int y);
 
-    // dissimilarity of ind to the neighbors of cell (x, y), without the cell itself
-    double localDissimilarity(Individual &ind, int x, int y);
+    // number of cells within the cutoff, including the focal cell
+    double cellsWithin(int cutoff);
+
+    // dissimilarity of ind to the neighbors of cell (x, y), without the cell itself, for negative or
+    // positive density dependence
+    double localDissimilarity(Individual &ind, int x, int y, bool positive);
 
     // fitness of the offspring of the individual in parent cell p in the target cell (x, y)
     double recruitFitness(int p_x, int p_y, int x, int y);

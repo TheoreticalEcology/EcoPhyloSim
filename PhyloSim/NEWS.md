@@ -8,20 +8,21 @@
 * New function `getMortalityData()` returns, for each individual and census interval, its species, number of conspecific neighbors and whether it died before the next recorded generation, for analyses of conspecific negative density dependence (@AndyEnvFr, #100).
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental response coefficients) (#85).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
-* `createCompletePar()`: new arguments `densityKernel` and `densityWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
-* `createCompletePar()`: new argument `densityResponse` sets the density term of fitness as a function of the similarity to the neighbors (#144).
+* `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
+* `createCompletePar()`: new argument `negativeDDResponse` sets the term of negative density dependence as a function of the similarity to the neighbors (#144).
+* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
 
 ## Changes
 
-* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction) instead of adding their fitness terms; this changes all results with `environment > 0` and `density > 0`, which were neutral if `environment + density <= 1` (#144).
-* `NeutralMod()` with `density > 0` draws up to 1000 instead of 10 parents, so that it follows the same rule as `fitnessActsOn = "recruitment"` with `densityKernel = "species"` in `runSimulation()`; this changes its results (#165).
+* `density` and `densityCut` in `createCompletePar()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
+* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral if `environment + negativeDD <= 1` (#144).
 * The package was renamed from PhyloSim to EcoPhyloSim because of a name clash with the archived CRAN package phylosim; class and function names are unchanged (#64).
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
-* `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
-* `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `density` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
-* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `densityCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `density` > 0, `2 * densityCut + 1` must not exceed `min(x, y)` (#152).
-* The `Model` element of the output of `runSimulation()` keeps the numeric values of `density` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
+* `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `negativeDD`, `positiveDD`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
+* `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `negativeDD` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
+* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `negativeDDCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `density` > 0, `2 * densityCut + 1` must not exceed `min(x, y)` (#152).
+* The `Model` element of the output of `runSimulation()` keeps the numeric values of `negativeDD` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).
 * Default plot sizes in `sac()` are log-spaced, as documented (#115).
 * `localPlots()` stops with an error if `n` is not a single positive whole number (checkmate was added to Imports for such checks), and the species columns of its community table are sorted by species number and contain integer counts (#118, #119).
@@ -60,7 +61,7 @@
 * `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
 * `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
 * `summary()` of a `PhyloSim` object printed the class name as `Phylosim` (#155).
-* `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
+* `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `negativeDD`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
 * `localPlots()` and `sac()` failed with "subscript out of bounds" if the grid is not square (`x != y`); on square grids, the `positions` of the subplots had x and y swapped. The fix changes `sac()` results for a fixed seed (#151).
 * `sac()`: a vector in `which.result` gave an error (#151).
 * `runSimulation()`: species that went extinct in the last generation before a census were kept by `ape::drop.fossil()`; with `prunePhylogeny = TRUE`, the species pool of the `dispersion` statistic of `calculateSummaryStatistics()` contained extinct ancestors (#147).
@@ -69,5 +70,5 @@
 
 * The vignette was converted from Sweave (PDF) to R Markdown (HTML).
 * Package help converted to roxygen; examples moved to `inst/examples/` (#87).
-* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `density` (#96), `dispersal`, `densityCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122).
+* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `negativeDD` (#96), `dispersal`, `negativeDDCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122).
 * Help pages and vignette revised: corrected trait-evolution formula in the vignette and return value of `sac()`, documented parameters of `callModel()`, faster examples, corrected spelling and several incorrect argument and return value descriptions (#113).

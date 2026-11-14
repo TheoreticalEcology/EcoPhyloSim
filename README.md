@@ -22,7 +22,7 @@ You can install directly from gh, using the ‘devtools’ package:
 
     # Define a parameter set
     par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000,
-            density = 0)
+            negativeDD = 0)
 
     # Run the model
     simu <- runSimulation(par)

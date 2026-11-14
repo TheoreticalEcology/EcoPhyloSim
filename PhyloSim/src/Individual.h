@@ -26,6 +26,10 @@ struct DensityOptions {
     int kernel = 1;
     double width = 0.1;
     std::vector<double> table;
+    double posStrength = 0; // positive density dependence, with its own radius, kernel and width
+    int posCutoff = 1;
+    int posKernel = 3;
+    double posWidth = 0.1;
 };
 
 /**
@@ -71,6 +75,8 @@ public:
     double m_envStrength;
     double m_compStrength;
     const std::vector<double> *m_ddTable; // response table of DensityOptions, NULL for the linear response
+    double m_posStrength; // strength of positive density dependence
+    double m_LocalPositive; // dissimilarity to the neighbors for positive density dependence
 
     RandomGen m_RandomGenerator;
 
@@ -92,9 +98,11 @@ public:
 
     double ddTerm(double localDensity);
 
-    // probability to die when selected, if both environment and density dependence act on mortality
-    double deathProbability(double temp, unsigned int mortalityStrength, int generation, double redQueenStrength,
-                            double redQueen);
+    double posTerm(double localPositive);
+
+    // probability to die when selected, if several mechanisms act on mortality
+    double deathProbability(double temp, bool env, bool dd, unsigned int mortalityStrength, int generation,
+                            double redQueenStrength, double redQueen, double maxRate);
 
 
     double dispersal(int dispersal_type, double distance);  // 1 for kernel, 2 for nearest neighbor, 3 for global

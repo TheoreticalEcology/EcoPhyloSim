@@ -39,6 +39,8 @@ Individual::Individual() {
     this->m_envStrength = 1;
     this->m_compStrength = 1;
     this->m_ddTable = NULL;
+    this->m_posStrength = 0;
+    this->m_LocalPositive = 0.0;
 
     this->m_dispersalDistance = 0.0; // parameter for dispersal kernel
 }
@@ -67,6 +69,8 @@ Individual::Individual(const Individual &ind) {
     this->m_envStrength = ind.m_envStrength;
     this->m_compStrength = ind.m_compStrength;
     this->m_ddTable = ind.m_ddTable;
+    this->m_posStrength = ind.m_posStrength;
+    this->m_LocalPositive = ind.m_LocalPositive;
 }
 
 Individual::~Individual() {
@@ -101,6 +105,8 @@ void Individual::operator=(const Individual &ind) {
     this->m_envStrength = ind.m_envStrength;
     this->m_compStrength = ind.m_compStrength;
     this->m_ddTable = ind.m_ddTable;
+    this->m_posStrength = ind.m_posStrength;
+    this->m_LocalPositive = ind.m_LocalPositive;
 }
 
 
@@ -131,7 +137,7 @@ double Individual::getSeedsTo(int rel_x, int rel_y, int dispersal_type, double t
     double dispersal_weight = 0.0;
     dispersal_weight = dispersal(dispersal_type, euclidian_distance(rel_x, rel_y)); // Kernel or NN
 
-    if (env || dd) {
+    if (env || dd || m_posStrength > 0) {
         double fitness_weight = getFitness(temp, env, dd, generation, redQueenStrength, redQueen);
         return (dispersal_weight * fitness_weight);
     } else {
@@ -149,17 +155,24 @@ double Individual::getSeedsTo(int rel_x, int rel_y, int dispersal_type, double t
 double Individual::getFitness(double temp, bool env, bool dd, int generation, double redQueenStrength, double redQueen) {
     double out = (DBL_MIN * 100.0); // TODO: Why this?
 
-    if (env && dd) out += envTerm(temp) * ddTerm(m_LocalDensity); // terms multiply
-    else {
+    bool pdd = m_posStrength > 0;
+    if (env + dd + pdd > 1) { // terms multiply
+        double w = 1.0;
+        if (env) w *= envTerm(temp);
+        if (dd) w *= ddTerm(m_LocalDensity);
+        if (pdd) w *= posTerm(m_LocalPositive);
+        out += w;
+    } else {
         if (env) out += envTerm(temp); // environmental niche
         if (dd) out += ddTerm(m_LocalDensity) + (DBL_MIN * 100.0);
+        if (pdd) out += posTerm(m_LocalPositive) + (DBL_MIN * 100.0);
     }
 
     // Implementation of the redQueen Mechanism
     if ((redQueenStrength != 0) || (redQueen != 0)) {
 
         // Need to set a values to give the boost in case of the red Queen Speciation. The value here is randomly chosen.
-        if (!env && !dd) out = 0.01;
+        if (!env && !dd && !pdd) out = 0.01;
 
         // The new fitness value is calculated as a function of the specie's age
         out = out + (out * redQueenStrength *
@@ -188,18 +201,26 @@ double Individual::ddTerm(double localDensity) {
     return table[i] * (1 - f) + table[i + 1] * f;
 }
 
+// positive density dependence: penalty for dissimilar neighbors (localPositive is their dissimilarity)
+double Individual::posTerm(double localPositive) {
+    return 1 - m_posStrength * localPositive;
+}
+
 // fixes #144 (proportional hazards): the death rate relative to an individual with fitness 1 is
-// 1 + (m - 1)(1 - w) for each mechanism, and the rates of environment and density dependence multiply
-double Individual::deathProbability(double temp, unsigned int mortalityStrength, int generation,
-                                    double redQueenStrength, double redQueen) {
+// 1 + (m - 1)(1 - w) for each mechanism, and the rates of the active mechanisms multiply;
+// maxRate is the largest possible product, so that the result is a probability
+double Individual::deathProbability(double temp, bool env, bool dd, unsigned int mortalityStrength, int generation,
+                                    double redQueenStrength, double redQueen, double maxRate) {
     double m = mortalityStrength;
-    double rate = (1 + (m - 1) * (1 - std::min(envTerm(temp), 1.0))) *
-                  (1 + (m - 1) * (1 - std::min(ddTerm(m_LocalDensity), 1.0)));
+    double rate = 1.0;
+    if (env) rate *= 1 + (m - 1) * (1 - std::min(envTerm(temp), 1.0));
+    if (dd) rate *= 1 + (m - 1) * (1 - std::min(ddTerm(m_LocalDensity), 1.0));
+    if (m_posStrength > 0) rate *= 1 + (m - 1) * (1 - std::min(posTerm(m_LocalPositive), 1.0));
     if ((redQueenStrength != 0) || (redQueen != 0)) {
         rate /= 1 + redQueenStrength *
                     std::pow(2.71828, (-redQueen * (generation - 1 - m_Species->m_Date_of_Emergence)));
     }
-    return rate / (m * m);
+    return rate / maxRate;
 }
 
 

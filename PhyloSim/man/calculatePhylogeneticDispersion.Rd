@@ -38,9 +38,9 @@ In the type argument "PhylMeta" is equivalent to \code{\link{nullModel}} with ab
 
 ## Create a set of parameters
 par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
-        density = 0, environment = 0.5, specRate = 1)
+        negativeDD = 0, environment = 0.5, specRate = 1)
 par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
-        density = 1, environment = 0.5, specRate = 1)
+        negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Merge the parameter sets.
 par <- list(par1,par2)

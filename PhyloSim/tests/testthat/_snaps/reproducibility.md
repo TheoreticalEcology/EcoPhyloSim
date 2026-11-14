@@ -11,9 +11,9 @@
 
 ---
 
-    list(abundances = c(317L, 148L, 83L, 75L, 66L, 61L, 45L, 29L, 
-    23L, 21L, 18L, 7L, 3L, 2L, 1L, 1L), nTips = 16L, sac = c(2, 4.26, 
-    7.24, 12.58))
+    list(abundances = c(529L, 98L, 45L, 44L, 37L, 34L, 34L, 26L, 
+    16L, 11L, 7L, 5L, 5L, 3L, 1L, 1L, 1L, 1L, 1L, 1L), nTips = 20L, 
+        sac = c(1.78, 3.62, 6.3, 14.48))
 
 # results with only one fitness mechanism are numerically reproducible
 
@@ -37,4 +37,10 @@
     list(abundances = c(397L, 329L, 42L, 30L, 22L, 16L, 16L, 14L, 
     11L, 11L, 6L, 2L, 1L, 1L, 1L, 1L), nTips = 16L, sac = c(1.56, 
     3.3, 5.48, 11.1))
+    
+
+---
+
+    list(abundances = c(898L, 1L, 1L), nTips = 3L, sac = c(1.02, 
+    1.1, 1.18, 1.84))
 

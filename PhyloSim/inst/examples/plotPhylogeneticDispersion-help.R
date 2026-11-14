@@ -25,9 +25,9 @@ for (i in 1:length(scenarios)){
   pars[[i]] = createCompletePar(
     x = 20, y = 20, runs = 1000,
     scenario = scenarios[i], dispersal = dispersal[i],
-    specRate = 2, density = density[i],
+    specRate = 2, negativeDD = density[i],
     environment = environment[i],
-    fitnessBaseMortalityRatio = 5, densityCut = 1,
+    fitnessBaseMortalityRatio = 5, negativeDDCut = 1,
     seed = 1000)
 }
 \donttest{

@@ -14,7 +14,7 @@
 #'                        specRate=function()return(runif(1, 1, 10)))
 #' fixedParams <- list(x=30, y=30,
 #'                     runs=1000,
-#'                     densityCut=1,
+#'                     negativeDDCut=1,
 #'                     calculateSummaries=TRUE)
 #' 
 #' runPhylosimAnalysis(variableParams,
@@ -218,7 +218,7 @@ extractParams <- function(parList, params, outFormat="df") {
   if (outFormat == "df") {
     # out <- as.data.frame(do.call(what = rbind, args = parList))
     checkSuggested("data.table")
-    # one string per parameter, e.g. for several fitnessActsOn stages or a densityResponse function
+    # one string per parameter, e.g. for several fitnessActsOn stages or a negativeDDResponse function
     oneValue <- function(v) if (is.function(v) || length(v) > 1) paste(deparse(v), collapse = " ") else v
     out <- as.data.frame(data.table::rbindlist(lapply(parList, function(p) lapply(p[params], oneValue))))
     out <- out[, params]
