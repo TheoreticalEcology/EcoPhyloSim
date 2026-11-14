@@ -45,6 +45,7 @@
 * The bundled data sets `simu.envcom.local`, `simu.neutral.local` and `simu.neutral.global` had the class `c("list", "Phylosim")` instead of `PhyloSim`, so that `print()`, `summary()`, `plot()`, `getAverageTraits()` and `calculatePhylogeneticDispersion()` did not recognize them (#128).
 * `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
 * `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
+* `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
 
 ## Documentation
 
