@@ -14,6 +14,7 @@
 * `calculateSummaryStatistics()` returns `NA` if any statistic cannot be calculated; set `strict = FALSE` to get the previous behavior (#85).
 * `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
 * `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `density` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
+* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `densityCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `density` > 0, `2 * densityCut + 1` must not exceed `min(x, y)` (#152).
 * The `Model` element of the output of `runSimulation()` keeps the numeric values of `density` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).
 * Default plot sizes in `sac()` are log-spaced, as documented (#115).
@@ -27,6 +28,8 @@
 * The non-functional Leipzig model (`type = "Leipzig"`) and its C++ code were removed, and `runSimulation()` no longer accepts `type = "Rneutral"`. Unknown values of `type` now give an error instead of returning `NULL` (#112).
 * `NeutralMod()` was rewritten: argument names as in `createCompletePar()` (`xdim`/`ydim` renamed to `x`/`y`), new defaults (`x = 50`, `y = 50`, `runs = 100`, `specRate = 1`), local dispersal, density dependence, speciation at single births, and a `PhyloSim` object as output; the dead cell is never its own parent, as in `runSimulation()` (#112, #81).
 * `plotSpatialPhylo()` and `plotTraitDistribution()` color the species with the colorblind-safe viridis palette, ordered along the phylogeny, so that a species has the same color in both plots (#156).
+* `localPlots()` stops with an error if `size` is not a whole number between 1 and the shorter side of the grid, and the default plot sizes of `sac()` go up to the shorter side of the grid instead of `sqrt(x * y)` (#151).
+* `runSimulation()`: the warning for results with only one species says that the phylogeny is set to 0 and how to avoid this, instead of "Cannot build Phylogeny" (#153).
 * `runSimulation()`: with `prunePhylogeny = TRUE` (the default), the phylogeny contains only the extant species, so that its size no longer grows with the run length; extinct ancestors become internal nodes. Each census is placed half a generation after the events of its generation, and the tree has no root edge (see `?runSimulation`), so tree statistics change slightly. Writing large phylogenies is faster (#147).
 
 ## Bug fixes
@@ -39,13 +42,21 @@
 * `rac()`: a vector in `which.result` gave an error, and the bar plot had no rank labels (#113).
 * `sac()` with a single result (including the default, the last result) computed the curve from the first result; this also affected the `sacAuc` statistic of `calculateSummaryStatistics()` (#113).
 * `summary()` of a `PhylosimList` printed the column headers for the number of species and the number of runs in the wrong order (#113).
-* `getAverageTraits()` did not accept the output of `runSimulation()` (#113); the bundled data sets are still affected (#128).
+* `getAverageTraits()` did not accept the output of `runSimulation()` (#113).
 * `localPlots()` with `n = 1` returned two subplots (#116).
 * `runSimulation()` read memory outside of `airmat`, or crashed R, if its length did not match the grid; `callModel()` stops with an error instead of crashing R for invalid input such as `mortStrength < 1` (#13, #94, #118).
 * `runSimulation()`: the phylogeny was cut off, so that reading it failed, with `prunePhylogeny = FALSE`, for early values in `runs`, or with `fission`; with `prunePhylogeny = FALSE` and several values in `runs`, R crashed (#82, #97, #105).
 * `runSimulation()`: with `prunePhylogeny = TRUE`, the returned phylogeny contained extinct lineages without living descendants, and with either setting, each value in `runs` leaked a copy of all species ever created, so that memory use grew with the run length and the number of values in `runs`. Such lineages are now removed during the run; the simulated communities are unchanged. With `prunePhylogeny = FALSE`, the branches of extant species in intermediate results no longer extend to the last value in `runs` (#140).
 * `runSimulation()` with global dispersal: the dying individual could be its own parent, so that living species could get an extinction date (removed by `ape::drop.fossil()`, negative branch lengths, wrong species trait means); results with global dispersal change for a given seed. Grids must have at least 2 cells (#81).
 * `plotTraitDistribution()` changed the random number stream of the user, and its histograms were cut off above log(count) = 7 (#156).
+* The bundled data sets `simu.envcom.local`, `simu.neutral.local` and `simu.neutral.global` had the class `c("list", "Phylosim")` instead of `PhyloSim`, so that `print()`, `summary()`, `plot()` and `calculatePhylogeneticDispersion()` did not recognize them (#128).
+* `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
+* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
+* `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
+* `summary()` of a `PhyloSim` object printed the class name as `Phylosim` (#155).
+* `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
+* `localPlots()` and `sac()` failed with "subscript out of bounds" if the grid is not square (`x != y`); on square grids, the `positions` of the subplots had x and y swapped. The fix changes `sac()` results for a fixed seed (#151).
+* `sac()`: a vector in `which.result` gave an error (#151).
 * `runSimulation()`: species that went extinct in the last generation before a census were kept by `ape::drop.fossil()`; with `prunePhylogeny = TRUE`, the species pool of the `dispersion` statistic of `calculateSummaryStatistics()` contained extinct ancestors (#147).
 
 ## Documentation

@@ -17,11 +17,11 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{y}{Integer, Dimension of the model landscape in y-direction}
 
-\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * dispersal must not exceed min(x, y).}
+\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y).}
 
 \item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.}
 
-\item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution)}
+\item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution); must not exceed x * y}
 
 \item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence. Density value must be between 0 and 1.}
 
@@ -33,7 +33,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{fitnessBaseMortalityRatio}{Integer, determines the fitness based mortality ratio. Must be greater than or equal to 1.}
 
-\item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y)}
+\item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y), and 2 * densityCut + 1 must not exceed min(x, y) if density > 0}
 
 \item{seed}{Integer, sets the random seed. If NULL (default), a random seed is drawn.}
 

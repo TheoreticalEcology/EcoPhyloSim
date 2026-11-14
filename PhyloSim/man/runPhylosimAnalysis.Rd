@@ -16,14 +16,14 @@ runPhylosimAnalysis(variableParams, fixedParams, nRuns, outDir,
 
 \item{outDir}{String, specifying the directory to which the output will be written}
 
-\item{summariesOnly}{Boolean, specifying whether only the summary statistics should be saved.}
+\item{summariesOnly}{Logical. If TRUE, only the summary statistics are saved, to the files summary_FROM-TO instead of out_FROM-TO, so that \code{\link{chunkwiseCalculateSummaries}} is not needed. Requires calculateSummaries = TRUE in fixedParams.}
 
 \item{nCores}{Integer or "auto", number of parallel cores to use for simulations. "auto" uses all detected cores minus one.}
 
 \item{chunkSize}{Integer or "auto" (default), specifying the number of simulations per save file. Values above 10,000 give a warning, as they might deplete the RAM.}
 }
 \value{
-None. Writes paramOverview.txt and the files param_FROM-TO and out_FROM-TO to outDir.
+None. Writes paramOverview.txt and the files param_FROM-TO and out_FROM-TO (summary_FROM-TO if summariesOnly = TRUE) to outDir.
 }
 \description{
 This function is used to perform many (>1000) PhyloSim simulations in parallel with only one function call. The user can specify parameters that are fixed across all simulations and parameters that are variable. The results are saved to a specified folder.

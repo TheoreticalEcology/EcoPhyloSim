@@ -306,8 +306,8 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         //double averageCompetitionTrait = 0;
         //double spread = 0;
 
-        double weights[m_LandscapeSize];
-        double cumWeights[m_LandscapeSize];
+        std::vector<double> weights(m_LandscapeSize); // fixes #149 (heap instead of stack)
+        std::vector<double> cumWeights(m_LandscapeSize);
 
         // all possible parent permutations
         std::vector <std::pair<int, int> > parents(m_LandscapeSize);
@@ -385,7 +385,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
             do { // fixes #81
                 if (m_reproduction) {
-                    new_parent = m_RandomGenerator.multinomialDraw(cumWeights, m_LandscapeSize - 1, seedSum);
+                    new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), m_LandscapeSize - 1, seedSum);
                 } else {
                     new_parent = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
                 }
@@ -651,7 +651,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
         std::vector <std::pair<int, int> > parents(m_KernelSize);
 
-        double weights[m_KernelSize];
+        std::vector<double> weights(m_KernelSize); // fixes #149 (heap instead of stack)
         array_length = 0;
         seedSum = 0.0;
 
@@ -688,13 +688,13 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         // TODO could be moved in the upper loop
         // TODO check multinomial implementation correct, should cumweights start with 0?
 
-        double cumWeights[array_length];
+        std::vector<double> cumWeights(array_length);
         cumWeights[0] = weights[0];
         for (unsigned int i = 1; i < array_length; i++) {
             cumWeights[i] = weights[i] + cumWeights[i - 1];
         }
 
-        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length - 1, seedSum);
+        new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
         x_parent = parents[new_parent].first;
         y_parent = parents[new_parent].second;
 

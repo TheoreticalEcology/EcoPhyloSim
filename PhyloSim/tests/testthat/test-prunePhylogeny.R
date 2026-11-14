@@ -44,7 +44,7 @@ test_that("pruning removes extinct lineages and leaves the community unchanged (
 
 test_that("species that died out in the last generation are removed by drop.fossil() (#147)", {
   for (seed in 1:10) for (prune in c(TRUE, FALSE)) {
-    # suppressWarnings: some runs end with a single species ("Cannot build Phylogeny")
+    # suppressWarnings: some runs end with a single species (phylogeny set to 0)
     o <- suppressWarnings(quietSimulation(x = 3, y = 3, specRate = 1, runs = 2000, seed = seed,
                          convertToBinaryTree = FALSE, prunePhylogeny = prune))$Output[[1]]
     extant <- paste0("s", unique(c(o$specMat)))

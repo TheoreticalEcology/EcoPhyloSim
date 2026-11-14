@@ -2,7 +2,7 @@
 #' @description Generates subplots from a metacommunity, simulating field conditions
 #' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least a species matrix ($specMat)
 #' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.
-#' @param size A single value (or a vector) determining the edge length(s) of the generated subplots
+#' @param size A single value (or a vector) determining the edge length(s) of the generated subplots. Must not exceed the shorter side of the grid.
 #' @param n The number of subplots to be generated for each element of size
 #' @param community Logical, determining whether to generate a community table or not. default is FALSE
 #' @param plot Logical, determining whether the results should be shown graphically. Default is FALSE.
@@ -21,10 +21,11 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
   
   
   matrix <- simu$specMat
+  checkmate::assert_integerish(size, lower = 1, upper = min(dim(matrix)), any.missing = FALSE, min.len = 1)
   env <- simu$envMat
   comp <- simu$compMat
   
-  if(plot == T) plotmat <-matrix(0, ncol(matrix), nrow(matrix))
+  if(plot == T) plotmat <-matrix(0, nrow(matrix), ncol(matrix))
   
   
   subPlots <- list()
@@ -68,9 +69,10 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
       }
       
       
-      subPlots[[count]]  <- matrix[rsel, csel]
-      envPlots[[count]] <- env[rsel, csel]
-      compPlots[[count]] <- comp[rsel, csel]
+      # rsel indexes columns (x), csel rows (y) of specMat; fixes #151 (non-square grids)
+      subPlots[[count]]  <- matrix[csel, rsel]
+      envPlots[[count]] <- env[csel, rsel]
+      compPlots[[count]] <- comp[csel, rsel]
       
       # TODO: Is this the correct way to calculate the center of a rectangle in a matrix?
       position <- c(rsel[1] + size[k] / 2 - 0.5, csel[1] + size[k] / 2 - 0.5)
@@ -79,7 +81,7 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
       
       
       if(plot == T){
-        plotmat[rsel, csel] <- 1
+        plotmat[csel, rsel] <- 1
         
       }
     }
