@@ -36,8 +36,10 @@ checkPar <- function(par) {
                              .var.name = paste0(dd, "Width"), add = coll) # > 0
     checkmate::assert_int(par[[paste0(dd, "Cut")]], lower = 1, .var.name = paste0(dd, "Cut"), add = coll)
   }
-  if (!is.function(par[["negativeDDResponse"]]) && !identical(par[["negativeDDResponse"]], "linear")) {
-    coll$push("Variable 'negativeDDResponse': Must be 'linear' or a function.")
+  r <- par[["negativeDDResponse"]]
+  if (!(identical(r, "linear") || is.function(r) ||
+        (is.null(dim(r)) && checkmate::test_numeric(r, lower = 0, upper = 1, any.missing = FALSE, min.len = 2)))) {
+    coll$push("Variable 'negativeDDResponse': Must be 'linear', a function or at least 2 values between 0 and 1.")
   }
   checkmate::assert_int(par[["fitnessBaseMortalityRatio"]], lower = 1,
                         .var.name = "fitnessBaseMortalityRatio", add = coll)
@@ -94,9 +96,14 @@ checkPar <- function(par) {
     stop("redQueen and redQueenStrength have no effect with fitnessActsOn = 'recruitment'; ",
          "add 'mortality' or 'reproduction' to fitnessActsOn.", call. = FALSE)
   }
+  # a function is stored as its values, so that the parameters also run in other R sessions
   if (is.function(par[["negativeDDResponse"]])) {
-    tab <- densityResponseTable(par[["negativeDDResponse"]], 101)
-    if (any(diff(tab) > 1e-12)) {
+    k <- nrow(getCircularOffsets(par[["negativeDDCut"]]))
+    par[["negativeDDResponse"]] <- densityResponseTable(par[["negativeDDResponse"]],
+                                                        if (par[["negativeDDKernel"]] == "species") k + 1 else 1001)
+  }
+  if (is.numeric(par[["negativeDDResponse"]])) {
+    if (any(diff(par[["negativeDDResponse"]]) > 1e-12)) {
       message("negativeDDResponse increases with the similarity to the neighbors, i.e. similar neighbors ",
               "increase fitness (use positiveDD for positive density dependence).")
     }

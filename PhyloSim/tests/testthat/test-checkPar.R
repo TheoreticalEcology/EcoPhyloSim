@@ -66,6 +66,13 @@ test_that("density dependence options and fitnessActsOn stages are checked (#144
   expect_error(smallPar(negativeDD = 0.5, negativeDDResponse = function(S) 2 - S), "between 0 and 1")
   expect_message(smallPar(negativeDD = 0.5, negativeDDResponse = function(S) S), "increases")
   expect_message(smallPar(negativeDDResponse = function(S) 1 - S), "no effect")
+  expect_error(smallPar(negativeDDResponse = 0.5), "negativeDDResponse")
+  expect_error(smallPar(negativeDDResponse = c(1, 1.5)), "negativeDDResponse")
+  # a function is stored as its values, also if it uses variables of its environment
+  a <- 0.3
+  p <- smallPar(negativeDD = 1, negativeDDKernel = "species", negativeDDResponse = function(S) exp(-a * 4 * S))
+  expect_equal(p$negativeDDResponse, exp(-a * 0:4))
+  expect_length(smallPar(negativeDD = 1, negativeDDResponse = function(S) 1 - S)$negativeDDResponse, 1001)
   expect_message(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 2), "negativeDDWidth")
   expect_error(smallPar(fitnessActsOn = "recruitment", redQueen = 0.5), "no effect")
   expect_error(smallPar(fitnessActsOn = character(0)), "fitnessActsOn")

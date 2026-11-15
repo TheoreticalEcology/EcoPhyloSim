@@ -127,8 +127,8 @@ offspring in the free cell. Corresponds to \code{"recruitment"} in \code{fitness
 
 \item{densityTable}{Numeric vector with values between 0 and 1: the density term of fitness as a function
 of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
-the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates it from
-\code{negativeDDResponse} in \code{\link{createCompletePar}}.}
+the linear term \code{1 - compStrength * S}. It is \code{negativeDDResponse} of
+\code{\link{createCompletePar}}, where a function is stored as such values.}
 
 \item{positiveStrength}{Numeric between 0 and 1, strength of positive density dependence
 (\code{positiveDD} in \code{\link{createCompletePar}}); 0 switches it off.}

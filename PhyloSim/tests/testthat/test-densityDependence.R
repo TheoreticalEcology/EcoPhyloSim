@@ -18,8 +18,9 @@ test_that("environment and density dependence together are no longer neutral (#1
 test_that("a density response function equal to the linear one gives identical results", {
   run <- function(...) quietSimulation(x = 20, y = 20, dispersal = 1, runs = 100, specRate = 2,
                                        negativeDD = 0.5, negativeDDKernel = "species", seed = 1, ...)
-  expect_identical(run()$Output[[1]]$specMat,
-                   run(negativeDDResponse = function(S) 1 - 0.5 * S)$Output[[1]]$specMat)
+  linear <- run()$Output[[1]]$specMat
+  expect_identical(run(negativeDDResponse = function(S) 1 - 0.5 * S)$Output[[1]]$specMat, linear)
+  expect_identical(run(negativeDDResponse = c(1, 0.5))$Output[[1]]$specMat, linear)
 })
 
 test_that("the species kernel gives conspecific density dependence in mortality", {

@@ -29,15 +29,9 @@ runSimulation <- function(par)
     mortalityFitness <- "mortality" %in% actsOn
     reproductiveFitness <- "reproduction" %in% actsOn
 
-    # user-defined density response as a table over the similarity S in [0, 1]; for the
-    # species kernel, exactly at S = 0, 1/k, ..., 1 (k neighbors), otherwise on a fine grid
     kernels <- c("absolute", "gaussian", "species")
-    densityTable <- numeric(0)
-    if (is.function(par$negativeDDResponse)) {
-      k <- nrow(getCircularOffsets(par$negativeDDCut))
-      densityTable <- densityResponseTable(par$negativeDDResponse,
-                                           if (par$negativeDDKernel == "species") k + 1 else 1001)
-    }
+    # user-defined density response, stored by checkPar() as values over the similarity S in [0, 1]
+    densityTable <- if (is.numeric(par$negativeDDResponse)) par$negativeDDResponse else numeric(0)
     
     # negativeDD and environment stay numeric, so that the stored $Model passes checkPar() when rerun (#118)
     par$compStrength <- if (par$negativeDD == 0) 1 else par$negativeDD
