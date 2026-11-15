@@ -60,7 +60,10 @@ NULL
 #'
 #' @name pPD.pvalues
 #' @format A list of length 1, wrapping a list of 28 scenarios (one for each combination of the 7 x-axis and 4 y-axis positions in \code{\link{pPD.positions}}). Each scenario is itself a list of 9 elements, named "2" to "10", corresponding to the sample plot sizes (argument \code{plotlengths}) used when the data was generated with \code{\link{calculatePhylogeneticDispersion}}. Each of these holds a numeric vector of p-values, one for each of the 200 sample plots drawn for that scenario/plot-size combination.
-#' @source created with \code{\link{calculatePhylogeneticDispersion}}
+#' @source created with the script \code{data-raw/pPD.R} in the package repository:
+#' one run of 50,000 generations per scenario on a 50 x 50 grid, and the "PhylMeta" null
+#' model of \code{\link{calculatePhylogeneticDispersion}} with 500 replicates. The data
+#' only illustrate the plot.
 NULL
 
 
@@ -121,9 +124,10 @@ NULL
 #'   single species (at least 50 observations) and their \code{abundance}, for each
 #'   replicate (\code{rep})}
 #'    }
-#' \code{info} contains metadata for reproducibility: the package commit used for
-#' the simulations, checksums of the script versions used and notes on the run
-#' (\code{run}), the date of combining, package and R versions at combining,
+#' \code{info} contains metadata for reproducibility: the start times, package
+#' commit, checksums of the script versions used and notes on the run
+#' (\code{run}), the package commit used for the simulations (\code{commit}), the
+#' date of combining, package and R versions at combining,
 #' platform, operating system, processor, versions of the loaded packages, the
 #' number of replicates and generations (\code{modes}), and the number of runs,
 #' failed runs and the hours of simulation time (sum of the runtimes of the core

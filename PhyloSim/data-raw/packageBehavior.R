@@ -64,7 +64,7 @@ taskTable <- function(mode) {
     for (n in names(base)) if (is.null(d[[n]])) d[[n]] <- base[[n]]
     d$block <- b
     d$setting <- seq_len(nrow(d))
-    # density > 1 is not allowed (#145); removed after numbering, so that the
+    # density > 1 is not allowed (#96); removed after numbering, so that the
     # seeds and file names of the other settings stay unchanged
     d <- d[d$density <= 1, ]
     d <- d[rep(seq_len(nrow(d)), each = m$reps), ]
@@ -289,7 +289,10 @@ if (length(args) && args[1] == "run") {
   # records the commit and the copy and checksum of the script that was used
   si <- sessionInfo()
   runInfo <- file.path(cacheDir, "RUNINFO.txt")
-  info <- list(run = if (file.exists(runInfo)) readLines(runInfo), combined = Sys.time(),
+  run <- if (file.exists(runInfo)) readLines(runInfo)
+  line <- grep("commit", run, value = TRUE)[1]
+  commit <- if (is.na(line)) "unknown" else regmatches(line, regexpr("[0-9a-f]{7,40}", line))
+  info <- list(run = run, commit = commit, combined = Sys.time(),
                package = as.character(packageVersion("EcoPhyloSim")),
                R = si$R.version$version.string, platform = si$platform, os = si$running,
                cpu = Sys.getenv("PROCESSOR_IDENTIFIER"),
@@ -308,9 +311,7 @@ if (length(args) && args[1] == "run") {
   # optional archive outside the package (Rscript ... combine <archive folder>):
   # full results, the raw cache and the script, in a folder <date>_<commit>
   if (length(args) > 1) {
-    line <- grep("commit", info$run, value = TRUE)[1]
-    commit <- if (is.na(line)) character(0) else regmatches(line, regexpr("[0-9a-f]{7,40}", line))
-    dir <- file.path(args[2], paste(format(Sys.Date()), if (length(commit)) commit else "unknown", sep = "_"))
+    dir <- file.path(args[2], paste(format(Sys.Date()), commit, sep = "_"))
     dir.create(dir, recursive = TRUE)
     saveRDS(c(full, list(info = info)), file.path(dir, "packageBehavior-full.rds"))
     file.copy(list.files(cacheDir, "\\.(txt|R)$", full.names = TRUE), dir)

@@ -568,7 +568,7 @@ with the script `data-raw/packageBehavior.R` in the
 their summaries are stored in the data set `packageBehavior` (see
 `?packageBehavior`). They were run with an earlier version of the package
 (commit
-`r sub(".*: ([0-9a-f]{7}).*", "\\1", packageBehavior$info$run[1])`), in which
+`r packageBehavior$info$commit`), in which
 polytomies of the phylogeny were resolved at random
 ([#174](https://github.com/TheoreticalEcology/EcoPhyloSim/pull/174)); with the
 current version, the Colless index would differ slightly.
@@ -762,7 +762,7 @@ the main runs, each setting was simulated
 `r format(packageBehavior$info$modes$main$generations[["default"]], big.mark = ",", scientific = FALSE)`
 generations
 (`r format(packageBehavior$info$modes$main$generations[["density"]], big.mark = ",", scientific = FALSE)`
-with density dependence,
+in the density block,
 `r format(packageBehavior$info$modes$main$generations[["neutral"]], big.mark = ",", scientific = FALSE)`
 in the neutral block).
 
@@ -779,7 +779,7 @@ each setting for
 `r format(packageBehavior$info$modes$pilot$generations[["default"]], big.mark = ",", scientific = FALSE)`
 generations
 (`r format(packageBehavior$info$modes$pilot$generations[["density"]], big.mark = ",", scientific = FALSE)`
-for density dependence) with
+in the density block) with
 `r packageBehavior$info$modes$pilot$reps` replicates. The figure shows the
 replicate mean (line) and the variation between replicates (band: mean ± sd)
 of each indicator over time for five settings. Most indicators settle within

@@ -1,0 +1,120 @@
+---
+title: "EcoPhyloSim: model behavior across versions"
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+---
+
+This document records how the biological behavior of the model changes between
+versions of EcoPhyloSim. Each version is represented by one run of
+`PhyloSim/data-raw/packageBehavior.R` (see the vignette chapter "Emerging
+patterns" and `?packageBehavior`), exported with `addRun.R` to
+`runs/<date>_<commit>.csv` (replicate mean, sd and number of replicates of each
+indicator at the last census, for every setting). The full results of each run
+are archived outside the repository. Behavior that differs from expectations but
+is not a bug of the code is noted here; problems of the code go to issues.
+
+To add a version: run and combine `packageBehavior.R`, run
+`Rscript model-behavior/addRun.R` from the repository root, add a section with
+notes below, and render this file with `quarto render model-behavior/model-behavior.qmd`.
+If parameters are renamed or the design changes, update the definitions of the
+key settings below.
+
+```{r setup}
+files <- sort(list.files("runs", pattern = "\\.csv$", full.names = TRUE))
+runs <- lapply(files, read.csv)
+names(runs) <- sub("\\.csv$", "", basename(files))
+
+# key settings: block and parameter values
+key <- list(
+  "Neutral, global dispersal" = list(block = "neutral", x = 50, specRate = 2),
+  "Neutral, dispersal 1 (reference)" = list(block = "dispersal", dispersal = "1"),
+  "Environment 1, global" = list(block = "environment", dispersal = "global", environment = 1),
+  "Environment 1, dispersal 1" = list(block = "environment", dispersal = "1", environment = 1),
+  "Density 1, dispersal 1" = list(block = "density", density = 1, densityCut = 1),
+  "Environment 0.5 + density 0.5" = list(block = "envDensity", environment = 0.5, density = 0.5),
+  "Environment 1 + density 1, dispersal 1" = list(block = "assembly", dispersal = "1", environment = 1, density = 1),
+  "Protracted 1" = list(block = "speciation", protracted = 1, redQueen = 0),
+  "Red Queen 0.01 (strength 100)" = list(block = "speciation", redQueen = 0.01))
+indicators <- c("richness", "shannon", "conspecificNeighbors", "corTraitEnv",
+                "sdCompetitionTrait", "colless", "gamma", "meanSpeciesAge", "cndd")
+
+# "mean ± half-width of the 95% confidence interval" of one key setting
+fingerprint <- function(d, k) {
+  s <- d
+  for (n in names(k)) if (n %in% names(s)) s <- s[s[[n]] == k[[n]], ]
+  sapply(indicators, function(i) {
+    r <- s[s$indicator == i, ]
+    if (nrow(r) != 1) return(NA)
+    ci <- qt(0.975, pmax(r$n - 1, 1)) * r$sd / sqrt(r$n)
+    sprintf("%s ± %s", signif(r$mean, 3), signif(ci, 1))
+  })
+}
+```
+
+## Key settings per version
+
+Replicate mean ± half-width of the 95% confidence interval at the last census
+(50 × 50 cells, `specRate = 2`, other parameters at their defaults unless
+stated).
+
+```{r tables, results = "asis"}
+for (v in names(runs)) {
+  tab <- t(sapply(key, fingerprint, d = runs[[v]]))
+  cat("\n### ", v, "\n\n", sep = "")
+  print(knitr::kable(tab))
+  cat("\n")
+}
+```
+
+```{r compare, eval = length(runs) > 1, results = "asis"}
+cat("\n## Changes between the last two versions\n\n")
+cat("Difference of the replicate means (newer minus older) for all settings with",
+    "the same parameter values in both runs, for indicators whose confidence",
+    "intervals do not overlap.\n\n")
+v <- tail(names(runs), 2)
+# match settings by block and parameter values (columns present in both runs)
+cols <- setdiff(intersect(names(runs[[v[1]]]), names(runs[[v[2]]])),
+                c("setting", "generation", "generations", "mean", "sd", "n"))
+m <- merge(runs[[v[1]]], runs[[v[2]]], by = cols, suffixes = c(".old", ".new"))
+cols <- cols[vapply(m[cols], function(x) length(unique(x)) > 1, logical(1))]
+ci <- function(sd, n) qt(0.975, pmax(n - 1, 1)) * sd / sqrt(n)
+m$diff <- m$mean.new - m$mean.old
+sig <- abs(m$diff) > ci(m$sd.old, m$n.old) + ci(m$sd.new, m$n.new)
+print(knitr::kable(m[which(sig), c(cols, "mean.old", "mean.new", "diff")], digits = 3,
+                   row.names = FALSE))
+```
+
+## Notes per version
+
+### 2026-11-15, commit 852c61e (version 0.3.1, before the redesign of density dependence)
+
+Run with commit 852c61e, before the redesign of fitness and density dependence
+proposed in #172. Polytomies of the phylogeny were resolved at random (changed
+in #174, which changes the Colless index for a given seed). Runs of 50,000
+generations (100,000 in the density block, 200,000 in the neutral block).
+
+- Neutral model: richness up to about 15% above the Ewens sampling formula
+  (batch speciation, #124); share of conspecific neighbors and rank–abundance
+  curve as expected; Colless index and gamma statistic positive.
+- Density dependence is weak and saturates already at `density = 0.25`:
+  richness increases only from about 20 to 25 species, and the competition
+  traits split into two groups at the ends of their range [0, 1] (#133, #144).
+- Combined with environmental filtering, density dependence reduces richness.
+- The model is neutral if environment and density are both > 0 and their sum is
+  ≤ 1 (#144).
+- Environmental filtering with global dispersal stays weak (correlation of trait
+  and environment 0.24 at `environment = 1`) and becomes even weaker with narrow
+  niches; with local dispersal, traits match the environment almost perfectly.
+  Filtering does not increase spatial aggregation.
+- Filtering makes trees more balanced (Colless index < 0) and increases the
+  gamma statistic.
+- A Red Queen advantage of 0.01 with strength 100 more than doubles richness and
+  reduces the mean species age from about 400 to 20 generations.
+- Protracted speciation acts like a speciation rate reduced by exp(-p).
+- CNDD estimated from mortality: about 0 in the neutral model, positive with
+  density dependence, negative with environmental filtering (strongest with
+  global dispersal).

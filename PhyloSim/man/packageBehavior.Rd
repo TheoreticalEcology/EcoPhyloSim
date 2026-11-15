@@ -40,9 +40,10 @@ the number of conspecifics within radius 2 in a logistic regression of death
 single species (at least 50 observations) and their \code{abundance}, for each
 replicate (\code{rep})}
 }
-\code{info} contains metadata for reproducibility: the package commit used for
-the simulations, checksums of the script versions used and notes on the run
-(\code{run}), the date of combining, package and R versions at combining,
+\code{info} contains metadata for reproducibility: the start times, package
+commit, checksums of the script versions used and notes on the run
+(\code{run}), the package commit used for the simulations (\code{commit}), the
+date of combining, package and R versions at combining,
 platform, operating system, processor, versions of the loaded packages, the
 number of replicates and generations (\code{modes}), and the number of runs,
 failed runs and the hours of simulation time (sum of the runtimes of the core

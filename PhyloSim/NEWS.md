@@ -56,7 +56,7 @@
 * `plotTraitDistribution()` changed the random number stream of the user, and its histograms were cut off above log(count) = 7 (#156).
 * The bundled data sets `simu.envcom.local`, `simu.neutral.local` and `simu.neutral.global` had the class `c("list", "Phylosim")` instead of `PhyloSim`, so that `print()`, `summary()`, `plot()` and `calculatePhylogeneticDispersion()` did not recognize them (#128).
 * `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
-* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
+* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number. The example data set `pPD.pvalues` was recreated with the corrected null model (#132, #136).
 * `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
 * `summary()` of a `PhyloSim` object printed the class name as `Phylosim` (#155).
 * `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
