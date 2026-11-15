@@ -5,9 +5,9 @@
 # README.md that describes the files. For archived runs, extract cache.tar.gz first.
 #
 # Run from the repository root:
-#   Rscript model-behavior/archive.R <cache folder> <output folder> <label> <commit>
+#   Rscript model-behavior/archive.R <cache folder> <output folder> <version> <commit>
 # e.g. Rscript model-behavior/archive.R PhyloSim/data-raw/cache ../EcoPhyloSim-runs 0.3.1 852c61e
-# writes <output folder>/<label>_<commit>/.
+# writes <output folder>/<version>_<commit>/.
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 4)

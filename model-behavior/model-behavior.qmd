@@ -11,22 +11,35 @@ execute:
 This document records how the biological behavior of the model changes between
 versions of EcoPhyloSim. Each version is represented by one run of
 `PhyloSim/data-raw/packageBehavior.R` (see the vignette chapter "Emerging
-patterns" and `?packageBehavior`), exported with `addRun.R` to
-`runs/<date>_<commit>.csv` (replicate mean, sd and number of replicates of each
-indicator at the last census, for every setting). The full results of each run
-are archived outside the repository. Behavior that differs from expectations but
-is not a bug of the code is noted here; problems of the code go to issues.
+patterns" and `?packageBehavior`), archived with `archive.R` and exported with
+`addRun.R` to `runs/<version>_<commit>.csv.gz` (the value of each indicator at
+the last census of each replicate, the pooled CNDD coefficient and the runtime in
+seconds, for every setting of the main run). Behavior that differs from
+expectations but is not a bug of the code is noted here; problems of the code go
+to issues. Runtimes are comparable only between runs on the same machine.
 
-To add a version: run and combine `packageBehavior.R`, run
-`Rscript model-behavior/addRun.R` from the repository root, add a section with
-notes below, and render this file with `quarto render model-behavior/model-behavior.qmd`.
-If parameters are renamed or the design changes, update the definitions of the
-key settings below.
+To add a version: run `packageBehavior.R`, archive the cache with
+`Rscript model-behavior/archive.R <cache> <output folder> <version> <commit>`, run
+`Rscript model-behavior/addRun.R <archive folder>` from the repository root, add a
+section with notes below, and render this file with
+`quarto render model-behavior/model-behavior.qmd`. If parameters are renamed or the
+design changes, update the definitions of the key settings below.
 
 ```{r setup}
-files <- sort(list.files("runs", pattern = "\\.csv$", full.names = TRUE))
-runs <- lapply(files, read.csv)
-names(runs) <- sub("\\.csv$", "", basename(files))
+files <- list.files("runs", pattern = "\\.csv\\.gz$", full.names = TRUE)
+# order versions by version number (file names <version>_<commit>.csv.gz)
+files <- files[order(numeric_version(sub("_.*", "", basename(files))))]
+reps <- lapply(files, read.csv)
+names(reps) <- sub("\\.csv\\.gz$", "", basename(files))
+# replicate mean, sd and number of non-missing replicates per setting and indicator
+# (missing parameter values as "NA", so that aggregate() keeps their settings)
+runs <- lapply(reps, function(d) {
+  d <- d[!is.na(d$value), ]
+  keys <- setdiff(names(d), c("simulation", "rep", "value"))
+  d[keys] <- lapply(d[keys], function(x) if (anyNA(x)) ifelse(is.na(x), "NA", x) else x)
+  a <- aggregate(d["value"], d[keys], function(v) c(mean = mean(v), sd = sd(v), n = length(v)))
+  data.frame(a[keys], mean = a$value[, "mean"], sd = a$value[, "sd"], n = a$value[, "n"])
+})
 
 # key settings: block and parameter values
 key <- list(
@@ -40,7 +53,7 @@ key <- list(
   "Protracted 1" = list(block = "speciation", protracted = 1, redQueen = 0),
   "Red Queen 0.01 (strength 100)" = list(block = "speciation", redQueen = 0.01))
 indicators <- c("richness", "shannon", "conspecificNeighbors", "corTraitEnv",
-                "sdCompetitionTrait", "colless", "gamma", "meanSpeciesAge", "cndd")
+                "sdCompetitionTrait", "colless", "gamma", "meanSpeciesAge", "cndd", "runtime")
 
 # "mean ± half-width of the 95% confidence interval" of one key setting
 fingerprint <- function(d, k) {
@@ -57,8 +70,9 @@ fingerprint <- function(d, k) {
 
 ## Key settings per version
 
-Replicate mean ± half-width of the 95% confidence interval at the last census
-(50 × 50 cells, `specRate = 2`, other parameters at their defaults unless
+Replicate mean ± half-width of the 95% confidence interval (indicators at the last
+census, CNDD over the last five generations, runtime of the whole simulation in
+seconds; 50 × 50 cells, `specRate = 2`, other parameters at their defaults unless
 stated).
 
 ```{r tables, results = "asis"}
@@ -72,25 +86,47 @@ for (v in names(runs)) {
 
 ```{r compare, eval = length(runs) > 1, results = "asis"}
 cat("\n## Changes between the last two versions\n\n")
-cat("Difference of the replicate means (newer minus older) for all settings with",
-    "the same parameter values in both runs, for indicators whose confidence",
-    "intervals do not overlap.\n\n")
-v <- tail(names(runs), 2)
-# match settings by block and parameter values (columns present in both runs)
-cols <- setdiff(intersect(names(runs[[v[1]]]), names(runs[[v[2]]])),
-                c("setting", "generation", "generations", "mean", "sd", "n"))
-m <- merge(runs[[v[1]]], runs[[v[2]]], by = cols, suffixes = c(".old", ".new"))
-cols <- cols[vapply(m[cols], function(x) length(unique(x)) > 1, logical(1))]
-ci <- function(sd, n) qt(0.975, pmax(n - 1, 1)) * sd / sqrt(n)
-m$diff <- m$mean.new - m$mean.old
-sig <- abs(m$diff) > ci(m$sd.old, m$n.old) + ci(m$sd.new, m$n.new)
-print(knitr::kable(m[which(sig), c(cols, "mean.old", "mean.new", "diff")], digits = 3,
-                   row.names = FALSE))
+v <- tail(names(reps), 2)
+old <- reps[[v[1]]]
+new <- reps[[v[2]]]
+# a parameter that exists in only one version: keep only its most frequent value
+# there (the default), so that settings are not pooled
+for (d in c("old", "new")) {
+  x <- get(d)
+  for (n in setdiff(names(x), c(names(old), names(new))[duplicated(c(names(old), names(new)))])) {
+    if (n %in% c("simulation", "setting", "rep", "generations", "value")) next
+    x <- x[x[[n]] %in% names(which.max(table(x[[n]]))), names(x) != n]
+  }
+  assign(d, x)
+}
+cols <- setdiff(intersect(names(old), names(new)), c("simulation", "setting", "rep", "generations", "value"))
+rowKey <- function(d) do.call(paste, c(d[cols], sep = "\r"))
+o <- split(old$value, rowKey(old))
+n <- split(new$value, rowKey(new))
+both <- setdiff(intersect(names(o), names(n)), grep("\rruntime$", names(o), value = TRUE))
+p <- vapply(both, function(k) tryCatch(t.test(o[[k]], n[[k]])$p.value,
+                                       error = function(e) NA_real_), numeric(1))
+m <- unique(new[cols])[match(both, rowKey(unique(new[cols]))), ]
+m$mean.old <- vapply(o[both], mean, numeric(1), na.rm = TRUE)
+m$mean.new <- vapply(n[both], mean, numeric(1), na.rm = TRUE)
+m$d <- (m$mean.new - m$mean.old) /
+  sqrt((vapply(o[both], var, numeric(1), na.rm = TRUE) + vapply(n[both], var, numeric(1), na.rm = TRUE)) / 2)
+m$p.adj <- p.adjust(p, "holm")
+cat("Comparison of ", v[2], " with ", v[1], ": difference of the replicate means (newer",
+    " minus older) for settings with the same parameter values in both runs, where a Welch",
+    " test of the replicates is significant after Holm correction over all ", length(both),
+    " comparisons (p < 0.05; runtime not tested); d is the difference in units of the pooled",
+    " standard deviation. Settings and indicators only in one version: ",
+    length(setdiff(union(names(o), names(n)), intersect(names(o), names(n)))), ".\n\n", sep = "")
+sig <- which(m$p.adj < 0.05)
+shown <- cols[vapply(m[cols], function(x) length(unique(x)) > 1, logical(1))]
+if (length(sig)) print(knitr::kable(m[sig, c(shown, "mean.old", "mean.new", "d", "p.adj")],
+                                    digits = 3, row.names = FALSE)) else cat("No significant differences.\n")
 ```
 
 ## Notes per version
 
-### 2026-11-15, commit 852c61e (version 0.3.1, before the redesign of density dependence)
+### 0.3.1, commit 852c61e (before the redesign of density dependence)
 
 Run with commit 852c61e, before the redesign of fitness and density dependence
 proposed in #172. Polytomies of the phylogeny were resolved at random (changed
