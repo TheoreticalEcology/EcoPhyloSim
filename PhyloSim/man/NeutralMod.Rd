@@ -5,8 +5,8 @@
 \title{Neutral model in R}
 \usage{
 NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
-  specRate = 1, negativeDD = 0, negativeDDCut = 1, positiveDD = 0,
-  positiveDDCut = 1, seed = NULL, verbose = TRUE)
+  specRate = 1, negativeDD = 0, negativeDDCut = 1, seed = NULL,
+  verbose = TRUE, positiveDD = 0, positiveDDCut = 1, density, densityCut)
 }
 \arguments{
 \item{x}{Integer, dimension of the landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
@@ -23,11 +23,13 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{negativeDDCut}{Integer, radius of the neighborhood for negative density dependence. If \code{negativeDD > 0}, at most \code{(min(x, y) - 1) / 2}, so that no cell is counted twice.}
 
-\item{positiveDD, positiveDDCut}{Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.}
-
 \item{seed}{Integer, random seed. If NULL (default), a seed is drawn. Apart from this draw, the random number stream of the R session is not changed.}
 
 \item{verbose}{Logical, if TRUE, reports progress every 100 generations and the runtime}
+
+\item{positiveDD, positiveDDCut}{Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.}
+
+\item{density, densityCut}{Deprecated names of \code{negativeDD} and \code{negativeDDCut}.}
 }
 \value{
 An object of class \code{PhyloSim}, see \code{\link{runSimulation}}. Each element of \code{Output} contains only \code{specMat}, a matrix of species IDs with \code{y} rows and \code{x} columns.

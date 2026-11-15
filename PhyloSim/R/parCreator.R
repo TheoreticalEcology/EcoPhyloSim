@@ -2,7 +2,7 @@
 #' @description Function to create a list of parameters for biogeographical simulations with \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
 #' @param x  Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)
 #' @param y  Integer, Dimension of the model landscape in y-direction
-#' @param dispersal Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y).
+#' @param dispersal Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y). Only multiples of 0.5 have an effect (see the vignette).
 #' @param runs  Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.
 #' @param specRate Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution); must not exceed x * y
 #' @param negativeDD Numeric between 0 and 1, strength of negative density dependence (formerly \code{density}); 0 (default) switches it off. Its fitness term is \code{1 - negativeDD * S}, where \code{S} is the similarity to the neighbors within \code{negativeDDCut} (see \code{negativeDDKernel}); with the "species" kernel, each of the \code{k} neighbors that is conspecific contributes \code{negativeDD / k}. With a function or values as \code{negativeDDResponse}, \code{negativeDD > 0} only switches it on.
@@ -39,16 +39,9 @@
 createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRate = 1.0, negativeDD = 0, environment = 0, nicheWidth = 0.03659906, fitnessActsOn = "mortality" , fitnessBaseMortalityRatio = 10, negativeDDCut = 1, seed=NULL,  type = "base", fission = 0, redQueen = 0, redQueenStrength = 0, protracted = 0, airmat = 1, scenario = NULL, calculateSummaries = FALSE, convertToBinaryTree = TRUE, prunePhylogeny = TRUE, negativeDDKernel = "absolute", negativeDDWidth = 0.1, negativeDDResponse = "linear", positiveDD = 0, positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1, density, densityCut){
 
   # old names, before negative and positive density dependence were separated
-  if (!missing(density)) {
-    if (!missing(negativeDD)) stop("Give only 'negativeDD', not also the deprecated 'density'.", call. = FALSE)
-    warning("Argument 'density' is deprecated; use 'negativeDD' instead.", call. = FALSE)
-    negativeDD <- density
-  }
-  if (!missing(densityCut)) {
-    if (!missing(negativeDDCut)) stop("Give only 'negativeDDCut', not also the deprecated 'densityCut'.", call. = FALSE)
-    warning("Argument 'densityCut' is deprecated; use 'negativeDDCut' instead.", call. = FALSE)
-    negativeDDCut <- densityCut
-  }
+  negativeDD <- renamedArg(negativeDD, density, missing(negativeDD), missing(density), "negativeDD", "density")
+  negativeDDCut <- renamedArg(negativeDDCut, densityCut, missing(negativeDDCut), missing(densityCut),
+                              "negativeDDCut", "densityCut")
     
   soilmat <- 1 # Needs to be defined here as long as it is not
                # implemented in the model

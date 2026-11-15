@@ -50,8 +50,6 @@ public:
     int m_KernelSize;
 
     double m_AirTemperature;
-    double m_SoilMoistureRange;
-    double m_GradientStep;
     double m_Speciation_Rate;
 
     double cellsWithinDensityCutoff;

@@ -15,11 +15,12 @@ A model, provided as an R package, for the simulation of spatially explicit biog
 
 ### Installation 
 
-You can install directly from gh, using the 'devtools' package:
+You can install directly from gh, using the 'devtools' package; `ref = "v0.3.1"` installs the release 0.3.1, without it you get the development version:
 
 ```{r, eval = F}
 devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim", 
                          subdir = "PhyloSim",  
+                         ref = "v0.3.1",
                          dependencies = T, 
                          build_vignettes = T)
 
@@ -35,8 +36,7 @@ set.seed(123)
 library(EcoPhyloSim)
 
 # Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000,
-        negativeDD = 0)
+par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000)
 
 # Run the model
 simu <- runSimulation(par)

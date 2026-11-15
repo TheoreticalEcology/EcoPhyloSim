@@ -10,6 +10,7 @@
 #' @param positiveDD,positiveDDCut Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.
 #' @param seed Integer, random seed. If NULL (default), a seed is drawn. Apart from this draw, the random number stream of the R session is not changed.
 #' @param verbose Logical, if TRUE, reports progress every 100 generations and the runtime
+#' @param density,densityCut Deprecated names of \code{negativeDD} and \code{negativeDDCut}.
 #' @details The landscape is a torus of \code{x} times \code{y} cells, initially occupied by a single species. One generation consists of \code{x * y} events. In each event, a random cell dies and is replaced by a recruit. With probability \code{specRate / (x * y)}, the recruit is a new species; otherwise it is the offspring of a parent cell. As in \code{\link{runSimulation}}, the parent is never the dead cell itself: it is a random other cell (\code{dispersal = "global"}), or the cell at a distance drawn from \code{dispersal} in a random direction, rounded to the grid, where draws that land on the dead cell are repeated. With global dispersal, the equilibrium species richness follows the Ewens sampling formula with \eqn{\theta = specRate (x y - 1) / (x y - specRate)}{theta = specRate * (x * y - 1) / (x * y - specRate)} (from the coalescent of this model), which is approximately \code{specRate} if \code{specRate} is much smaller than \code{x * y}.
 #'
 #' With \code{negativeDD > 0} or \code{positiveDD > 0}, a recruit of species \code{s} is accepted with probability \code{(1 - negativeDD * S_n) * (1 - positiveDD * (1 - S_p))}, where \code{S_n} and \code{S_p} are the proportions of species \code{s} among the cells within distance \code{negativeDDCut} and \code{positiveDDCut} of the dead cell; otherwise a new parent is drawn. The parent is therefore drawn with a probability proportional to its dispersal probability times this fitness. This is the same rule as in \code{\link{runSimulation}} with \code{fitnessActsOn = "recruitment"} and the \code{"species"} kernels. With global dispersal, after as many rejections as there are possible parents (at most 1000), the parent is drawn directly from these probabilities; with a dispersal function, the last recruit is accepted. Note that \code{dispersal} is defined differently than in \code{\link{createCompletePar}}. Speciation also differs: \code{\link{runSimulation}} adds new species in a batch at the end of each generation.
@@ -20,8 +21,11 @@
 #' @example /inst/examples/neutralModelR-help.R
 #' @export
 NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRate = 1,
-                       negativeDD = 0, negativeDDCut = 1, positiveDD = 0, positiveDDCut = 1, seed = NULL,
-                       verbose = TRUE) {
+                       negativeDD = 0, negativeDDCut = 1, seed = NULL, verbose = TRUE,
+                       positiveDD = 0, positiveDDCut = 1, density, densityCut) {
+  negativeDD <- renamedArg(negativeDD, density, missing(negativeDD), missing(density), "negativeDD", "density")
+  negativeDDCut <- renamedArg(negativeDDCut, densityCut, missing(negativeDDCut), missing(densityCut),
+                              "negativeDDCut", "densityCut")
 
   checkmate::assert_count(x, positive = TRUE)
   checkmate::assert_count(y, positive = TRUE)

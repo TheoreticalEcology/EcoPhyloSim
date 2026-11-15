@@ -111,6 +111,6 @@ EcoPhyloSim is an R package with a simulation model in C++ (via Rcpp); the packa
 
 ## Attribution and authorship
 
-Contributors who make substantial contributions to EcoPhyloSim will be acknowledged by name in `PhyloSim/NEWS.md` and/or as contributors in `PhyloSim/DESCRIPTION`. Substantial contributions include, but are not limited to: adding a new model mechanism or a meaningful new function or test, identifying and fixing a non-trivial bug, or making significant improvements to the documentation or vignette.
+Contributors who make substantial contributions to EcoPhyloSim will be acknowledged by name in `PhyloSim/NEWS.md` and/or as contributors in `PhyloSim/DESCRIPTION`, and listed in [CONTRIBUTORS.md](CONTRIBUTORS.md). Substantial contributions include, but are not limited to: adding a new model mechanism or a meaningful new function or test, identifying and fixing a non-trivial bug, or making significant improvements to the documentation or vignette.
 
 Minor corrections such as fixing typos, correcting punctuation, or making small formatting adjustments do not typically result in named acknowledgement, as is standard in open-source scientific software. If you are uncertain whether a planned contribution would qualify, you are welcome to ask in the relevant issue.

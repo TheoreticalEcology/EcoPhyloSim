@@ -130,6 +130,14 @@ checkPar <- function(par) {
   invisible(par)
 }
 
+# Value of a renamed argument: the old one, with a deprecation warning, if it was given
+renamedArg <- function(new, old, newMissing, oldMissing, newName, oldName) {
+  if (oldMissing) return(new)
+  if (!newMissing) stop("Give only '", newName, "', not also the deprecated '", oldName, "'.", call. = FALSE)
+  warning("Argument '", oldName, "' is deprecated; use '", newName, "' instead.", call. = FALSE)
+  old
+}
+
 # fitnessActsOn as a set of stages; "both" means mortality and reproduction
 fitnessStages <- function(fitnessActsOn) {
   unique(unlist(lapply(fitnessActsOn, function(f) if (f == "both") c("mortality", "reproduction") else f)))

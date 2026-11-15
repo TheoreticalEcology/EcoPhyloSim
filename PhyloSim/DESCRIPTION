@@ -2,11 +2,16 @@ Package: EcoPhyloSim
 Type: Package
 Title: Analysis of Phylogenetic and Biogeographic Patterns, Inferring Species
     Community Assembly
-Version: 0.3.1
-Authors@R: c(person("Paul", "Bauche", role = "aut"),
-    person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")),
+Version: 0.3.2
+Authors@R: c(person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")),
+    person("Paul", "Bauche", role = "aut"),
+    person("Bingxue", "Wu", role = "aut"),
+    person("Stefan", "Paul", role = "ctb"),
+    person("Betim", "Musa", role = "ctb"),
+    person("Tankred", "Ott", role = "ctb"),
     person("Christian", "Buschbeck", role = "ctb"),
-    person("Stefan", "Paul", role = "ctb"))
+    person("Melina", "de Souza Leite", role = "ctb"),
+    person("Andrea", "Ingrosso", role = "ctb"))
 Description: Simulates and analyzes species community
     assembly processes. It allows the user to implement different mechanisms of
     community assembly such as environmental filtering, competitive exclusion or
@@ -14,6 +19,8 @@ Description: Simulates and analyzes species community
     which allows the user to identify biogeographic or phylogenetic patterns
     exclusively correlated with a certain mechanism or combination of mechanisms.
 License: GPL (>= 3)
+URL: https://github.com/TheoreticalEcology/EcoPhyloSim
+BugReports: https://github.com/TheoreticalEcology/EcoPhyloSim/issues
 Depends:
     R (>= 4.1.0)
 Imports:

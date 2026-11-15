@@ -81,3 +81,10 @@ test_that("NeutralMod: positive density dependence reduces species richness", {
     x = 10, y = 10, runs = 100, specRate = 2, positiveDD = positiveDD, seed = s, verbose = FALSE))))
   expect_lt(richness(1), richness(0))
 })
+
+test_that("NeutralMod accepts the deprecated names density and densityCut", {
+  run <- function(...) NeutralMod(x = 5, y = 5, runs = 2, specRate = 1, seed = 1, verbose = FALSE, ...)$Output[[1]]$specMat
+  expect_warning(old <- run(density = 0.5, densityCut = 2), "deprecated")
+  expect_identical(old, run(negativeDD = 0.5, negativeDDCut = 2))
+  expect_error(run(density = 0.5, negativeDD = 0.5), "deprecated")
+})

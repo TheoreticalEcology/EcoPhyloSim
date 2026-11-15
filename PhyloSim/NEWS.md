@@ -1,3 +1,23 @@
+# EcoPhyloSim 0.3.2
+
+## New features
+
+* `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
+* `createCompletePar()`: new argument `negativeDDResponse` (experimental) sets the term of negative density dependence as a function of the similarity to the neighbors (stored as its values) or as a vector of such values (#144).
+* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
+* `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
+
+## Changes
+
+* `density` and `densityCut` in `createCompletePar()` and `NeutralMod()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
+* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144).
+* Negative density dependence by the competition trait (`negativeDDKernel = "absolute"`, the default) uses the mean difference to the `k` neighbors; before, the sum was divided by `k + 1` (including the focal cell), which reduced the effect of trait differences by a factor `k / (k + 1)` (e.g. 4/5 with `negativeDDCut = 1`) and kept the similarity at least `1 / (k + 1)`. This changes all results with `negativeDD > 0` and this kernel (#144).
+* `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, at most 1000 times; with global dispersal, after as many rejections as there are possible parents, the parent is drawn directly with fitness-weighted probabilities, as in `runSimulation()` with `fitnessActsOn = "recruitment"`. Before, the recruit was accepted after 10 rejections. This changes results with `negativeDD > 0` (#165).
+
+## Documentation
+
+* The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #144).
+
 # EcoPhyloSim 0.3.1
 
 ## New features
@@ -8,23 +28,17 @@
 * New function `getMortalityData()` returns, for each individual and census interval, its species, number of conspecific neighbors and whether it died before the next recorded generation, for analyses of conspecific negative density dependence (@AndyEnvFr, #100).
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental sorting of species) (#85, #126).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
-* `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
-* `createCompletePar()`: new argument `negativeDDResponse` (experimental) sets the term of negative density dependence as a function of the similarity to the neighbors (stored as its values) or as a vector of such values (#144).
-* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
-* `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
-* The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository (#30).
+* The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository, and `DESCRIPTION` lists the repository and its issue tracker (#30).
+* New data set `packageBehavior` with summaries of simulation experiments that show how the outputs of the model respond to its parameters (#136).
 
 ## Changes
 
-* `density` and `densityCut` in `createCompletePar()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
-* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144).
-* Negative density dependence by the competition trait (`negativeDDKernel = "absolute"`, the default) uses the mean difference to the `k` neighbors; before, the sum was divided by `k + 1` (including the focal cell), which reduced the effect of trait differences by a factor `k / (k + 1)` (e.g. 4/5 with `negativeDDCut = 1`) and kept the similarity at least `1 / (k + 1)`. This changes all results with `negativeDD > 0` and this kernel (#144).
 * The package was renamed from PhyloSim to EcoPhyloSim because of a name clash with the archived CRAN package phylosim; class and function names are unchanged (#64).
 * `calculateSummaryStatistics()`: new argument `strict` (default `FALSE`); with `strict = TRUE`, the result is `NA` if any statistic cannot be calculated (#85, #126).
-* `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` includes `"reproduction"` (also via `"both"`) with global dispersal and `environment`, `negativeDD`, `positiveDD`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
-* `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `negativeDD` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
-* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `negativeDDCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `negativeDD` or `positiveDD` > 0, `2 * negativeDDCut + 1` or `2 * positiveDDCut + 1` must not exceed `min(x, y)` (#152).
-* The `Model` element of the output of `runSimulation()` keeps the numeric values of `negativeDD` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
+* `createCompletePar()` and `runSimulation()` stop with an error if `fitnessActsOn` is `"reproduction"` or `"both"` with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, because this is not implemented (#98, #101).
+* `createCompletePar()` and `runSimulation()` check their parameters with checkmate, also in parameter lists changed by hand, as described in the help of `createCompletePar()`; newly rejected are, among others, `density` > 1 (#96), decreasing `runs`, negative `redQueen` and `redQueenStrength`, and non-integer values of integer parameters (#85, #118).
+* `createCompletePar()` and `runSimulation()` reject `specRate` > `x * y` (values above about 2.1e9 made the simulation hang, #150), and dispersal or `densityCut` kernels wider than the grid, which counted cells more than once: `2 * floor(2 * dispersal) + 1` and, if `density` > 0, `2 * densityCut + 1` must not exceed `min(x, y)` (#152).
+* The `Model` element of the output of `runSimulation()` keeps the numeric values of `density` and `environment` instead of `TRUE`/`FALSE` (#91, #118).
 * `runSimulationBatch()`: errors in single simulations are no longer silently turned into `NULL` during parallel runs, and `backup = TRUE` saves each result as `<scenario>.rds` (#106).
 * Default plot sizes in `sac()` are log-spaced, as documented (#115).
 * `localPlots()` stops with an error if `n` is not a single positive whole number (checkmate was added to Imports for such checks), and the species columns of its community table are sorted by species number and contain integer counts (#118, #119).
@@ -42,6 +56,7 @@
 * `localPlots()` stops with an error if `size` is not a whole number between 1 and the shorter side of the grid, and the default plot sizes of `sac()` go up to the shorter side of the grid instead of `sqrt(x * y)` (#151).
 * `runSimulation()`: the warning for results with only one species says that the phylogeny is set to 0 and how to avoid this, instead of "Cannot build Phylogeny" (#153).
 * `runSimulation()`: with `prunePhylogeny = TRUE` (the default), the phylogeny contains only the extant species, so that its size no longer grows with the run length; extinct ancestors become internal nodes. Each census is placed half a generation after the events of its generation, and the tree has no root edge (see `?runSimulation`), so tree statistics change slightly. Writing large phylogenies is faster (#147).
+* Bingxue Wu was added as author and further people as contributors in `DESCRIPTION`; the file `CONTRIBUTORS.md` in the repository lists all contributions (#136).
 
 ## Bug fixes
 
@@ -62,20 +77,24 @@
 * `plotTraitDistribution()` changed the random number stream of the user, and its histograms were cut off above log(count) = 7 (#156).
 * The bundled data sets `simu.envcom.local`, `simu.neutral.local` and `simu.neutral.global` had the class `c("list", "Phylosim")` instead of `PhyloSim`, so that `print()`, `summary()`, `plot()` and `calculatePhylogeneticDispersion()` did not recognize them (#128).
 * `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
-* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
+* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number. The example data set `pPD.pvalues` was recreated with the corrected null model (#132, #136).
 * `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
 * `summary()` of a `PhyloSim` object printed the class name as `Phylosim` (#155).
-* `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `negativeDD`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
+* `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
 * `localPlots()` and `sac()` failed with "subscript out of bounds" if the grid is not square (`x != y`); on square grids, the `positions` of the subplots had x and y swapped. The fix changes `sac()` results for a fixed seed (#151).
 * `sac()`: a vector in `which.result` gave an error (#151).
 * `runSimulation()`: species that went extinct in the last generation before a census were kept by `ape::drop.fossil()`; with `prunePhylogeny = TRUE`, the species pool of the `dispersion` statistic of `calculateSummaryStatistics()` contained extinct ancestors (#147).
 * `runSimulation()`: without `airmat`, the default environmental gradient exceeded 1 for an odd number of columns `x` (e.g., 1.2 for `x = 5`); results for odd `x` change (#142).
 * `calculateSummaryStatistics()`: the Clark-Evans index `ce` used a wrong row for each cell, so that cells were moved to other rows or, on grids with more columns than rows, dropped; `ce` changes on all grids (#163).
 * `calculateSummaryStatistics()`: `envIntercept`, `env` and `envSqr` (binomial GLM coefficients) were `NaN` under strong environmental filtering because the fits failed, and used only the first row of the environment; they are replaced by `envSorting`; `ce` is `NA` instead of `NaN` if no species has a finite Clark-Evans index (#126).
+* R crashed on Windows in `calculateSummaryStatistics()`, `summary()`, `collessImbalance()`, `getAverageTraits()`, `nullModel()`, `calculatePhylogeneticDispersion()`, `plotSpatialPhylo()`, `plotHighlightLocalPhylo()` and `plotTraitDistribution()` if the phylogeny had more than 23170 tips (possible with `prunePhylogeny = FALSE`), because `ape::drop.fossil()` and `cophenetic()` build a matrix of all node distances. Extinct species are now removed in linear time, and the `dispersion` statistic of `calculateSummaryStatistics()` uses only the extant species as species pool also with `prunePhylogeny = FALSE`, which changes its results for this setting. More than 23170 extant species still crash `cophenetic()` (#168).
+* `calculateSummaryStatistics()` and `summary()`: the gamma statistic was wrong for phylogenies with polytomies (with `convertToBinaryTree = FALSE`), and `summary()` suppressed the warning; polytomies are now resolved with `ape::multi2di(random = FALSE)` before the gamma statistic is computed (#169).
+* `runSimulation()`: the same `seed` gave different phylogenies and summary statistics, because polytomies were resolved at random and the summary statistics use R's random number generator. Polytomies are now resolved deterministically, and with `calculateSummaries = TRUE`, R's seed is set from `seed` and restored afterwards. For a given seed, the phylogeny (with `convertToBinaryTree = TRUE`), `collessImbalance()` and the summary statistics change; with `convertToBinaryTree = TRUE`, the gamma statistic does not (#135).
 
 ## Documentation
 
 * The vignette was converted from Sweave (PDF) to R Markdown (HTML).
 * Package help converted to roxygen; examples moved to `inst/examples/` (#87).
-* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `negativeDD` (#96), `dispersal`, `negativeDDCut`, `redQueen` and `redQueenStrength` (#118), the dimensions of `airmat` (#122), and the effect of `fitnessBaseMortalityRatio` (#92).
+* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `density` (#96), `dispersal`, `densityCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122); it also defines `fitnessBaseMortalityRatio` and explains that only multiples of 0.5 of `dispersal` have an effect (#92, #141).
 * Help pages and vignette revised: corrected trait-evolution formula in the vignette and return value of `sac()`, documented parameters of `callModel()`, faster examples, corrected spelling and several incorrect argument and return value descriptions (#113).
+* The vignette was restructured: an abstract and a quick start; a model description with a schematic of a generation, parameter tables with defaults and ranges, and known limitations; a description of the output; and a new chapter "Emerging patterns" that compares how the outputs respond to the parameters with expectations from theory and the literature, using the data set `packageBehavior` (#77, #99, #136).

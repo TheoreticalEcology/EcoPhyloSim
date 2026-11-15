@@ -150,8 +150,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     // Set up Environment
     // if no environment (airmat) is passed, generate one
     if ((airmat.size() == 1) && (soilmat.size() == 1)) {
-        m_SoilMoistureRange = 101.0; // percent
-
         for (int i = 0; i < m_Xdimensions; i++) {
             // fixes #142 (gradient above 1 for odd x); unchanged for even x
             m_AirTemperature = 1.0 - std::fabs(2.0 * i / m_Xdimensions - 1.0);
@@ -206,20 +204,18 @@ Landscape::~Landscape() {
     delete[] m_Individuals;
 }
 
-void Landscape::reproduce(unsigned int generation) {
+void Landscape::reproduce(unsigned int /* generation */) {
     // (Betim): This method is needed in order to use polymorphism method calls.
     // (e.g. Model->updateEnvironment, the argument Landscape needs the method "reproduce"
     // to be defined, although it is void.)
 }
 
 std::pair<int, int> Landscape::get_dimensions() {
-    std::pair<int, int>(dimensions);
-    dimensions = std::make_pair(m_Xdimensions, m_Ydimensions);
-    return dimensions;
+    return std::make_pair(m_Xdimensions, m_Ydimensions);
 }
 
 
-void Landscape::increaseAge(unsigned int generation) {
+void Landscape::increaseAge(unsigned int /* generation */) {
     for (int rows = 0; rows < this->m_Xdimensions; rows++) {
         for (int cols = 0; cols < this->m_Ydimensions; cols++) {
             this->m_Individuals[rows][cols].m_Age += 1;
@@ -369,7 +365,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         numberOfRuns = m_LandscapeSize;
 
         int event = 0;
-        int numberDeath = 0;
+        unsigned int numberDeath = 0;
 
         // TODO - seems to me the next for loop is not yet corrected if fitness goes on reproduction,
 
@@ -671,7 +667,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
     // What todo?
 
     int event = 0;
-    int numberDeath = 0;
+    unsigned int numberDeath = 0;
 
     while (numberDeath < numberOfRuns) {
         event++;
@@ -935,7 +931,7 @@ void Landscape::speciation(unsigned int generation) {
     }
 
     if (m_fission != 0) {
-        int oldspec;
+        unsigned long long oldspec;
         for (int k = 0; k < m_Xdimensions; k++) {
             for (int j = 0; j < m_Ydimensions; j++) {
                 if (m_Individuals[k][j].m_incip_Age == m_protracted) {
