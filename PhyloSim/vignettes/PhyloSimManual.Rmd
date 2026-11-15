@@ -782,12 +782,13 @@ generations
 in the density block) with
 `r packageBehavior$info$modes$pilot$reps` replicates. The figure shows the
 replicate mean (line) and the variation between replicates (band: mean ± sd)
-of each indicator over time for five settings. Most indicators settle within
-a few thousand generations, but with environmental filtering the gamma
-statistic and the spread of the competition trait still changed slowly at the
-end of the runs ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)),
-so the results for these indicators describe a slowly changing rather than a
-fully stationary state.
+of each indicator over time for five settings. Most diversity and spatial
+indicators settle within a few thousand generations, except richness on large
+grids. The gamma statistic and the spread of the competition trait settle much
+more slowly in many settings, also in the neutral model, often only after
+20,000 generations or more; with 5 replicates, this criterion is also noisy.
+The results for these indicators therefore describe a slowly changing rather
+than a fully stationary state.
 
 ```{r equilibrium, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators over time in the pilot runs: replicate mean (line) and mean ± standard deviation across replicates (band)."}
 cases <- data.frame(
