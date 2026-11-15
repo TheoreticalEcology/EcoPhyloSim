@@ -1,5 +1,4 @@
-# Properties of small simulations that hold on every platform. The C++ random number
-# generator is implementation-defined, so exact values are tested only in test-reproducibility.R.
+# Properties of small simulations; exact values are tested in test-reproducibility.R.
 
 test_that("output has one result per recorded generation and grids with y rows and x columns", {
   simu <- quietSimulation(x = 30, y = 20, runs = c(50, 100), seed = 1)

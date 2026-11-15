@@ -8,6 +8,7 @@
 #' user -- most parameters correspond directly to the (user-facing) arguments of
 #' \code{\link{createCompletePar}}, but several categorical/continuous parameters there
 #' are split here into separate on/off switches and strength values (see the parameter descriptions below).
+#' It draws from R's random number generator, so set the seed with \code{set.seed()} before the call.
 #'
 #' @param x Integer, dimension of the model landscape in x-direction.
 #' @param y Integer, dimension of the model landscape in y-direction.
@@ -53,7 +54,6 @@
 #'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
 #'   \code{negativeDDCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
 #'   \code{2 * densityCutoff + 1} must not exceed \code{min(x, y)} if \code{dens = TRUE}.
-#' @param seed Integer, sets the random seed.
 #' @param envStrength Numeric between 0 and 1, strength of the environmental filtering
 #'   effect (ignored if \code{env = FALSE}); the higher the value, the stronger the
 #'   influence of the environment on individual fitness. Corresponds to \code{environment}
@@ -114,7 +114,11 @@
 #'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 #'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 #' @export
-callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE, densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric( c()), positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L, positiveWidth = 0.1) {
-    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, seed, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth)
+callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE, densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric( c()), positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L, positiveWidth = 0.1) {
+    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth)
+}
+
+multinomialDrawCounts <- function(weights, nDraws) {
+    .Call(`_EcoPhyloSim_multinomialDrawCounts`, weights, nDraws)
 }
 
