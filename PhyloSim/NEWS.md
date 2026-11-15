@@ -8,7 +8,7 @@
 * New function `getMortalityData()` returns, for each individual and census interval, its species, number of conspecific neighbors and whether it died before the next recorded generation, for analyses of conspecific negative density dependence (@AndyEnvFr, #100).
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental sorting of species) (#85, #126).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
-* The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository (#30).
+* The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository, and `DESCRIPTION` lists the repository and its issue tracker (#30).
 * New data set `packageBehavior` with summaries of simulation experiments that show how the outputs of the model respond to its parameters (#136).
 
 ## Changes
