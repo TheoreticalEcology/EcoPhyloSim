@@ -1305,7 +1305,7 @@ peak at an intermediate niche width. The correlation between trait and
 environment should be highest for narrow niches.
 :::
 
-```{r nichewidth, echo = FALSE, eval = "nicheWidth" %in% main$settings$block, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the niche width (environment = 1), for global and local dispersal."}
+```{r nichewidth, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the niche width (environment = 1), for global and local dispersal."}
 response(main, "nicheWidth", "nicheWidth", group = "dispersal", log = "x")
 ```
 
