@@ -11,7 +11,7 @@
 #include <Rcpp.h>
 
 // Random numbers come from R's generator, so that results for a seed do not depend on the compiler
-// (fixes #14); "Writing R Extensions" advises against the C++ <random> library, whose engines and
+// (fixes #14); "Writing R Extensions" advises against the C++ <random> library, whose default engine and
 // distributions are implementation-defined.
 
 RandomGen::RandomGen() {
@@ -28,7 +28,7 @@ double RandomGen::randomDouble(double min, double max) {
 
 
 int RandomGen::randomInt(int min, int max) {
-    return min + (int) (unif_rand() * (max - min + 1.0)); // bias at most (max - min + 1) / 2^32, faster than R_unif_index()
+    return min + (int) (unif_rand() * (max - min + 1.0)); // bias at most (max - min + 1) / 2^32 with R's default Mersenne-Twister, faster than R_unif_index()
 }
 
 int RandomGen::randomPoisson(double mean) {
