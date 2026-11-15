@@ -9,6 +9,7 @@
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental sorting of species) (#85, #126).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
 * The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository (#30).
+* New data set `packageBehavior` with summaries of simulation experiments that show how the outputs of the model respond to its parameters (#136).
 
 ## Changes
 
@@ -72,5 +73,5 @@
 * Package help converted to roxygen; examples moved to `inst/examples/` (#87).
 * The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `density` (#96), `dispersal`, `densityCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122).
 * Help pages and vignette revised: corrected trait-evolution formula in the vignette and return value of `sac()`, documented parameters of `callModel()`, faster examples, corrected spelling and several incorrect argument and return value descriptions (#113).
-* The vignette was restructured: an abstract and a quick start; a model description with a schematic of a generation, parameter tables with defaults and ranges, and known limitations; a description of the output; and a new chapter "Emerging patterns" that compares how the outputs respond to the parameters with expectations from theory and the literature, using the new data set `packageBehavior`. The help of `createCompletePar()` defines `fitnessBaseMortalityRatio` and explains that only multiples of 0.5 of `dispersal` have an effect (#77, #92, #99, #136, #141).
+* The vignette was restructured: an abstract and a quick start; a model description with a schematic of a generation, parameter tables with defaults and ranges, and known limitations; a description of the output; and a new chapter "Emerging patterns" that compares how the outputs respond to the parameters with expectations from theory and the literature, using the data set `packageBehavior`. The help of `createCompletePar()` defines `fitnessBaseMortalityRatio` and explains that only multiples of 0.5 of `dispersal` have an effect (#77, #92, #99, #136, #141).
 * Bingxue Wu was added as author and further people as contributors in `DESCRIPTION`; the file `CONTRIBUTORS.md` in the repository lists all contributions (#136).

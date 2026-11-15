@@ -93,9 +93,11 @@ NULL
 #'   \item{settings}{data frame with one row per parameter setting: \code{block}
 #'   (group of settings in which one or two parameters are varied), \code{setting}
 #'   (number within the block), the arguments passed to
-#'   \code{\link{createCompletePar}} and the number of generations}
+#'   \code{\link{createCompletePar}} (only \code{x}, as \code{y} equals \code{x}; \code{dispersal} as
+#'   character) and the number of generations}
 #'   \item{census}{data frame with the replicate \code{mean}, \code{sd} and number of
-#'   replicates \code{n} of each indicator per setting and census (\code{generation};
+#'   replicates \code{n} (without \code{NA} values, e.g. tree statistics of runs
+#'   with fewer than 3 species) of each indicator per setting and census (\code{generation};
 #'   in \code{main} only the last census):
 #'   species richness, Shannon diversity, share of the 4 neighbors that belong to the
 #'   same species, correlation between environmental trait and environment, sd of the
@@ -119,12 +121,16 @@ NULL
 #'   single species (at least 50 observations) and their \code{abundance}, for each
 #'   replicate (\code{rep})}
 #'    }
-#' \code{info} contains metadata for reproducibility: the package commit and a
-#' checksum of the script used (\code{run}), the date, package and R versions,
+#' \code{info} contains metadata for reproducibility: the package commit used for
+#' the simulations, checksums of the script versions used and notes on the run
+#' (\code{run}), the date of combining, package and R versions at combining,
 #' platform, operating system, processor, versions of the loaded packages, the
 #' number of replicates and generations (\code{modes}), and the number of runs,
 #' failed runs and the hours of simulation time (sum of the runtimes of the core
-#' simulations) per mode.
+#' simulations) per mode. The current data were simulated with an earlier version
+#' of the package (see \code{info$run}); in that version, polytomies of the
+#' phylogeny were resolved at random, which changes the Colless index slightly
+#' compared with the current version.
 #' @source created with the script \code{data-raw/packageBehavior.R} in the
 #' package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim})
 NULL

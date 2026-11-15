@@ -150,7 +150,7 @@ runTask <- function(task) {
   running <- sub("\\.rds$", ".running", task$file)
   file.create(running)
   on.exit(unlink(running))
-  set.seed(task$seed) # R-side randomness (multi2di(), sac() subplots)
+  set.seed(task$seed) # R-side randomness (sac() subplots)
   par <- createCompletePar(
     x = task$x, y = task$x,
     dispersal = if (task$dispersal == "global") "global" else as.numeric(task$dispersal),
@@ -264,9 +264,9 @@ if (length(args) && args[1] == "run") {
   script <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
   copy <- sprintf("packageBehavior-run-%s-%s.R", mode, format(Sys.time(), "%Y%m%d-%H%M"))
   file.copy(script, file.path(cacheDir, copy))
-  cat(sprintf("%s: run %s, %d simulations on %d cores, package %s, script %s (md5 %s)\n",
+  cat(sprintf("%s: run %s, %d simulations on %d cores, package %s, script %s (sha256 %s)\n",
               format(Sys.time()), mode, nrow(tasks), nCores, packageVersion("EcoPhyloSim"), copy,
-              tools::md5sum(script)),
+              tools::sha256sum(script)),
       sprintf("commit: %s (git HEAD at the start; the installed package should match it)\n",
               tryCatch(system("git rev-parse --short HEAD", intern = TRUE), error = function(e) "unknown")),
       file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
