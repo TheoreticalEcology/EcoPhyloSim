@@ -157,7 +157,9 @@ runTask <- function(task) {
     # plus five consecutive generations at the end for the mortality analysis
     runs = sort(unique(c(censusTimes(task$generations), task$generations - 5:1))),
     specRate = task$specRate,
-    density = task$density, densityCut = task$densityCut, environment = task$environment,
+    # the design keeps the names density/densityCut (as in earlier runs, for comparisons);
+    # they are the arguments negativeDD/negativeDDCut since #172
+    negativeDD = task$density, negativeDDCut = task$densityCut, environment = task$environment,
     nicheWidth = task$nicheWidth,
     fitnessBaseMortalityRatio = task$fitnessBaseMortalityRatio, protracted = task$protracted,
     redQueen = task$redQueen, redQueenStrength = task$redQueenStrength, seed = task$seed)

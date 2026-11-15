@@ -9,21 +9,23 @@ execute:
 ---
 
 This document records how the biological behavior of the model changes between
-versions of EcoPhyloSim. Each version is represented by one run of
-`PhyloSim/data-raw/packageBehavior.R` (see the vignette chapter "Emerging
-patterns" and `?packageBehavior`), archived with `archive.R` and exported with
-`addRun.R` to `runs/<version>_<commit>.csv.gz` (the value of each indicator at
-the last census of each replicate, the pooled CNDD coefficient and the runtime in
-seconds, for every setting of the main run). Behavior that differs from
-expectations but is not a bug of the code is noted here; problems of the code go
-to issues. Runtimes are comparable only between runs on the same machine.
+versions of EcoPhyloSim. Each version is represented by one run of the simulation
+design in `design.R` (see the vignette chapter "Emerging patterns"), run with
+`run.R`, archived with `archive.R` and exported with `addRun.R` to
+`runs/<version>_<commit>.csv.gz` (the value of each indicator at the last census
+of each replicate, the pooled CNDD coefficient and the runtime in seconds, for
+every setting of the main run; version 0.3.1 was run with the earlier
+`PhyloSim/data-raw/packageBehavior.R`). Behavior that differs from expectations
+but is not a bug of the code is noted here; problems of the code go to issues.
+Runtimes are comparable only between runs on the same machine.
 
-To add a version: run `packageBehavior.R`, archive the cache with
-`Rscript model-behavior/archive.R <cache> <output folder> <version> <commit>`, run
-`Rscript model-behavior/addRun.R <archive folder>` from the repository root, add a
-section with notes below, and render this file with
-`quarto render model-behavior/model-behavior.qmd`. If parameters are renamed or the
-design changes, update the definitions of the key settings below.
+To add a version, from the repository root:
+`Rscript model-behavior/run.R main <cores> <version> <cache> [lib=<library>] [commit=<commit>]`,
+`Rscript model-behavior/archive.R <cache> <output folder> <version number> <commit>`,
+`Rscript model-behavior/addRun.R <archive folder>`; then add a section with notes
+below and render this file with `quarto render model-behavior/model-behavior.qmd`.
+If parameters are renamed or the design changes, update the definitions of the
+key settings below.
 
 ```{r setup}
 files <- list.files("runs", pattern = "\\.csv\\.gz$", full.names = TRUE)
@@ -52,8 +54,9 @@ key <- list(
   "Environment 1 + density 1, dispersal 1" = list(block = "assembly", dispersal = "1", environment = 1, density = 1),
   "Protracted 1" = list(block = "speciation", protracted = 1, redQueen = 0),
   "Red Queen 0.01 (strength 100)" = list(block = "speciation", redQueen = 0.01))
-indicators <- c("richness", "shannon", "conspecificNeighbors", "corTraitEnv",
-                "sdCompetitionTrait", "colless", "gamma", "meanSpeciesAge", "cndd", "runtime")
+indicators <- c("richness", "shannon", "evenness", "dominance", "conspecificNeighbors",
+                "corTraitEnv", "sdCompetitionTrait", "sdNeutralTrait", "colless", "gamma",
+                "treeHeight", "meanSpeciesAge", "mpdLocal", "cndd", "runtime")
 
 # "mean ± half-width of the 95% confidence interval" of one key setting
 fingerprint <- function(d, k) {
