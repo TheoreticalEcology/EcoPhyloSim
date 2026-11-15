@@ -2,17 +2,18 @@
 
 ## New features
 
-* `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
+* `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #133, #144).
 * `createCompletePar()`: new argument `negativeDDResponse` (experimental) sets the term of negative density dependence as a function of the similarity to the neighbors (stored as its values) or as a vector of such values (#144).
 * `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
+* `callModel()`: new arguments for recruitment, the kernels, the response table and positive density dependence (#144, #165).
 
 ## Changes
 
 * `density` and `densityCut` in `createCompletePar()` and `NeutralMod()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
-* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144).
-* Negative density dependence by the competition trait (`negativeDDKernel = "absolute"`, the default) uses the mean difference to the `k` neighbors; before, the sum was divided by `k + 1` (including the focal cell), which reduced the effect of trait differences by a factor `k / (k + 1)` (e.g. 4/5 with `negativeDDCut = 1`) and kept the similarity at least `1 / (k + 1)`. This changes all results with `negativeDD > 0` and this kernel (#144).
-* `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, at most 1000 times; with global dispersal, after as many rejections as there are possible parents, the parent is drawn directly with fitness-weighted probabilities, as in `runSimulation()` with `fitnessActsOn = "recruitment"`. Before, the recruit was accepted after 10 rejections. This changes results with `negativeDD > 0` (#165).
+* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144). Results without `negativeDD` are unchanged.
+* The default `negativeDDKernel = "absolute"` averages the trait differences over the `k` neighbors instead of dividing their sum by `k + 1`, which had reduced their effect by `k / (k + 1)`; this changes all results with `negativeDD > 0` (#144).
+* `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, as in `runSimulation()` with `fitnessActsOn = "recruitment"`: with global dispersal, after `min(1000, x * y - 1)` rejections the parent is drawn directly with fitness-weighted probabilities; with a dispersal function, the recruit after 1000 rejections is accepted. Before, the 10th recruit was accepted without a test. This changes results with `negativeDD > 0` (#165).
 
 ## Documentation
 

@@ -7,7 +7,7 @@
 #' @param specRate Numeric, mean number of speciation events per generation (at most \code{x * y})
 #' @param negativeDD Numeric between 0 and 1, strength of conspecific negative density dependence; 0 (default) switches it off.
 #' @param negativeDDCut Integer, radius of the neighborhood for negative density dependence. If \code{negativeDD > 0}, at most \code{(min(x, y) - 1) / 2}, so that no cell is counted twice.
-#' @param positiveDD,positiveDDCut Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.
+#' @param positiveDD,positiveDDCut Experimental. Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.
 #' @param seed Integer, random seed. If NULL (default), a seed is drawn. Apart from this draw, the random number stream of the R session is not changed.
 #' @param verbose Logical, if TRUE, reports progress every 100 generations and the runtime
 #' @param density,densityCut Deprecated names of \code{negativeDD} and \code{negativeDDCut}.
@@ -51,8 +51,8 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
   J <- x * y
   mat <- matrix(1L, y, x)
   counter <- 1L
-  negNb <- as.matrix(getCircularOffsets(negativeDDCut))
-  posNb <- as.matrix(getCircularOffsets(positiveDDCut))
+  if (negativeDD > 0) negNb <- as.matrix(getCircularOffsets(negativeDDCut))
+  if (positiveDD > 0) posNb <- as.matrix(getCircularOffsets(positiveDDCut))
   # as in the C++ model: at most 1000 tries, and with global dispersal at most as many as possible parents
   maxTries <- if (is.function(dispersal)) 1000 else min(1000, J - 1)
 
@@ -85,8 +85,8 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
   # probability that a recruit of species s in the dead cell is rejected, i.e. 1 minus its fitness
   # (1 - negativeDD * S_n) * (1 - positiveDD * (1 - S_p)), as in the C++ model with the species kernels
   rejection <- function(s, cell) {
-    rn <- negativeDD * mean(mat[shift(cell, negNb[, 1], negNb[, 2])] == s)
-    rp <- positiveDD * (1 - mean(mat[shift(cell, posNb[, 1], posNb[, 2])] == s))
+    rn <- if (negativeDD > 0) negativeDD * mean(mat[shift(cell, negNb[, 1], negNb[, 2])] == s) else 0
+    rp <- if (positiveDD > 0) positiveDD * (1 - mean(mat[shift(cell, posNb[, 1], posNb[, 2])] == s)) else 0
     rn + rp - rn * rp
   }
 

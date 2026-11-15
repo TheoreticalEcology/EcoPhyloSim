@@ -10,8 +10,8 @@
 #'   or a list of them, e.g., from \code{\link{runSimulationBatch}}. At least two
 #'   generations must be recorded (see \code{runs} in \code{\link{createCompletePar}}).
 #' @param radius radius of the neighborhood, a non-negative integer. If \code{NULL},
-#'   the \code{negativeDDCut} of the simulation is used (also if only positive
-#'   density dependence acts).
+#'   the \code{negativeDDCut} of the simulation is used; for positive density
+#'   dependence, set \code{radius} to its \code{positiveDDCut}.
 #'
 #' @details The neighborhood is the same as for density dependence in the model:
 #'   all cells with \code{dx^2 + dy^2 <= radius^2} around the focal cell, without

@@ -32,7 +32,7 @@ test_that("NeutralMod runs with local dispersal and density dependence", {
                "positiveDDCut")
 })
 
-test_that("NeutralMod draws the parent directly after 1000 rejected recruits", {
+test_that("NeutralMod terminates when every recruit is rejected", {
   # with one species and negativeDD = 1, every recruit is rejected
   simu <- NeutralMod(x = 5, y = 5, runs = 2, specRate = 0, negativeDD = 1, seed = 1, verbose = FALSE)
   expect_equal(specRich(simu), 1)

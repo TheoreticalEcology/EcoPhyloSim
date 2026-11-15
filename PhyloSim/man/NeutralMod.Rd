@@ -27,7 +27,7 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{verbose}{Logical, if TRUE, reports progress every 100 generations and the runtime}
 
-\item{positiveDD, positiveDDCut}{Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.}
+\item{positiveDD, positiveDDCut}{Experimental. Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.}
 
 \item{density, densityCut}{Deprecated names of \code{negativeDD} and \code{negativeDDCut}.}
 }

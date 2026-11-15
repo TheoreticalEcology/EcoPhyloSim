@@ -377,6 +377,8 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
             // check if individual's fitness is high enough to survive
             // every m_mortalityStrength'th step the randomly chosen individual dies, no matter its fitness
+            // with one mechanism, the old algorithm below gives the same ratios of death rates and keeps
+            // the results of earlier versions
             if (m_mortality && m_Env + m_DD + m_pDD > 1) { // proportional hazards, see Individual::deathProbability
                 double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
                         m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD,
@@ -758,13 +760,15 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                 new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
                 continue;
             }
+            std::vector<double> cumRecruit(array_length);
             double sum = 0.0;
             for (unsigned int i = 0; i < array_length; i++) {
                 sum += weights[i] * (recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
                                      DBL_MIN * 100.0);
-                cumWeights[i] = sum;
+                cumRecruit[i] = sum;
             }
-            new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, sum);
+            // if all products underflow (fitness about 0 for reproduction and recruitment), keep the proposal
+            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(cumRecruit.data(), array_length - 1, sum);
             break;
         }
         x_parent = parents[new_parent].first;

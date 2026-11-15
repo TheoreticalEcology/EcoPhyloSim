@@ -119,18 +119,18 @@ chosen with a probability proportional to its dispersal weight times the fitness
 offspring in the free cell. Corresponds to \code{"recruitment"} in \code{fitnessActsOn} of
 \code{\link{createCompletePar}}.}
 
-\item{densityKernel}{Integer, how similar neighbors are measured for density dependence:
+\item{densityKernel}{Integer, how similar neighbors are measured for negative density dependence:
 1 = absolute difference of the competition trait, 2 = Gaussian kernel of the difference,
 3 = species identity. Corresponds to \code{negativeDDKernel} in \code{\link{createCompletePar}}.}
 
-\item{densityWidth}{Numeric > 0, width of the Gaussian kernel (only used if \code{densityKernel = 2}).}
+\item{densityWidth}{Numeric > 0, width of the Gaussian kernel for negative density dependence (only used if \code{densityKernel = 2}).}
 
-\item{densityTable}{Numeric vector with values between 0 and 1: the density term of fitness as a function
+\item{densityTable}{Experimental. Numeric vector with values between 0 and 1: the term of negative density dependence as a function
 of the similarity to the neighbors, on an equally spaced grid from 0 to 1. An empty vector gives
 the linear term \code{1 - compStrength * S}. It is \code{negativeDDResponse} of
 \code{\link{createCompletePar}}, where a function is stored as such values.}
 
-\item{positiveStrength}{Numeric between 0 and 1, strength of positive density dependence
+\item{positiveStrength}{Experimental. Numeric between 0 and 1, strength of positive density dependence
 (\code{positiveDD} in \code{\link{createCompletePar}}); 0 switches it off.}
 
 \item{positiveCutoff}{Integer >= 1, radius of the neighborhood for positive density dependence;
