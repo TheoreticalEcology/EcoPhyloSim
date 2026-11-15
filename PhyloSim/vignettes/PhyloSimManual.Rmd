@@ -264,12 +264,6 @@ discussed in the issues of the package repository:
 - With protracted speciation, the offspring of an incipient individual do not
   inherit the incipient state
   ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
-- Because the two fitness terms are added, the model is neutral if
-  `environment` and `density` are both > 0 and their sum is $\le 1$
-  ([#144](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/144)).
-- If fitness acts on reproduction, the recruits are not selected at the cell
-  where they settle
-  ([#165](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/165)).
 - New species keep the traits of their founding individual; a trait change at
   speciation is not implemented
   ([#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).

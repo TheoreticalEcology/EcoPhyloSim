@@ -12,8 +12,12 @@
 
 * `density` and `densityCut` in `createCompletePar()` and `NeutralMod()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
 * Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144). Results without `negativeDD` are unchanged.
-* The default `negativeDDKernel = "absolute"` averages the trait differences over the `k` neighbors instead of dividing their sum by `k + 1`, which had reduced their effect by `k / (k + 1)`; this changes all results with `negativeDD > 0` (#144).
-* `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, as in `runSimulation()` with `fitnessActsOn = "recruitment"`: with global dispersal, after `min(1000, x * y - 1)` rejections the parent is drawn directly with fitness-weighted probabilities; with a dispersal function, the recruit after 1000 rejections is accepted. Before, the 10th recruit was accepted without a test. This changes results with `negativeDD > 0` (#165).
+* The default `negativeDDKernel = "absolute"` averages the trait differences over the `k` neighbors instead of dividing their sum by `k + 1`, which had reduced their effect by `k / (k + 1)`; this changes results with `negativeDD > 0` (#144).
+* `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, as in `runSimulation()` with `fitnessActsOn = "recruitment"`: with global dispersal, after `min(1000, x * y - 1)` rejections the parent is drawn directly with fitness-weighted probabilities; with a dispersal function, the 1000th recruit is accepted. Before, the 10th recruit was accepted without a test. This changes results with `negativeDD > 0` (#165).
+
+## Bug fixes
+
+* `extractParams()` returns one row per parameter set also if a parameter has several values (e.g. `runs` or `fitnessActsOn`); such values are combined into one string.
 
 ## Documentation
 

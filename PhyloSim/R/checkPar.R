@@ -89,7 +89,7 @@ checkPar <- function(par) {
        par[["redQueen"]] != 0 || par[["redQueenStrength"]] != 0)) {
     stop("Fitness acting on reproduction is not implemented for global dispersal ",
          "with environment, negativeDD, positiveDD, redQueen or redQueenStrength > 0. ",
-         "Use local dispersal (dispersal >= 0.5) or fitnessActsOn = 'mortality'.", call. = FALSE)
+         "Use local dispersal (dispersal >= 0.5) or fitnessActsOn = 'mortality' or 'recruitment'.", call. = FALSE)
   }
   # Red Queen changes the fitness on mortality or reproduction only, not of recruits
   if (identical(actsOn, "recruitment") && (par[["redQueen"]] != 0 || par[["redQueenStrength"]] != 0)) {

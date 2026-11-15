@@ -216,7 +216,8 @@ double Individual::deathProbability(double temp, bool env, bool dd, unsigned int
     if (env) rate *= 1 + (m - 1) * (1 - std::min(envTerm(temp), 1.0));
     if (dd) rate *= 1 + (m - 1) * (1 - std::min(ddTerm(m_LocalDensity), 1.0));
     if (m_posStrength > 0) rate *= 1 + (m - 1) * (1 - std::min(posTerm(m_LocalPositive), 1.0));
-    if ((redQueenStrength != 0) || (redQueen != 0)) {
+    // with m = 1 there is no selection on mortality, also not by the Red Queen (as in the single-mechanism path)
+    if (m > 1 && ((redQueenStrength != 0) || (redQueen != 0))) {
         rate /= 1 + redQueenStrength *
                     std::pow(2.71828, (-redQueen * (generation - 1 - m_Species->m_Date_of_Emergence)));
     }
