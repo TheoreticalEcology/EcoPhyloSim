@@ -15,7 +15,7 @@ collessImbalance <- function(simu, which.result = NULL, useApTreeshape = FALSE, 
   phylo <- simu$Output[[which.result]]$phylogeny
 
   if (dropFossils == TRUE) {
-    phylo <- ape::drop.fossil(phylo)
+    phylo <- .dropFossil(phylo)
   }
 
   if (isTRUE(useApTreeshape)) {

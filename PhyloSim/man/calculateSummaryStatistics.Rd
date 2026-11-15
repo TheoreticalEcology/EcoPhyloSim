@@ -37,6 +37,7 @@ Computes the following summary statistics from one result of a simulation run. I
 \item{nb8}{Index of local species clustering among neighboring grid cells.}
 \item{envSorting}{Share of the variance of the environment across all cells that is explained by species identity, 1 - sum((e - e_s)^2) / sum((e - mean(e))^2), where e is the environment of a cell and e_s the mean environment of the cells occupied by its species. 0 if all species occupy the same mix of environments, 1 if each species occupies a single environmental value; NA if the environment is constant. Without environmental sorting, the expected value is about (S - 1) / (N - 1) for S species in N cells, so it increases with the number of species; with local dispersal, spatial clustering alone gives values above 0.}
 }
+The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter).
 }
 \examples{
 

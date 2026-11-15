@@ -18,7 +18,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
   
   phylogeny = simu$phylogeny
   
-  extantPhylogeny <- ape::drop.fossil(phylogeny)
+  extantPhylogeny <- .dropFossil(phylogeny)
   
   nSpecies = length(extantPhylogeny$tip.label)
   
