@@ -111,6 +111,9 @@ public:
 
     void densityUpdate(int x, int y);
 
+    // stored local densities are read only when fitness acts on mortality or reproduction
+    bool needsDensity() const { return (m_DD || m_pDD) && (m_mortality || m_reproduction); }
+
     // number of cells within the cutoff, including the focal cell
     double cellsWithin(int cutoff);
 

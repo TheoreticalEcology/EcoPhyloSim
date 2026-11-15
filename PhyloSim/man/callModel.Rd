@@ -46,8 +46,8 @@ environment are all 0.
 The neutral trait is computed in every case.}
 
 \item{mort}{Logical, whether fitness differences among individuals are expressed via
-differential mortality. Corresponds to \code{fitnessActsOn = "mortality"} (or
-\code{"both"}, together with \code{repro = TRUE}) in \code{\link{createCompletePar}}.}
+differential mortality. TRUE if \code{fitnessActsOn} includes \code{"mortality"} (also via
+\code{"both"}) in \code{\link{createCompletePar}}.}
 
 \item{mortStrength}{Integer, the fitness-based mortality ratio (must be >= 1); the
 higher the value, the stronger fitness differences translate into mortality
@@ -55,8 +55,8 @@ differences. Corresponds to \code{fitnessBaseMortalityRatio} in
 \code{\link{createCompletePar}}.}
 
 \item{repro}{Logical, whether fitness differences among individuals are expressed via
-differential reproductive output. Corresponds to \code{fitnessActsOn = "reproduction"}
-(or \code{"both"}, together with \code{mort = TRUE}) in \code{\link{createCompletePar}}.}
+differential reproductive output. TRUE if \code{fitnessActsOn} includes \code{"reproduction"}
+(also via \code{"both"}) in \code{\link{createCompletePar}}.}
 
 \item{dispersalCutoff}{Integer, cutoff distance for the local dispersal kernel (ignored
 if \code{dispersal = 1}); individuals only disperse within this distance. The
@@ -79,7 +79,7 @@ in \code{\link{createCompletePar}}.}
 
 \item{compStrength}{Numeric between 0 and 1, strength of the negative density-dependence /
 competition effect (ignored if \code{dens = FALSE}); the higher the value, the
-stronger the influence of trait-based competition on individual fitness. Corresponds
+stronger the influence of negative density dependence on individual fitness. Corresponds
 to \code{negativeDD} in \code{\link{createCompletePar}}.}
 
 \item{fission}{Integer, which fission (speciation) type to use: 0 = none (default),
@@ -133,7 +133,8 @@ the linear term \code{1 - compStrength * S}. \code{\link{runSimulation}} creates
 \item{positiveStrength}{Numeric between 0 and 1, strength of positive density dependence
 (\code{positiveDD} in \code{\link{createCompletePar}}); 0 switches it off.}
 
-\item{positiveCutoff}{Integer >= 1, radius of the neighborhood for positive density dependence.}
+\item{positiveCutoff}{Integer >= 1, radius of the neighborhood for positive density dependence;
+\code{2 * positiveCutoff + 1} must not exceed \code{min(x, y)} if \code{positiveStrength > 0}.}
 
 \item{positiveKernel}{Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.}
 

@@ -24,6 +24,8 @@
 //#include "./Utils/RandomGen.h"
 #include "./RandomGen.h"
 
+const int Landscape::maxRecruitTries; // definition, as it is passed by reference to std::min
+
 
 //Landscape::Landscape()
 //{
@@ -502,7 +504,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 //        }
 //      }
 
-            if (!m_reproduction && m_mortality && (m_DD || m_pDD)) densityUpdate(x_coordinate, y_coordinate);
+            if (!m_reproduction && needsDensity()) densityUpdate(x_coordinate, y_coordinate);
 
             // only if env and dens affect reproduction
             if (m_reproduction) {
@@ -780,7 +782,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
         // UPDATE RELATEDNESS
 
-        if ((m_DD || m_pDD) && (m_mortality || m_reproduction)) densityUpdate(x_coordinate, y_coordinate);
+        if (needsDensity()) densityUpdate(x_coordinate, y_coordinate);
     } // END while (numberDeath < numberOfRuns)
 }
 
@@ -927,7 +929,7 @@ void Landscape::speciation(unsigned int generation) {
                     m_Individuals[k][j].evolveDuringSpeciation();
                     m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
 
-                    if (m_DD || m_pDD) densityUpdate(k, j);
+                    if (needsDensity()) densityUpdate(k, j);
                 }
             }
         }
@@ -949,7 +951,7 @@ void Landscape::speciation(unsigned int generation) {
 
                     m_Individuals[k][j].evolveDuringSpeciation();
                     m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
-                    if (m_DD || m_pDD) densityUpdate(k, j);
+                    if (needsDensity()) densityUpdate(k, j);
                     m_Individuals[k][j].m_incip_Age = -99999999;
 
                     for (int z = 0; z < m_Xdimensions; z++) {
@@ -958,7 +960,7 @@ void Landscape::speciation(unsigned int generation) {
                                 m_Individuals[z][q].reportDeath(generation);
                                 m_Individuals[z][q].m_Species = m_Individuals[k][j].m_Species;
                                 m_Individuals[z][q].evolveDuringSpeciation();
-                                if (m_DD || m_pDD) densityUpdate(z, q);
+                                if (needsDensity()) densityUpdate(z, q);
                                 m_Individuals[z][q].m_incip_Age = -99999999;
                             }
                         }

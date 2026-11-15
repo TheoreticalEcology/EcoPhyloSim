@@ -9,8 +9,8 @@
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental sorting of species) (#85, #126).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
 * `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #144).
-* `createCompletePar()`: new argument `negativeDDResponse` sets the term of negative density dependence as a function of the similarity to the neighbors (#144).
-* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
+* `createCompletePar()`: new argument `negativeDDResponse` (experimental) sets the term of negative density dependence as a function of the similarity to the neighbors (#144).
+* `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
 * The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository (#30).
 

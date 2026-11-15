@@ -162,13 +162,13 @@ is generated based on the user's settings.
 
 ```{r createpar}
 par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500, 1000),
-                         density = 1, environment = 0.5, specRate = 1, type = "base")
+                         negativeDD = 1, environment = 0.5, specRate = 1, type = "base")
 ```
 
 In this example, an area of 50*50 cells provides the basis for one simulation
 with outputs recorded after 500 and 1000 generations. The dispersal is set to
 global, meaning each individual could reproduce in every cell of the grid.
-Further, the density as well as the environment have an influence on the
+Further, negative density dependence and the environment influence the
 individuals. For further explanations and more settings see:
 
 ```{r createpar-help, eval = FALSE}
@@ -224,10 +224,10 @@ sets are created and processed one after the other. For larger batches,
 
 ```{r runbatch, results = 'hide'}
 par1 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                          density = 1, environment = 0.5, specRate = 1, type = "base")
+                          negativeDD = 1, environment = 0.5, specRate = 1, type = "base")
 
 par2 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                          density = 1, environment = 1, specRate = 1, type = "base")
+                          negativeDD = 1, environment = 1, specRate = 1, type = "base")
 
 parmBatch <- list(par1, par2)
 

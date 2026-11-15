@@ -10,7 +10,8 @@
 #'   or a list of them, e.g., from \code{\link{runSimulationBatch}}. At least two
 #'   generations must be recorded (see \code{runs} in \code{\link{createCompletePar}}).
 #' @param radius radius of the neighborhood, a non-negative integer. If \code{NULL},
-#'   the \code{negativeDDCut} of the simulation is used.
+#'   the \code{negativeDDCut} of the simulation is used (also if only positive
+#'   density dependence acts).
 #'
 #' @details The neighborhood is the same as for density dependence in the model:
 #'   all cells with \code{dx^2 + dy^2 <= radius^2} around the focal cell, without
@@ -31,7 +32,10 @@
 #'   cells in the neighborhood minus \code{con}. With \code{environment > 0},
 #'   fitness also depends on the difference between \code{envTrait} and
 #'   \code{env}. Density dependence only appears in these data if
-#'   \code{fitnessActsOn} includes \code{"mortality"}.
+#'   \code{fitnessActsOn} includes \code{"mortality"}. As \code{con} is counted at the census
+#'   and almost two thirds of the cells are replaced within one generation, the
+#'   estimated effect of \code{con} is smaller than the ratio of death rates in
+#'   the model (see \code{fitnessBaseMortalityRatio} in \code{\link{createCompletePar}}).
 #'
 #'   Surviving individuals appear in several rows; account for this, e.g., with a
 #'   random effect for \code{id}.
