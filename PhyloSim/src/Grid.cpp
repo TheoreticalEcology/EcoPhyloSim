@@ -838,9 +838,8 @@ double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positiv
             else sum += (ind.m_Species->m_ID == neighbor.m_Species->m_ID);
         }
     }
-    // the absolute kernel keeps its original scaling with the focal cell in the denominator
-    if (kernel == 1) return sum / cells;
-    return 1.0 - sum / (cells - 1.0);
+    double mean = sum / (cells - 1.0); // mean over the neighbors, without the focal cell
+    return kernel == 1 ? mean : 1.0 - mean;
 }
 
 double Landscape::recruitFitness(int p_x, int p_y, int x, int y) {

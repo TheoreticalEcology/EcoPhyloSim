@@ -119,8 +119,8 @@ small random perturbation drawn uniformly from $[-\mathrm{width}, \mathrm{width}
 its fitness according to its competition and environmental traits. For example,
 the closer the values of the competition traits in the vicinity of an
 individual, the stronger its fitness is reduced. Numerically it can be written
-as the sum of all absolute competition trait differences in a certain area
-around the individual:
+as the mean of the absolute competition trait differences to the $n$ neighbors
+in a certain area around the individual:
 
 $$ r_i = \frac{\sum_{j=1}^{n} \lVert c_i - c_j \rVert}{n} $$
 
