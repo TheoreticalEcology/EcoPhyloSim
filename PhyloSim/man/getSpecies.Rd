@@ -21,7 +21,7 @@ The function extracts the IDs of the recent species of the grid in the PhyloSim 
 \examples{
 ## Define a parameter set
 par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
-        density = 1, environment = 0.5, specRate = 1)
+        negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Run the model
 simu <- runSimulation(par)

@@ -36,11 +36,14 @@ public:
 
     // Indicates whether the species dispersion depends on local conditions or not.
     bool m_Neutral;
-    bool m_DD;
+    bool m_DD; // negative density dependence
+    bool m_pDD; // positive density dependence
     bool m_Env;
     // switches to determine wheather fitness should affect mortality or reproduction
     bool m_mortality;
     bool m_reproduction;
+    bool m_recruitment; // fitness acts on the recruit in the target cell
+    static const int maxRecruitTries = 1000;
 
     // The size of the landscape is defined as m_Xdimensions * m_Ydimensions
     unsigned int m_LandscapeSize;
@@ -50,6 +53,8 @@ public:
     double m_Speciation_Rate;
 
     double cellsWithinDensityCutoff;
+    double cellsWithinPosCutoff;
+    double m_maxDeathRate;
     double m_nicheWidth;
     double m_envStrength;
     double m_compStrength;
@@ -59,6 +64,12 @@ public:
     int m_protracted;
     std::vector<double> airmat;
     std::vector<double> soilmat;
+    int m_ddKernel;
+    double m_ddWidth;
+    int m_posCutoff;
+    int m_posKernel;
+    double m_posWidth;
+    std::vector<double> m_ddTable;
 
 
     // Change the temperature in the environment by the given magnitude.
@@ -73,7 +84,8 @@ public:
               bool dd, bool env, bool mort, bool repro, unsigned int simulationEnd, double specRate,
               int dispersalCutoff, int densityCutoff, unsigned int mortalityStrength, double envStrength,
               double compStrength, int fission, double redQueen, double redQueenStrength, int protracted,
-              std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth);
+              std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
+              DensityOptions ddOptions);
 
     virtual ~Landscape();
 
@@ -97,6 +109,19 @@ public:
 
     void densityUpdate(int x, int y);
 
+    // stored local densities are read only when fitness acts on mortality or reproduction
+    bool needsDensity() const { return (m_DD || m_pDD) && (m_mortality || m_reproduction); }
+
+    // number of cells within the cutoff, including the focal cell
+    double cellsWithin(int cutoff);
+
+    // dissimilarity of ind to the neighbors of cell (x, y), without the cell itself, for negative or
+    // positive density dependence
+    double localDissimilarity(Individual &ind, int x, int y, bool positive);
+
+    // fitness of the offspring of the individual in parent cell p in the target cell (x, y)
+    double recruitFitness(int p_x, int p_y, int x, int y);
+
 
     std::pair<int, int> get_dimensions();
 };
@@ -109,7 +134,8 @@ public:
                       unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
                       unsigned int mortalityStrength,
                       double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
-                      int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth);
+                      int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
+                      DensityOptions ddOptions);
 
     virtual ~GlobalEnvironment();
 
@@ -124,7 +150,8 @@ public:
                      unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
                      unsigned int mortalityStrength,
                      double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
-                     int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth);
+                     int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
+                     DensityOptions ddOptions);
 
     virtual ~LocalEnvironment();
 
