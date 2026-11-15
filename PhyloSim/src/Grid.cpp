@@ -41,7 +41,6 @@ const int Landscape::maxRecruitTries; // definition, as it is passed by referenc
 //	m_Xdimensions = 256;
 //	m_Ydimensions = 256;
 //	m_LandscapeSize = m_Xdimensions * m_Ydimensions;
-//	m_RandomGenerator.seedrand(1500);
 //
 //
 //
@@ -111,8 +110,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     m_posCutoff = ddOptions.posCutoff;
     m_posKernel = ddOptions.posKernel;
     m_posWidth = ddOptions.posWidth;
-
-    //	func.seedrand(1500);
 
     // Construct grid of individuals
     this->m_Individuals = new Individual *[m_Xdimensions];
@@ -310,7 +307,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         int y_parent = 0;
 
         unsigned int numberOfRuns = 0;
-        double seedSum = 0.0;
         int new_parent = 0;
         unsigned int array_length;
 
@@ -344,17 +340,11 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                     weights[array_length] = m_Individuals[kernel_x][kernel_y].getFitness(
                             m_Environment[kernel_x * m_Ydimensions + kernel_y].first, m_Env, m_DD, generation,
                             m_redQueenStrength, m_redQueen);
-                    seedSum += weights[array_length];
                     array_length++;
                 }
             }
 
-            // TODO this seems inefficient, can just calculate cumweights directly
-
-            cumWeights[0] = weights[0];
-            for (unsigned int i = 1; i < m_LandscapeSize; i++) {
-                cumWeights[i] = weights[i] + cumWeights[i - 1];
-            }
+            std::partial_sum(weights.begin(), weights.end(), cumWeights.begin());
 
         } // END  if (m_reproduction)
 
@@ -406,7 +396,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                 int p;
                 do { // fixes #81
                     if (m_reproduction) {
-                        p = m_RandomGenerator.multinomialDraw(cumWeights.data(), m_LandscapeSize - 1, seedSum);
+                        p = m_RandomGenerator.multinomialDraw(cumWeights, m_LandscapeSize);
                     } else {
                         p = m_RandomGenerator.randomInt(0, m_LandscapeSize - 1);
                     }
@@ -434,9 +424,12 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                     }
                     cumRecruit[i] = sum;
                 }
-                do {
-                    new_parent = m_RandomGenerator.multinomialDraw(cumRecruit.data(), m_LandscapeSize - 1, sum);
-                } while (new_parent == target);
+                // if all products underflow, keep the proposal (as in the local fallback)
+                if (sum > 0) {
+                    do {
+                        new_parent = m_RandomGenerator.multinomialDraw(cumRecruit, m_LandscapeSize);
+                    } while (new_parent == target);
+                }
                 break;
             }
 
@@ -655,7 +648,6 @@ void LocalEnvironment::reproduce(unsigned int generation) {
     int x_parent = 0, kernel_x = 0;
     int y_parent = 0, kernel_y = 0;
     unsigned int array_length;
-    double seedSum = 0.0;
     int new_parent;
     unsigned int numberOfRuns = 0;
     m_KernelSize = ((2 * m_Cutoff + 1) * (2 * m_Cutoff + 1) - 1);
@@ -708,7 +700,6 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
         std::vector<double> weights(m_KernelSize); // fixes #149 (heap instead of stack)
         array_length = 0;
-        seedSum = 0.0;
 
         for (int relativeX = -m_Cutoff; relativeX <= m_Cutoff; relativeX++) {
             int yLims = floor(sqrt(m_Cutoff * m_Cutoff - relativeX * relativeX)); // avoid diagonal bias
@@ -733,23 +724,14 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                                                                                                     relativeX,
                                                                                                     relativeY));
                     }
-                    seedSum += weights[array_length];
                     array_length += 1;
                 }
             }
         }
 
-        // calculate cummulative weights for the multinomial function
-        // TODO could be moved in the upper loop
-        // TODO check multinomial implementation correct, should cumweights start with 0?
-
         std::vector<double> cumWeights(array_length);
-        cumWeights[0] = weights[0];
-        for (unsigned int i = 1; i < array_length; i++) {
-            cumWeights[i] = weights[i] + cumWeights[i - 1];
-        }
-
-        new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
+        std::partial_sum(weights.begin(), weights.begin() + array_length, cumWeights.begin());
+        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
 
         // fixes #165 (rejection sampling: parent with probability ~ weight * fitness of its recruit here);
         // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
@@ -757,7 +739,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                 recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
              tries++) {
             if (tries < std::min(maxRecruitTries, (int) array_length)) {
-                new_parent = m_RandomGenerator.multinomialDraw(cumWeights.data(), array_length - 1, seedSum);
+                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
                 continue;
             }
             std::vector<double> cumRecruit(array_length);
@@ -768,7 +750,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
                 cumRecruit[i] = sum;
             }
             // if all products underflow (fitness about 0 for reproduction and recruitment), keep the proposal
-            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(cumRecruit.data(), array_length - 1, sum);
+            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(cumRecruit, array_length);
             break;
         }
         x_parent = parents[new_parent].first;

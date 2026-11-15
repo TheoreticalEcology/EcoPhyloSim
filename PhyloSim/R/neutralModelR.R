@@ -42,10 +42,7 @@ NeutralMod <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRat
   if (positiveDD > 0) checkmate::assert_int(positiveDDCut, upper = (min(x, y) - 1) %/% 2)
   checkmate::assert_int(seed, null.ok = TRUE)
   if (is.null(seed)) seed <- sample.int(.Machine$integer.max, 1)
-  oldSeed <- globalenv()$.Random.seed
-  on.exit(if (is.null(oldSeed)) rm(".Random.seed", envir = globalenv())
-          else assign(".Random.seed", oldSeed, envir = globalenv()))
-  set.seed(seed)
+  localSeed(seed)
 
   ptm <- proc.time()
   J <- x * y
