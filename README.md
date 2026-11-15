@@ -5,11 +5,11 @@ explicit biogeographical and phylogenetic data.
 
 ### Installation
 
-You can install directly from gh, using the ‘devtools’ package;
+You can install directly from gh, using the ‘remotes’ package;
 `ref = "v0.3.1"` installs the release 0.3.1, without it you get the
 development version:
 
-    devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim", 
+    remotes::install_github(repo = "TheoreticalEcology/EcoPhyloSim", 
                              subdir = "PhyloSim",  
                              ref = "v0.3.1",
                              dependencies = T, 

@@ -1,4 +1,4 @@
-# EcoPhyloSim 0.3.2
+# EcoPhyloSim (development version)
 
 ## New features
 
