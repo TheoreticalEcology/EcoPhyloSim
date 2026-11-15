@@ -25,7 +25,7 @@ The function extracts the environmental, competition and neutral trait of the sp
 \examples{
 ## Define a parameter set
 par <- createCompletePar(x = 50, y = 50, runs = c(500,1000),
-        density = 1, environment = 0.5, specRate = 1)
+        negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Run the model
 simu <- runSimulation(par)

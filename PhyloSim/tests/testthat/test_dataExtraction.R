@@ -2,7 +2,7 @@ context("getMortalityData")
 
 set.seed(1)
 par <- createCompletePar(x = 20, y = 15, dispersal = 1, runs = c(10, 11, 13), # non-square grid
-                         density = 1, densityCut = 2, scenario = "test")
+                         negativeDD = 1, negativeDDCut = 2, scenario = "test")
 simu <- runSimulation(par)
 
 # conspecific neighbors as in Landscape::densityUpdate (Grid.cpp), cell (x, y) = mat[y + 1, x + 1]
@@ -38,7 +38,7 @@ test_that("getMortalityData counts conspecific neighbors on the torus", {
   # many species on a 7 x 4 grid; radius 4 wraps onto the focal cell, which is not counted, as in C++
   set.seed(2)
   mat <- function() matrix(sample(1:3, 28, replace = TRUE), nrow = 4, ncol = 7)
-  fake <- structure(list(Model = list(runs = c(1, 2), densityCut = 2),
+  fake <- structure(list(Model = list(runs = c(1, 2), negativeDDCut = 2),
                          Output = lapply(1:2, function(i) list(specMat = mat(), traitMat = mat(), compMat = mat(), envMat = mat()))),
                     class = "PhyloSim")
   for (r in 1:4) expect_equal(getMortalityData(fake, radius = r)$con, bruteCon(fake$Output[[1]]$specMat, r))

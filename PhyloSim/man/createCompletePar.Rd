@@ -5,35 +5,39 @@
 \title{Parameter Generator}
 \usage{
 createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
-  specRate = 1, density = 0, environment = 0, nicheWidth = 0.03659906,
-  fitnessActsOn = "mortality", fitnessBaseMortalityRatio = 10,
-  densityCut = 1, seed = NULL, type = "base", fission = 0,
-  redQueen = 0, redQueenStrength = 0, protracted = 0, airmat = 1,
-  scenario = NULL, calculateSummaries = FALSE,
-  convertToBinaryTree = TRUE, prunePhylogeny = TRUE)
+  specRate = 1, negativeDD = 0, environment = 0,
+  nicheWidth = 0.03659906, fitnessActsOn = "mortality",
+  fitnessBaseMortalityRatio = 10, negativeDDCut = 1, seed = NULL,
+  type = "base", fission = 0, redQueen = 0, redQueenStrength = 0,
+  protracted = 0, airmat = 1, scenario = NULL,
+  calculateSummaries = FALSE, convertToBinaryTree = TRUE,
+  prunePhylogeny = TRUE, negativeDDKernel = "absolute",
+  negativeDDWidth = 0.1, negativeDDResponse = "linear", positiveDD = 0,
+  positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1,
+  density, densityCut)
 }
 \arguments{
 \item{x}{Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
 
 \item{y}{Integer, Dimension of the model landscape in y-direction}
 
-\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y).}
+\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y). Only multiples of 0.5 have an effect (see the vignette).}
 
 \item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.}
 
 \item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution); must not exceed x * y}
 
-\item{density}{Numeric, determining whether or how strong the density dependence influences the model. By default (density=0) there is no density dependence. The higher the value of the parameter, the stronger is the density dependence. Density value must be between 0 and 1.}
+\item{negativeDD}{Numeric between 0 and 1, strength of negative density dependence (formerly \code{density}); 0 (default) switches it off. Its fitness term is \code{1 - negativeDD * S}, where \code{S} is the similarity to the neighbors within \code{negativeDDCut} (see \code{negativeDDKernel}); with the "species" kernel, each of the \code{k} neighbors that is conspecific contributes \code{negativeDD / k}. With a function or values as \code{negativeDDResponse}, \code{negativeDD > 0} only switches it on.}
 
 \item{environment}{Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.}
 
 \item{nicheWidth}{Numeric > 0, width (standard deviation) of the Gaussian environmental niche (no effect on the simulation if environment = 0). The default 0.03659906 is the value that was fixed in earlier versions. Values much smaller or larger than the spread of the environment (standard deviation about 0.29 for the default gradient) weaken environmental filtering; values below 0.003 or above 3 give a message.}
 
-\item{fitnessActsOn}{Character, determining how the fitness influences the individuals. Possible inputs are "mortality" (default), "reproduction" or "both". With global dispersal, "reproduction" and "both" are only implemented if environment, density, redQueen and redQueenStrength are 0.}
+\item{fitnessActsOn}{Character vector, the life stages on which fitness acts: "mortality" (default; individuals with low fitness in their cell die more often), "reproduction" (parents with high fitness in their own cell produce more offspring), "recruitment" (the offspring of a parent is established in a free cell with a probability given by its fitness in that cell, evaluated with the traits of the parent), or a combination, e.g. \code{c("mortality", "recruitment")}; "both" is short for \code{c("mortality", "reproduction")}. With several stages, environment and density dependence act at each of them. With global dispersal, "reproduction" is only implemented if environment, negativeDD, positiveDD, redQueen and redQueenStrength are 0. redQueen and redQueenStrength do not act on recruitment. With "recruitment", the parents within dispersal range compete in a weighted lottery for the free cell, so there is no effect if they all have the same fitness there; parents are drawn until a recruit is accepted, and after as many rejections as there are possible parents (at most 1000), the parent is drawn directly with probabilities proportional to dispersal weight times fitness.}
 
-\item{fitnessBaseMortalityRatio}{Integer, determines the fitness based mortality ratio. Must be greater than or equal to 1.}
+\item{fitnessBaseMortalityRatio}{Integer >= 1, ratio of the death rates at fitness terms 0 and 1 for each mechanism acting on mortality (environment, negative and positive density dependence; see Details). For a linear term with strength \code{s} (e.g. \code{negativeDD}), the ratio between individuals is at most \code{1 + (fitnessBaseMortalityRatio - 1) * s}. 1 gives no fitness differences in mortality. No effect if fitness does not act on mortality.}
 
-\item{densityCut}{Integer >= 1, defines the effective range of the competition (no effect on the simulation if density = 0); must not exceed min(x, y), and 2 * densityCut + 1 must not exceed min(x, y) if density > 0}
+\item{negativeDDCut}{Integer >= 1, radius of the neighborhood for negative density dependence (formerly \code{densityCut}; no effect if negativeDD = 0); must not exceed min(x, y), and 2 * negativeDDCut + 1 must not exceed min(x, y) if negativeDD > 0. The neighborhood contains the cells with \code{dx^2 + dy^2 <= negativeDDCut^2} except the focal cell (on a torus): 4, 12 and 28 cells for 1, 2 and 3.}
 
 \item{seed}{Integer, the seed of R's random number generator for the simulation (see \code{\link{runSimulation}}). If NULL (default), a seed is drawn from R's random number stream, so that \code{set.seed()} before \code{createCompletePar()} also gives reproducible results.}
 
@@ -56,6 +60,18 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 \item{convertToBinaryTree}{Logical, determining if the phylogeny should be converted into a binary tree}
 
 \item{prunePhylogeny}{Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small; the phylogeny then contains only the extant species (see \code{\link{runSimulation}}). If FALSE, all species are kept.}
+
+\item{negativeDDKernel}{Character, how the similarity \code{S} of an individual to its neighbors is measured for negative density dependence: "absolute" (default) uses the absolute difference in the competition trait, \code{S = 1 - D}, where \code{D} is the mean difference to the neighbors; "gaussian" uses the mean of \code{exp(-0.5 * (difference / negativeDDWidth)^2)} over the neighbors; "species" uses the proportion of conspecifics among the neighbors, i.e., conspecific density dependence that acts from the first speciation on. The trait-based kernels act only once the competition traits have diverged, which takes thousands of generations, because all individuals start with the same traits. Strengths are not directly comparable between kernels, as the distributions of \code{S} differ.}
+
+\item{negativeDDWidth}{Numeric > 0, width of the Gaussian kernel for \code{negativeDDKernel = "gaussian"}; values above 1 give a message, as the competition trait lies between 0 and 1.}
+
+\item{negativeDDResponse}{Experimental. "linear" (default) for the fitness term \code{1 - negativeDD * S}, or a function of the similarity \code{S} between 0 and 1 that returns the fitness term (between 0 and 1), e.g. \code{function(S) exp(-a * k * S)} with \code{negativeDDKernel = "species"} and \code{k} neighbors (see \code{negativeDDCut}), which multiplies the probability of establishment (\code{fitnessActsOn = "recruitment"}) or the number of offspring ("reproduction") by \code{exp(-a)} per conspecific neighbor. A function is stored as its values at equally spaced \code{S} from 0 to 1: at each number of conspecifics with \code{negativeDDKernel = "species"}, otherwise at 1001 values. Such a vector of at least 2 values can also be given directly; between its values, the term is interpolated linearly. The values are not recomputed if \code{negativeDDCut} or \code{negativeDDKernel} is changed in the list afterwards.}
+
+\item{positiveDD}{Experimental. Numeric between 0 and 1, strength of positive density dependence (e.g. facilitation by mutualists): individuals with dissimilar neighbors within \code{positiveDDCut} are disadvantaged, with the fitness term \code{1 - positiveDD * (1 - S)}. As the grid is always full, this is the same as an advantage of individuals with similar neighbors. By default (0) there is none. Positive density dependence is destabilizing: on its own and with otherwise default settings, already \code{positiveDD = 0.1} left two or three species after 1000 generations (neutral: about eight), and with \code{dispersal = 1} and \code{specRate = 2}, \code{positiveDD = 0.02} led to the dominance of one species (mean Shannon index 0.09 over 5 runs after 5000 generations; neutral: 2.1), so it is meant to be combined with negative density dependence at another radius or specificity. With the "species" kernel and \code{fission = 0}, a new species starts as a single individual without conspecific neighbors and therefore gets the full penalty \code{positiveDD}.}
+
+\item{positiveDDCut, positiveDDKernel, positiveDDWidth}{Radius, similarity measure (default "species") and Gaussian width for positive density dependence, as \code{negativeDDCut}, \code{negativeDDKernel} and \code{negativeDDWidth}.}
+
+\item{density, densityCut}{Deprecated names of \code{negativeDD} and \code{negativeDDCut}.}
 }
 \value{
 A List with parameters
@@ -64,13 +80,18 @@ A List with parameters
 Function to create a list of parameters for biogeographical simulations with \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
 }
 \details{
+Fitness: environment and density dependence give fitness terms between 0 and 1, \code{w_env = environment * exp(-0.5 * ((E - t) / nicheWidth)^2) + 1 - environment} and the terms of negative and positive density dependence (see \code{negativeDD} and \code{positiveDD}). If several act on mortality, their relative death rates multiply (proportional hazards, i.e. their effects add up on the logarithmic scale of the death rate): an individual dies at a rate proportional to the product of \code{1 + (m - 1) * (1 - w)} over these terms, with \code{m = fitnessBaseMortalityRatio}. As the number of deaths per generation is fixed (\code{x * y}), only relative rates matter, and a term that is equal for all individuals has no effect. For reproduction and recruitment, the terms multiply directly. The Red Queen bonus multiplies fitness by \code{1 + redQueenStrength * exp(-redQueen * age)} (age of the species in generations); with several mechanisms on mortality, it divides the death rate by this factor.
+
 If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
 }
 \examples{
 ## Define a parameter set
 par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
-        density = 1, environment = 0.5, specRate = 1)
+        negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Run the model
 simu <- runSimulation(par)
+}
+\seealso{
+\code{\link{getMortalityData}} for analyses of density dependence in mortality
 }

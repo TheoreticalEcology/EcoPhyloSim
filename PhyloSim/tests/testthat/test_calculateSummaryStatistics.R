@@ -1,6 +1,6 @@
 test_that("calculateSummaryStatistics returns all statistics", {
   set.seed(1)
-  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = 200, seed = 1, density = 0.5, environment = 0.5)
+  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = 200, seed = 1, negativeDD = 0.5, environment = 0.5)
   summStat <- calculateSummaryStatistics(simu, strict = FALSE)
   expect_length(summStat, 14)
   expect_false(anyNA(unlist(summStat)))
