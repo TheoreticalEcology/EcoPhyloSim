@@ -264,12 +264,6 @@ discussed in the issues of the package repository:
 - With protracted speciation, the offspring of an incipient individual do not
   inherit the incipient state
   ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
-- Because the two fitness terms are added, the model is neutral if
-  `environment` and `density` are both > 0 and their sum is $\le 1$
-  ([#144](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/144)).
-- If fitness acts on reproduction, the recruits are not selected at the cell
-  where they settle
-  ([#165](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/165)).
 - New species keep the traits of their founding individual; a trait change at
   speciation is not implemented
   ([#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).
@@ -307,7 +301,7 @@ is generated with `createCompletePar()`:
 
 ```{r createpar}
 pars <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500, 1000),
-                          density = 1, environment = 0.5, specRate = 1, seed = 42)
+                          negativeDD = 1, environment = 0.5, specRate = 1, seed = 42)
 ```
 
 In this example, an area of 50 × 50 cells provides the basis for one simulation
@@ -374,9 +368,9 @@ the other; for larger batches, `parallel = 2` runs them on two cores.
 
 ```{r runbatch, results = 'hide'}
 pars1 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                           density = 1, environment = 0.5, specRate = 1, seed = 1)
+                           negativeDD = 1, environment = 0.5, specRate = 1, seed = 1)
 pars2 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                           density = 1, environment = 1, specRate = 1, seed = 2)
+                           negativeDD = 1, environment = 1, specRate = 1, seed = 2)
 simuBatch <- runSimulationBatch(list(pars1, pars2), parallel = FALSE)
 ```
 
@@ -497,7 +491,7 @@ as in field studies (see the chapter Emerging patterns). For this, the state
 should be recorded in consecutive generations:
 
 ```{r mortality-run, results = 'hide'}
-simuM <- runSimulation(createCompletePar(x = 30, y = 30, dispersal = 1, density = 1,
+simuM <- runSimulation(createCompletePar(x = 30, y = 30, dispersal = 1, negativeDD = 1,
                                          runs = c(4000, 4001), seed = 3))
 ```
 
