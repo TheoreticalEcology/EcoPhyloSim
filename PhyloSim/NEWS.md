@@ -8,7 +8,8 @@
 * New function `getMortalityData()` returns, for each individual and census interval, its species, number of conspecific neighbors and whether it died before the next recorded generation, for analyses of conspecific negative density dependence (@AndyEnvFr, #100).
 * `calculateSummaryStatistics()` returns additional statistics (Clark-Evans index, 8-neighbor index, environmental sorting of species) (#85, #126).
 * `createCompletePar()`: new argument `nicheWidth` sets the width (standard deviation) of the environmental niche, which was fixed before (@AndyEnvFr, #103, #138).
-* The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository (#30).
+* The package has a CITATION file; `citation("EcoPhyloSim")` now also gives the URL of the GitHub repository, and `DESCRIPTION` lists the repository and its issue tracker (#30).
+* New data set `packageBehavior` with summaries of simulation experiments that show how the outputs of the model respond to its parameters (#136).
 
 ## Changes
 
@@ -35,6 +36,7 @@
 * `localPlots()` stops with an error if `size` is not a whole number between 1 and the shorter side of the grid, and the default plot sizes of `sac()` go up to the shorter side of the grid instead of `sqrt(x * y)` (#151).
 * `runSimulation()`: the warning for results with only one species says that the phylogeny is set to 0 and how to avoid this, instead of "Cannot build Phylogeny" (#153).
 * `runSimulation()`: with `prunePhylogeny = TRUE` (the default), the phylogeny contains only the extant species, so that its size no longer grows with the run length; extinct ancestors become internal nodes. Each census is placed half a generation after the events of its generation, and the tree has no root edge (see `?runSimulation`), so tree statistics change slightly. Writing large phylogenies is faster (#147).
+* Bingxue Wu was added as author and further people as contributors in `DESCRIPTION`; the file `CONTRIBUTORS.md` in the repository lists all contributions (#136).
 
 ## Bug fixes
 
@@ -55,7 +57,7 @@
 * `plotTraitDistribution()` changed the random number stream of the user, and its histograms were cut off above log(count) = 7 (#156).
 * The bundled data sets `simu.envcom.local`, `simu.neutral.local` and `simu.neutral.global` had the class `c("list", "Phylosim")` instead of `PhyloSim`, so that `print()`, `summary()`, `plot()` and `calculatePhylogeneticDispersion()` did not recognize them (#128).
 * `calculatePhylogeneticDispersion()`: a vector in `which.result` gave an error (#131).
-* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number (#132).
+* `nullModel()`, and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"`, drew null communities with `localPlotSize` instead of `localPlotSize^2` individuals, so that the p-values compared communities of different size; `localPlotSize` must now be a positive whole number. The example data set `pPD.pvalues` was recreated with the corrected null model (#132, #136).
 * `calculateSummaryStatistics()` mixed the first and last result and could fail if `runs` had several values, also via `runSimulation(calculateSummaries = TRUE)`; all statistics now use the last result, or the one given by the new argument `which.result` (#134).
 * `summary()` of a `PhyloSim` object printed the class name as `Phylosim` (#155).
 * `runSimulation()` crashed R with a stack overflow on large grids with global dispersal and `environment`, `density`, `redQueen` or `redQueenStrength` > 0, or with large local dispersal kernels (#149).
@@ -73,5 +75,6 @@
 
 * The vignette was converted from Sweave (PDF) to R Markdown (HTML).
 * Package help converted to roxygen; examples moved to `inst/examples/` (#87).
-* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `density` (#96), `dispersal`, `densityCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122).
+* The help of `createCompletePar()` explains vectors in `runs`, the valid ranges of `environment`, `airmat` and `fitnessBaseMortalityRatio` (#85), `density` (#96), `dispersal`, `densityCut`, `redQueen` and `redQueenStrength` (#118), and the dimensions of `airmat` (#122); it also defines `fitnessBaseMortalityRatio` and explains that only multiples of 0.5 of `dispersal` have an effect (#92, #141).
 * Help pages and vignette revised: corrected trait-evolution formula in the vignette and return value of `sac()`, documented parameters of `callModel()`, faster examples, corrected spelling and several incorrect argument and return value descriptions (#113).
+* The vignette was restructured: an abstract and a quick start; a model description with a schematic of a generation, parameter tables with defaults and ranges, and known limitations; a description of the output; and a new chapter "Emerging patterns" that compares how the outputs respond to the parameters with expectations from theory and the literature, using the data set `packageBehavior` (#77, #99, #136).
