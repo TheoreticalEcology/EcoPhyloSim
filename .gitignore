@@ -40,7 +40,5 @@ Rplots.pdf
 .claude/
 PhyloSim/data-raw/cache/
 
-# comparison of model versions: rendered output ignored, per-version results kept
-model-behavior/*.html
-model-behavior/*_files/
+# comparison of model versions: per-version results kept
 !model-behavior/runs/*.csv.gz

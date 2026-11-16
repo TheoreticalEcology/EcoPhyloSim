@@ -22,6 +22,7 @@
 
 ## Documentation
 
+* New vignette "Model history" and data set `modelHistory`: which changes of the model code alter simulation results, and how the patterns of the chapter Emerging patterns of the main vignette compare between releases; the scripts that produce the data are in the folder `model-behavior` of the repository (#180, #181).
 * The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #144).
 
 # EcoPhyloSim 0.3.1

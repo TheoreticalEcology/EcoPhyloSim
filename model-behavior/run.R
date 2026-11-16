@@ -5,7 +5,7 @@
 #
 # Run from the repository root:
 #   Rscript model-behavior/run.R <mode> <cores> <version> <cache folder> [lib=<libraries>]
-#     [commit=<commit of the simulated package>] [<blocks>] [part=i/n]
+#     [commit=<commit of the simulated package>] [package=<name>] [<blocks>] [part=i/n]
 # <mode>: pilot, main or test (design.R); <version>: a name in `versions` of
 # adapters.R. The current EcoPhyloSim must be installed (indicators). Without
 # lib=, the simulations also use it; with lib= (the library of the version,
@@ -26,8 +26,11 @@ cacheDir <- args[4]
 rest <- args[-(1:4)]
 lib <- sub("^lib=", "", grep("^lib=", rest, value = TRUE))
 commit <- sub("^commit=", "", grep("^commit=", rest, value = TRUE))
+# package name, if it differs from that of the version in adapters.R (e.g. commits before the renaming #164)
+package <- sub("^package=", "", grep("^package=", rest, value = TRUE))
+if (!length(package)) package <- versions[[version]]$package
 part <- grep("^part=", rest, value = TRUE)
-blocks <- rest[!grepl("^(lib|commit|part)=", rest)]
+blocks <- rest[!grepl("^(lib|commit|package|part)=", rest)]
 if (is.null(versions[[version]])) stop("unknown version ", version)
 if (version != "current" && !length(lib)) stop("versions other than current need lib=<libraries>")
 
@@ -53,7 +56,7 @@ runTask <- function(task) {
         Sys.setenv(R_LIBS = lib)
         log <- sub("\\.rds$", ".log", task$file)
         status <- system2(file.path(R.home("bin"), "Rscript"),
-                          c("model-behavior/simulate.R", versions[[version]]$package, tmp[1], tmp[2]),
+                          c("model-behavior/simulate.R", package, tmp[1], tmp[2]),
                           stdout = log, stderr = log)
         if (status != 0 || !file.exists(tmp[2])) stop("simulation failed (exit status ", status, "), see ", log)
         unlink(log)
@@ -105,8 +108,20 @@ cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libr
     sprintf("scripts commit: %s (git describe at the start)\n",
             tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) "unknown")),
     file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
+# provenance: command, R, platform, and the packages of all libraries used
+libs <- c(if (length(lib)) strsplit(lib, .Platform$path.sep)[[1]], .libPaths())
+installInfo <- file.path(libs, "INSTALLINFO.txt")
+writeLines(c(paste("command: Rscript model-behavior/run.R", paste(commandArgs(trailingOnly = TRUE), collapse = " ")),
+             paste("platform:", R.version$platform, "-", paste(Sys.info()[c("sysname", "release")], collapse = " ")),
+             "", "Session of the indicators:", capture.output(sessionInfo()), "",
+             "Installation of the simulated version (installVersion.R):",
+             unlist(lapply(installInfo[file.exists(installInfo)], readLines)), "",
+             "Packages in the libraries (searched in this order by the simulations):",
+             capture.output(print(installed.packages(libs)[, c("Package", "Version", "LibPath")],
+                                  quote = FALSE, row.names = FALSE))),
+           file.path(cacheDir, paste0("SESSION-", stamp, ".txt")))
 cl <- parallel::makeCluster(nCores)
-parallel::clusterExport(cl, c("sources", "version", "lib"))
+parallel::clusterExport(cl, c("sources", "version", "lib", "package"))
 parallel::clusterEvalQ(cl, { library(EcoPhyloSim); for (f in sources) source(f) })
 # longest tasks first, for better load balancing (rough cost: cells x dispersal
 # kernel size x competition neighborhood size)

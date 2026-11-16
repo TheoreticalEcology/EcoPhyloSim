@@ -1,5 +1,5 @@
 # Design of the simulations that document the behavior of the model (vignette
-# chapter "Emerging patterns", model-behavior.qmd): blocks of settings in which
+# chapter "Emerging patterns", vignette "Model history"): blocks of settings in which
 # one or two parameters are varied around a reference setting, with replicates.
 # Parameter names are those of EcoPhyloSim 0.3.1 (density, densityCut are the
 # arguments negativeDD, negativeDDCut since #172); adapters.R maps them to the
@@ -44,6 +44,12 @@ design <- list(
   speciation  = rbind(grid(protracted = c(0, 1, 2, 5), redQueen = 0, redQueenStrength = 0),
                       grid(protracted = 0, redQueen = c(0.01, 0.1), redQueenStrength = 100)),
   fission     = grid(fission = c(1, 2)),
+  # speciation mechanisms over speciation rates, to compare them at the same richness
+  # (point mutation: block specRateLocal; specRate = 2: blocks fission and speciation)
+  speciationRate = rbind(
+    grid(specRate = c(0.5, 1, 4, 8), fission = c(1, 2), protracted = 0, redQueen = 0, redQueenStrength = 0),
+    grid(specRate = c(0.5, 1, 4, 8), fission = 0, protracted = c(1, 2), redQueen = 0, redQueenStrength = 0),
+    grid(specRate = c(0.5, 1, 4, 8), fission = 0, protracted = 0, redQueen = 0.01, redQueenStrength = 100)),
   gridSize    = grid(x = c(20, 50, 100)),
   # odd number of columns (#142) and a non-square grid, with environmental filtering
   gridShape   = data.frame(x = c(49, 50), y = c(49, 40), environment = 1)

@@ -50,7 +50,9 @@ failed runs and the hours of simulation time (sum of the runtimes of the core
 simulations) per mode. The current data were simulated with an earlier version
 of the package (see \code{info$run}); in that version, polytomies of the
 phylogeny were resolved at random, which changes the Colless index slightly
-compared with the current version.
+compared with the current version. The same run is part of
+\code{\link{modelHistory}} as the run of 0.3.1 (at the pre-release commit
+852c61e, without #173 and #174).
 }
 \source{
 created with the script \code{data-raw/packageBehavior.R} in the

@@ -134,7 +134,49 @@ NULL
 #' simulations) per mode. The current data were simulated with an earlier version
 #' of the package (see \code{info$run}); in that version, polytomies of the
 #' phylogeny were resolved at random, which changes the Colless index slightly
-#' compared with the current version.
+#' compared with the current version. The same run is part of
+#' \code{\link{modelHistory}} as the run of 0.3.1 (at the pre-release commit
+#' 852c61e, without #173 and #174).
 #' @source created with the script \code{data-raw/packageBehavior.R} in the
 #' package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim})
+NULL
+
+
+#' Model history: simulation results across releases
+#'
+#' Summaries of the same simulation design run with each release of the package,
+#' and the changes of the model code that alter simulation results. Used in the
+#' vignette "Model history".
+#'
+#' @name modelHistory
+#' @format A list with three entries:
+#' \describe{
+#'   \item{summary}{data frame with one row per release run (\code{version},
+#'   \code{commit}), setting and indicator: \code{block} (group of settings in which
+#'   one or two parameters are varied), \code{setting} (number within the block),
+#'   the parameters of the setting (names of release 0.3.1, e.g. \code{density} for
+#'   \code{negativeDD}; \code{dispersal} as character), the number of
+#'   \code{generations}, the \code{indicator} and the replicate \code{mean},
+#'   \code{sd} and number of replicates \code{n} (without \code{NA} values) at the
+#'   last census. Indicators as in \code{\link{packageBehavior}} (richness,
+#'   shannon, conspecificNeighbors, corTraitEnv, sdCompetitionTrait, colless,
+#'   gamma, treeHeight, meanSpeciesAge, corAgeAbundance, cndd) and the
+#'   \code{runtime} of the core simulation in seconds; runs made with
+#'   \code{model-behavior/run.R} also evenness, dominance, sdNeutralTrait and
+#'   mpdLocal (see the vignette). The run of 0.3.1 is the run of
+#'   \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
+#'   #173 and #174, made with \code{data-raw/packageBehavior.R}).}
+#'   \item{changes}{data frame of the releases and the changes of the model code
+#'   that alter results: \code{date}, \code{kind} (release or change), release
+#'   \code{version}, \code{commit}, issue \code{reference}, \code{type} (N: results
+#'   per seed change; B: patterns change; S: parameters renamed or redefined;
+#'   S+B: both), the \code{change}, its effect on the \code{outputs} and the
+#'   \code{evidence}.}
+#'   \item{info}{date of creation, the runs used, the version of the scripts and
+#'   of R.}
+#' }
+#' @source Simulated and built with the scripts in the folder
+#' \code{model-behavior} of the package repository
+#' (\url{https://github.com/TheoreticalEcology/EcoPhyloSim}); its
+#' \code{README.md} describes how to regenerate the data.
 NULL

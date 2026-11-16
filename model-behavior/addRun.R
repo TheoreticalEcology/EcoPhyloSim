@@ -1,5 +1,5 @@
-# Exports the per-replicate results of one version for model-behavior.qmd, which
-# compares the model versions: the value of each indicator at the last census of
+# Exports the per-replicate results of one version for makeData.R (data set
+# modelHistory, vignette "Model history"): the value of each indicator at the last census of
 # each simulation of the main run, plus the pooled CNDD coefficient and the
 # runtime, from an archive created with archive.R.
 # Run from the repository root:

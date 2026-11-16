@@ -565,7 +565,9 @@ their summaries are stored in the data set `packageBehavior` (see
 `r packageBehavior$info$commit`), in which
 polytomies of the phylogeny were resolved at random
 ([#174](https://github.com/TheoreticalEcology/EcoPhyloSim/pull/174)); with the
-current version, the Colless index would differ slightly.
+current version, the Colless index would differ slightly. How these patterns
+changed between releases of the package is shown in the vignette "Model history"
+(`vignette("ModelHistory", package = "EcoPhyloSim")`).
 
 The indicators are computed for the whole grid at each census: species
 richness, Shannon diversity, the share of the four neighbors of a cell that

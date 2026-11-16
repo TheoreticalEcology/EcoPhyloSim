@@ -8,7 +8,7 @@
 #   Rscript model-behavior/archive.R <cache folder> <output folder> <version> <commit>
 # e.g. Rscript model-behavior/archive.R ../cache-current ../EcoPhyloSim-runs 0.3.1.9000 7385ca7
 # writes <output folder>/<version>_<commit>/. <version> must be a version number
-# (e.g. 0.3.1.9000 for a development version), as model-behavior.qmd sorts by it.
+# (e.g. 0.3.1.9000 for a development version), as makeData.R sorts by it.
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 4)
@@ -71,14 +71,16 @@ for (n in c("census", "curves", "cndd", "maps")) {
   write.csv(get(n), con, row.names = FALSE)
   close(con)
 }
-file.copy(list.files(cacheDir, "(RUNINFO\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE)
+file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*)\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE)
 writeLines(c(
   paste0("# Model behavior of EcoPhyloSim ", args[3], " (commit ", args[4], ")"), "",
   "Per-replicate results of the simulations that document the behavior of the model (vignette",
   "chapter \"Emerging patterns\"; `model-behavior/run.R`, earlier `PhyloSim/data-raw/packageBehavior.R`),",
   "created with `model-behavior/archive.R`. `RUNINFO.txt` and the copies of the scripts (`*.R`)",
   "record the versions used and notes on the run; the indicators are defined in `indicators.R`",
-  "(earlier in `censusStats()` of `packageBehavior.R`).", "",
+  "(earlier in `censusStats()` of `packageBehavior.R`). `SESSION-*.txt` record the command, the",
+  "platform, the installation of the simulated version and the versions of all packages. How to",
+  "regenerate the archive is described in `model-behavior/README.md` of the repository.", "",
   "- `simulations.csv`: one row per simulation (`simulation` = `<mode>_<block>_<setting>_<rep>`;",
   "  `mode` pilot: few replicates and many censuses to check the time to equilibrium, main: more",
   "  replicates, test: short check of the scripts), with its parameters (as in `design.R`; `y` equals `x` if absent), number of",
