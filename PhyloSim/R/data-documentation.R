@@ -137,8 +137,12 @@ NULL
 #' compared with the current version. The same run is part of
 #' \code{\link{modelHistory}} as the run of 0.3.1 (at the pre-release commit
 #' 852c61e, without #173 and #174).
-#' @source created with the script \code{data-raw/packageBehavior.R} in the
-#' package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim})
+#' @source created with the script \code{data-raw/packageBehavior.R} of the
+#' package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim}),
+#' which is replaced by the scripts in its folder \code{model-behavior}; from the
+#' next release on, \code{makeData.R} builds the data set from the archive of the
+#' run of the current version, in a new format (all censuses in \code{main},
+#' no \code{pilot}).
 NULL
 
 
@@ -161,18 +165,19 @@ NULL
 #'   last census. Indicators as in \code{\link{packageBehavior}} (richness,
 #'   shannon, conspecificNeighbors, corTraitEnv, sdCompetitionTrait, colless,
 #'   gamma, treeHeight, meanSpeciesAge, corAgeAbundance, cndd) and the
-#'   \code{runtime} of the core simulation in seconds; runs made with
+#'   \code{runtime} of the core simulation in seconds, the share of failed
+#'   simulations (\code{failed}); runs made with
 #'   \code{model-behavior/run.R} also evenness, dominance, sdNeutralTrait and
 #'   mpdLocal (see the vignette). The run of 0.3.1 is the run of
 #'   \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
-#'   #173 and #174, made with \code{data-raw/packageBehavior.R}).}
+#'   #173 and #174).}
 #'   \item{changes}{data frame of the releases and the changes of the model code
 #'   that alter results: \code{date}, \code{kind} (release or change), release
 #'   \code{version}, \code{commit}, issue \code{reference}, \code{type} (N: results
-#'   per seed change; B: patterns change; S: parameters renamed or redefined;
+#'   per seed change, but no change of their distributions was detected; B: patterns change; S: parameters renamed or redefined;
 #'   S+B: both), the \code{change}, its effect on the \code{outputs} and the
 #'   \code{evidence}.}
-#'   \item{info}{date of creation, the runs used, the version of the scripts and
+#'   \item{info}{the runs used, the version of the scripts and
 #'   of R.}
 #' }
 #' @source Simulated and built with the scripts in the folder

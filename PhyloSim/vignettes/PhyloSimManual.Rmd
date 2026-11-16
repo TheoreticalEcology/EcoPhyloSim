@@ -615,8 +615,9 @@ of an effect. The parameters are varied one or two at a time around a reference
 setting (50 × 50 cells, `dispersal = 1`, `specRate = 2`, all other parameters
 at their defaults), with replicate runs per setting. The simulations take
 hours to days, so they are not run when this vignette is built: they were run
-with the script `data-raw/packageBehavior.R` in the
-[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim), and
+with the script `data-raw/packageBehavior.R` of the
+[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim) (now
+replaced by the scripts in its folder `model-behavior`), and
 their summaries are stored in the data set `packageBehavior` (see
 `?packageBehavior`). They were run with an earlier version of the package
 (commit

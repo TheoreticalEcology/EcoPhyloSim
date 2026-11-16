@@ -1,16 +1,18 @@
 # Runs the simulations of design.R with one model version and saves the
 # indicators of each simulation (indicators.R) in a cache folder, one .rds file
-# per simulation; finished simulations are skipped, so an interrupted run resumes.
-# The cache is turned into an archive with archive.R. See README.md.
+# per simulation; finished simulations are skipped (failed ones are rerun), so an
+# interrupted run resumes. The cache is turned into an archive with archive.R.
+# See README.md.
 #
 # Run from the repository root:
-#   Rscript model-behavior/run.R <mode> <cores> <version> <cache folder> [lib=<libraries>]
-#     [commit=<commit of the simulated package>] [package=<name>] [<blocks>] [part=i/n]
-# <mode>: pilot, main or test (design.R); <version>: a name in `versions` of
-# adapters.R. The current EcoPhyloSim must be installed (indicators). Without
-# lib=, the simulations also use it; with lib= (the library of the version,
-# followed by the libraries of its dependencies, separated by ";" on Windows and
-# ":" otherwise), each simulation runs in its own R process with that package.
+#   Rscript model-behavior/run.R <mode> <cores> <version> <cache folder> lib=<libraries>
+#     [<blocks>] [part=i/n]
+# <mode>: main or test (design.R); <version>: a name in `versions` of adapters.R.
+# lib=: the library into which installVersion.R installed the simulated commit,
+# followed by the libraries of its dependencies (separated by ";" on Windows and
+# ":" otherwise); each simulation runs in its own R process with that package.
+# The commit and package name are taken from INSTALLINFO.txt of that library.
+# The current EcoPhyloSim must be installed in the default library (indicators).
 # Environment variable MB_MIN_FREE_GB (default 30): free memory to wait for
 # before each simulation (checked on Windows only).
 
@@ -25,14 +27,16 @@ version <- args[3]
 cacheDir <- args[4]
 rest <- args[-(1:4)]
 lib <- sub("^lib=", "", grep("^lib=", rest, value = TRUE))
-commit <- sub("^commit=", "", grep("^commit=", rest, value = TRUE))
-# package name, if it differs from that of the version in adapters.R (e.g. commits before the renaming #164)
-package <- sub("^package=", "", grep("^package=", rest, value = TRUE))
-if (!length(package)) package <- versions[[version]]$package
 part <- grep("^part=", rest, value = TRUE)
-blocks <- rest[!grepl("^(lib|commit|package|part)=", rest)]
+blocks <- rest[!grepl("^(lib|part)=", rest)]
 if (is.null(versions[[version]])) stop("unknown version ", version)
-if (version != "current" && !length(lib)) stop("versions other than current need lib=<libraries>")
+if (!length(lib)) stop("lib=<libraries> is needed (install the commit with installVersion.R)")
+# commit and package of the simulated version, recorded by installVersion.R
+info <- file.path(strsplit(lib, .Platform$path.sep)[[1]][1], "INSTALLINFO.txt")
+if (!file.exists(info)) stop(info, " not found; install the commit with installVersion.R")
+info <- readLines(info)
+commit <- sub("^commit: ", "", grep("^commit: ", info, value = TRUE))
+package <- strsplit(sub("^package: ", "", grep("^package: ", info, value = TRUE)), " ")[[1]][1]
 
 runTask <- function(task) {
   minFree <- as.numeric(Sys.getenv("MB_MIN_FREE_GB", "30"))
@@ -40,6 +44,7 @@ runTask <- function(task) {
     tryCatch(as.numeric(system2("powershell", c("-NoProfile", "-Command",
       "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"), stdout = TRUE)) / 1024^2,
       error = function(e) NA)
+  if (isTRUE(freeGB() < minFree)) message("waiting for ", minFree, " GB of free memory (MB_MIN_FREE_GB)")
   while (isTRUE(freeGB() < minFree)) Sys.sleep(60)
   running <- sub("\\.rds$", ".running", task$file)
   file.create(running)
@@ -47,24 +52,19 @@ runTask <- function(task) {
   out <- tryCatch({
     par <- adapt(task, version)
     if (is.null(par)) list(unsupported = TRUE) else {
-      if (length(lib)) {
-        # simulate in a separate R process with the package of the other version;
-        # system2(env = ) does not work on Windows, and each worker is its own process
-        tmp <- tempfile(c("par", "sim"), fileext = ".rds")
-        on.exit(unlink(tmp), add = TRUE)
-        saveRDS(par, tmp[1])
-        Sys.setenv(R_LIBS = lib)
-        log <- sub("\\.rds$", ".log", task$file)
-        status <- system2(file.path(R.home("bin"), "Rscript"),
-                          c("model-behavior/simulate.R", package, tmp[1], tmp[2]),
-                          stdout = log, stderr = log)
-        if (status != 0 || !file.exists(tmp[2])) stop("simulation failed (exit status ", status, "), see ", log)
-        unlink(log)
-        sim <- readRDS(tmp[2])
-      } else {
-        capture.output(sim <- suppressWarnings(runSimulation(do.call(createCompletePar, par))))
-        sim$packageVersion <- paste("EcoPhyloSim", packageVersion("EcoPhyloSim"))
-      }
+      # simulate in a separate R process with the package of the simulated version;
+      # system2(env = ) does not work on Windows, and each worker is its own process
+      tmp <- tempfile(c("par", "sim"), fileext = ".rds")
+      on.exit(unlink(tmp), add = TRUE)
+      saveRDS(par, tmp[1])
+      Sys.setenv(R_LIBS = lib)
+      log <- sub("\\.rds$", ".log", task$file)
+      status <- system2(file.path(R.home("bin"), "Rscript"),
+                        shQuote(c("model-behavior/simulate.R", package, tmp[1], tmp[2])),
+                        stdout = log, stderr = log)
+      if (status != 0 || !file.exists(tmp[2])) stop("simulation failed (exit status ", status, "), see ", log)
+      unlink(log)
+      sim <- readRDS(tmp[2])
       set.seed(task$seed) # R-side randomness of the indicators (sac(), nullModel())
       r <- behavior(sim, censusTimes(task$generations))
       if (task$rep != 1) r$specMat <- NULL # species map of the first replicate only
@@ -87,12 +87,16 @@ if (length(part)) {
   p <- as.integer(strsplit(sub("part=", "", part), "/")[[1]])
   tasks <- tasks[seq_len(nrow(tasks)) %% p[2] == p[1] - 1, ]
 }
-# finished simulations are skipped, but only if they were run with the same parameters
+# finished simulations are skipped, but only if they were run with the same
+# parameters and seed; failed simulations are rerun
 done <- file.exists(tasks$file)
 for (i in which(done)) {
-  old <- readRDS(tasks$file[i])$task
-  if (!isTRUE(all.equal(old[names(base)], tasks[i, names(base)], check.attributes = FALSE)))
-    stop(tasks$file[i], " was run with other parameters; use a new cache folder")
+  old <- readRDS(tasks$file[i])
+  keys <- c(names(base), "seed")
+  if (!all(keys %in% names(old$task)) ||
+      !isTRUE(all.equal(old$task[keys], tasks[i, keys], check.attributes = FALSE)))
+    stop(tasks$file[i], " was run with other parameters or seed; use a new cache folder")
+  if (!is.null(old$error)) done[i] <- FALSE
 }
 tasks <- tasks[!done, ]
 dir.create(cacheDir, showWarnings = FALSE, recursive = TRUE)
@@ -102,14 +106,14 @@ stamp <- format(Sys.time(), "%Y%m%d-%H%M")
 for (f in file.path("model-behavior", c("design.R", "indicators.R", "adapters.R", "run.R", "simulate.R")))
   file.copy(f, file.path(cacheDir, sub("\\.R$", paste0("-", stamp, ".R"), basename(f))))
 cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libraries %s, indicators with EcoPhyloSim %s\n",
-            format(Sys.time()), mode, version, nrow(tasks), nCores, if (length(lib)) lib else "default",
+            format(Sys.time()), mode, version, nrow(tasks), nCores, lib,
             packageVersion("EcoPhyloSim")),
-    sprintf("simulated package commit: %s\n", if (length(commit)) commit else "not given (default library)"),
+    sprintf("simulated package: %s, commit %s (INSTALLINFO.txt)\n", package, commit),
     sprintf("scripts commit: %s (git describe at the start)\n",
             tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) "unknown")),
     file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
 # provenance: command, R, platform, and the packages of all libraries used
-libs <- c(if (length(lib)) strsplit(lib, .Platform$path.sep)[[1]], .libPaths())
+libs <- c(strsplit(lib, .Platform$path.sep)[[1]], .libPaths())
 installInfo <- file.path(libs, "INSTALLINFO.txt")
 writeLines(c(paste("command: Rscript model-behavior/run.R", paste(commandArgs(trailingOnly = TRUE), collapse = " ")),
              paste("platform:", R.version$platform, "-", paste(Sys.info()[c("sysname", "release")], collapse = " ")),

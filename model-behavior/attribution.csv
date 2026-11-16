@@ -1,9 +1,0 @@
-commit,parent,adapter,parentAdapter,package,stage2,note
-08e2bda,626fe9f,0.3.1,0.3.1,EcoPhyloSim,,
-626fe9f,ea352f8,0.3.1,0.3.1,EcoPhyloSim,gridShape,
-852c61e,0919b9b,0.3.1,0.3.1,PhyloSim,environment speciation,
-6c560d5,d0657c7,0.3,0.3,PhyloSim,neutral environment assembly,
-a9aba4e,67d1d6a,0.3,0.3,PhyloSim,,
-67d1d6a,f31db2f,0.3,0.3,PhyloSim,fission,"range of 87 commits, among them the fix of fission (b7cfc9b, #85), which crashes with fission until the fix of cut-off phylogenies (1f0621a, #127), and #113, #122"
-b7cfc9b,f31db2f,0.3,0.3,PhyloSim,,
-fa78f4c,de35d16,0.3,0.2,PhyloSim,,

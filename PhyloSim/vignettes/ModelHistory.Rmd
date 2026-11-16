@@ -30,7 +30,7 @@ ch <- modelHistory$changes
 ch <- ch[order(is.na(ch$date), ch$date), ] # planned release last
 rel <- ch[ch$kind == "release", ]
 runs <- unique(paste(s$version, s$commit))
-params <- setdiff(names(s), c("version", "commit", "setting", "generations", "indicator", "mean", "sd", "n"))
+params <- setdiff(names(s), c("version", "commit", "setting", "indicator", "mean", "sd", "n"))
 typeCol <- c(N = "grey55", B = "#D55E00", S = "#0072B2", "S+B" = "#CC79A7")
 # release that a run belongs to: the first release with a version number >= that of the run
 releaseOf <- function(run) {
@@ -90,8 +90,8 @@ legend("topright", legend = names(typeCol), pt.bg = typeCol, pch = 21, col = "wh
 par(op)
 ```
 
-Types of changes: **N** (numeric): results for a given seed change, their
-distributions do not; **B** (behavior): patterns change; **S** (semantics):
+Types of changes: **N** (numeric): results for a given seed change, but no
+change of their distributions was detected; **B** (behavior): patterns change; **S** (semantics):
 parameters are renamed or redefined, so that the same call means a different
 model; **S+B**: both.
 
@@ -178,12 +178,19 @@ same seeds and shows whether the results are identical; stage 2 runs the blocks
 that differ with 30 replicates and tests whether their distributions differ.
 Measured differences are settings where the replicate means of two consecutive
 runs differ significantly (Welch test from mean, sd and number of replicates,
-Holm correction over all comparisons of the pair, p < 0.05; runtime not tested);
-d is the difference (newer minus older) in units of the pooled standard deviation.
+false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
+runtime and the share of failed simulations not tested); d is the difference (newer minus older) in units of the
+pooled standard deviation. With 30 replicates per run, a single test detects a
+difference of d = `r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a
+probability of 80%; smaller changes, and changes of the variance or shape of a
+distribution, can remain undetected, so "no difference" does not prove that a
+pattern is unchanged.
 
 ```{r detail, results = "asis"}
 compareRuns <- function(o, w) {
-  o <- o[o$indicator != "runtime", ]
+  # runtime is machine-dependent, failed has no variance
+  o <- o[!o$indicator %in% c("runtime", "failed"), ]
+  w <- w[!w$indicator %in% c("runtime", "failed"), ]
   # a parameter of only one run: keep only its most frequent value there (the default)
   p <- params[vapply(params, function(x) any(!is.na(o[[x]])) && any(!is.na(w[[x]])), logical(1))]
   for (x in setdiff(params, p)) {
@@ -195,56 +202,34 @@ compareRuns <- function(o, w) {
              suffixes = c(".old", ".new"))
   se2 <- m$sd.old^2 / m$n.old + m$sd.new^2 / m$n.new
   df <- se2^2 / ((m$sd.old^2 / m$n.old)^2 / (m$n.old - 1) + (m$sd.new^2 / m$n.new)^2 / (m$n.new - 1))
-  m$p.adj <- p.adjust(2 * pt(-abs(m$mean.new - m$mean.old) / sqrt(se2), df), "holm")
+  m$p.adj <- p.adjust(2 * pt(-abs(m$mean.new - m$mean.old) / sqrt(se2), df), "BH")
   m$d <- (m$mean.new - m$mean.old) / sqrt((m$sd.old^2 + m$sd.new^2) / 2)
   sig <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
-  cat(nrow(sig), " of ", nrow(m), " comparisons significant.
-
-", sep = "")
+  cat(nrow(sig), " of ", sum(!is.na(m$p.adj)), " comparisons significant.\n\n", sep = "")
   shown <- unique(c("block", p[vapply(sig[p], function(x) length(unique(x)) > 1, logical(1))]))
   if (nrow(sig)) print(knitr::kable(sig[c(shown, "indicator", "mean.old", "mean.new", "d", "p.adj")],
                                     digits = 3, row.names = FALSE))
 }
 for (v in rev(rel$version)) {
   r <- rel[rel$version == v, ]
-  cat("
-## ", v, if (is.na(r$date)) " (planned)" else paste0(" (", format(r$date), ")"), "
-
-", sep = "")
+  cat("\n## ", v, if (is.na(r$date)) " (planned)" else paste0(" (", format(r$date), ")"), "\n\n", sep = "")
   d <- ch[ch$kind == "change" & ch$version == v, ]
   cat("**Changes of the model code.** ")
-  if (!nrow(d)) cat("First release in this record.
-
-") else {
-    cat("
-
-")
+  if (!nrow(d)) cat("First release in this record.\n\n") else {
+    cat("\n\n")
     d$change <- paste0(d$change, " (", d$commit, ", ", d$reference, ")")
     print(knitr::kable(d[c("type", "change", "outputs", "evidence")], row.names = FALSE,
                        col.names = c("Type", "Change of the model", "Effect on the outputs", "Evidence")))
   }
   j <- which(vapply(runs, releaseOf, "") == v)
-  cat("
-
-**Measured differences.** ")
-  if (!length(j)) cat("No run of the design yet.
-
-") else for (jj in j) {
-    if (jj == 1) cat("Run ", runs[jj], ": no earlier run to compare with.
-
-", sep = "") else {
+  cat("\n\n**Measured differences.** ")
+  if (!length(j)) cat("No run of the design yet.\n\n") else for (jj in j) {
+    if (jj == 1) cat("Run ", runs[jj], ": no earlier run to compare with.\n\n", sep = "") else {
       cat("Run ", runs[jj - 1], " → ", runs[jj], ": ", sep = "")
       compareRuns(byRun[[jj - 1]], byRun[[jj]])
     }
   }
-  if (!is.null(notes[[v]])) cat("
-
-**Notes.**
-
-", paste("-", notes[[v]], collapse = "
-"), "
-
-", sep = "")
+  if (!is.null(notes[[v]])) cat("\n\n**Notes.**\n\n", paste("-", notes[[v]], collapse = "\n"), "\n\n", sep = "")
 }
 ```
 
@@ -263,7 +248,7 @@ s[s$block == "neutral" & s$x == 50 & s$specRate == 2 & s$indicator == "richness"
 # Design and indicators
 
 ```{r design}
-d <- unique(s[c("version", "block", "setting", "generations", params[params != "block"])])
+d <- unique(s[c("version", "block", "setting", params[params != "block"])])
 d <- d[d$version == tail(s$version, 1), ]
 knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
   varied <- params[params != "block"][vapply(b[params[params != "block"]], function(x) length(unique(x)) > 1, logical(1))]
@@ -271,7 +256,7 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
              Varied = paste(vapply(varied, function(p) paste0(p, " (", paste(sort(unique(b[[p]])), collapse = ", "), ")"), ""),
                             collapse = "; "),
              Generations = format(max(b$generations), big.mark = ","))
-})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1).")
+})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1, and current names for parameters added later).")
 ```
 
 | Indicator | Definition |
@@ -294,20 +279,20 @@ also documents every step (`model-behavior/README.md`). In short, from the
 repository root:
 
 ```{bash, echo = TRUE, eval = FALSE}
-# current version (installed in the default library)
-Rscript model-behavior/run.R main 12 current ../cache-current
-# an older release: install it and the archived dependencies into own libraries
+# install a release (and, for 0.2 and 0.3, the archived dependencies) into own libraries
 Rscript model-behavior/installOldDeps.R ../lib-olddeps
 Rscript model-behavior/installVersion.R v0.3 ../lib-v0.3 ../lib-olddeps
-Rscript model-behavior/run.R main 12 0.3 ../cache-v0.3 "lib=../lib-v0.3;../lib-olddeps" commit=v0.3
-# per-replicate archive, export of the last census, and this data set
-Rscript model-behavior/archive.R ../cache-current ../EcoPhyloSim-runs <version> <commit>
-Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/<version>_<commit>
+# run the design with it (12 cores; adapter 0.3 in adapters.R)
+Rscript model-behavior/run.R main 12 0.3 ../cache-v0.3 "lib=../lib-v0.3;../lib-olddeps"
+# per-replicate archive, summary per setting, and the data sets
+Rscript model-behavior/archive.R ../cache-v0.3 ../EcoPhyloSim-runs 0.3 <commit>
+Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3_<commit>
 Rscript model-behavior/makeData.R
 ```
 
-Each simulation has its own seed, which depends only on its parameters and
-replicate, so results do not depend on the number of cores. Since #175, results
+Each simulation has its own seed, which depends only on its block, the
+parameters that differ from the reference setting and the replicate, so results
+do not depend on the number of cores. Since #175, results
 for a given seed no longer depend on the random number library of the compiler.
 Runs made with `run.R` record the command, the platform and the versions of all
 packages; the archives with the results per replicate are to be attached to the

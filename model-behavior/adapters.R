@@ -1,8 +1,7 @@
 # Model versions that can be run, and the mapping of a task of design.R to the
 # arguments of createCompletePar() of a version. adapt() returns NULL if the
 # version cannot run the task (a parameter or value it does not support).
-# To add a release: copy the entry "current" to its version number before the
-# model changes, and adapt "current" to the new arguments.
+# To add a release, see "New release" in README.md.
 
 versions <- list(
   "0.2"   = list(package = "PhyloSim",
@@ -17,11 +16,12 @@ versions <- list(
                             "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
                             "protracted", "redQueen", "redQueenStrength")),
   # since #172: density, densityCut are the arguments negativeDD, negativeDDCut;
-  # fitness can act on recruitment
+  # fitness can act on recruitment; kernels and positive density dependence
   current = list(package = "EcoPhyloSim",
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
-                            "protracted", "redQueen", "redQueenStrength"),
+                            "protracted", "redQueen", "redQueenStrength", "negativeDDKernel",
+                            "positiveDD", "positiveDDCut"),
                  rename = c(density = "negativeDD", densityCut = "negativeDDCut"),
                  fitnessActsOn = c("mortality", "reproduction", "both", "recruitment"))
 )

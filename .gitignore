@@ -40,5 +40,3 @@ Rplots.pdf
 .claude/
 PhyloSim/data-raw/cache/
 
-# comparison of model versions: per-version results kept
-!model-behavior/runs/*.csv.gz
