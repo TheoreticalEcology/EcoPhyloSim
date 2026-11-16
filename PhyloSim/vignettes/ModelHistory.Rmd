@@ -41,9 +41,12 @@ releaseOf <- function(run) {
 notes <- list("0.3.1" = c(
   "Run with `data-raw/packageBehavior.R` (before `model-behavior/run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
   "Neutral model: richness up to about 15% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
-  "Density dependence is weak: richness increases only from about 20 to 25 species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133).",
+  "Density dependence is weak: richness increases only from about 20 to 25 species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
   "The model is neutral if environment and density are both > 0 and their sum is ≤ 1 (#144).",
-  "Environmental filtering with global dispersal stays weak (correlation of trait and environment 0.24 at `environment = 1`); with local dispersal, traits match the environment almost perfectly.",
+  "Environmental filtering with global dispersal stays weak (correlation of trait and environment 0.24 at `environment = 1`); with local dispersal, traits match the environment almost perfectly. Narrow niches make filtering with global dispersal even weaker.",
+  "Filtering does not increase spatial aggregation; it makes trees more balanced (Colless index < 0) and increases the gamma statistic.",
+  "Protracted speciation acts like a speciation rate reduced by exp(-p).",
+  "CNDD estimated from mortality: about 0 in the neutral model, positive with density dependence, negative with environmental filtering (strongest with global dispersal).",
   "A Red Queen advantage of 0.01 with strength 100 more than doubles richness and reduces the mean species age from about 400 to 20 generations."))
 ```
 
