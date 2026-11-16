@@ -124,16 +124,13 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   summaryStatistics$gammaStatistics <- .gammaStat(extant)
   
   # mean node age
-  #summaryStatistics$meanNodeAge <- ape::chronoMPL(simulation$Output[[1]]$phylogeny)
   summaryStatistics$meanNodeAge <- mean(extant$edge.length)
   
   
   # variation partitioning
-  #distance_matrix <- distances(plots$positions, limits=c(nrow(simulation$Output[[1]]$specMat), ncol(simulation$Output[[1]]$specMat)))
   env <- data.frame(unlist(lapply(plots$envPlots, mean)))
   comp <- data.frame(unlist(lapply(plots$compPlots, mean)))
   
-  #mod <- vegan::varpart(plots$communityTable, as.dist(distance_matrix), env, comp)
   mod <- vegan::varpart(plots$communityTable, env, comp)
   
   summaryStatistics$varPart_1 <- mod$part$fract$Adj.R.squared[1]
@@ -177,21 +174,6 @@ gammaDiversity <- function(result, q=0){
   gamma <- sum(gamma)^(1/(q-1))
   gamma <- 1/gamma
   return(gamma)
-}
-
-distances <- function(positions, limits){
-  distance <- function(a, b, limits){
-    # sqrt(min(|x1 - x2|, w - |x1 - x2|)^2 + min(|y1 - y2|, h - |y1-y2|)^2)
-    return(sqrt(min(abs(a[1]-b[1]), limits[1] - abs(a[1]-b[1]))^2 + min(abs(a[2]-b[2]), limits[2] - abs(a[2]-b[2]))^2))
-  }
-  dist_mat <- matrix(0, ncol=length(positions), nrow=length(positions))
-  # TODO: maybe there is a better way to implement this instead of a for loop
-  for(i in 1:nrow(dist_mat)){
-    for(j in 1:ncol(dist_mat)){
-      dist_mat[i,j] <- distance(positions[[i]], positions[[j]], limits=limits)
-    }
-  }
-  return(dist_mat)
 }
 
 clarkEvans <- function (mat, ...) {
@@ -264,9 +246,6 @@ nb8Idx <- function (mat) {
     id_freqs[i] <- sum(mat == ids[i])
   }
   
-  # print(nRow)
-  # print(nCol)
-  
   nbRates <- vector("numeric", length(ids))
   names(nbRates) <- ids
   
@@ -276,14 +255,11 @@ nb8Idx <- function (mat) {
       nbrs <- getNeighbours8(col, row, mat, nRow = nRow, nCol = nCol)
       
       r <- sum(id == nbrs) / length(nbrs)
-      # r <- r * (id_freqs[which(ids == id)] / n)
-      # r <- r * (n / id_freqs[which(ids == id)])
       r <- r / id_freqs[which(ids == id)]
       nbRates[as.character(id)] <- nbRates[as.character(id)] + r
     }
   }
   
-  # return(sum(nbRates) / length(nbRates))
   return(sum(nbRates))
 }
 

@@ -28,3 +28,4 @@ Function to predict model parameters on the basis of summary statistics. This fu
 \author{
 Tankred Ott
 }
+\keyword{internal}

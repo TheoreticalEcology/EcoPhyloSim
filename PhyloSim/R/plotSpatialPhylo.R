@@ -25,9 +25,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
   landscape = simu$specMat
   
   if (plotTraits == T){
-    #library(shape)
     traits = getAverageTraits(simu)  
-    #rootDist <- adephylo::distRoot(extantPhylogeny, 1)
   }
   
   cols <- speciesColors(extantPhylogeny)

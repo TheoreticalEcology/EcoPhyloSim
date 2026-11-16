@@ -46,9 +46,6 @@ runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summ
   
   # write an first overview over the parameters to file
   writeParamOverview(defaultParams, fixedParams, variableParams, joinPath(c(outDir, "paramOverview.txt")))
-  # # read it later in like this:
-  # inp <- readLines("argsOut.txt")
-  # strsplit(inp, split = " ")
   
   # get the number of parallel cores
   nCores <- getValidatedNCores(nCores)
@@ -85,21 +82,12 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   doParallel::registerDoParallel(cl)
   
   foreach(i=1:length(simFiles), .packages = c("EcoPhyloSim")) %dopar% {
-    loadLocal <- function(path) return(local(get(load(path))))
-    joinPath <- function(x, sysName = "auto") {
-      if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
-      if(sysName == "Windows") return(paste(x, collapse = "\\"))
-      else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
-      else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
-    }
-    
     # Load simulation chunk
     simChunk <- loadLocal(joinPath(c(dir, simFiles[i])))
     
     # Calculate summaries
     tryCalcSummaries <- function(x,...)return(tryCatch(EcoPhyloSim::calculateSummaryStatistics(x,...),
                                                    error=function(x)return(NA)))
-    # summaryChunk <- lapply(simChunk, EcoPhyloSim::calculateSummaryStatistics, strict=TRUE)
     summaryChunk <- lapply(simChunk, tryCalcSummaries, strict=TRUE)
     
     # Determine file name
@@ -142,14 +130,6 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
   }
   
   foreach(i=1:length(sumFiles), .packages = c("EcoPhyloSim")) %dopar% {
-    # loadLocal <- function(path) return(local(get(load(path))))
-    # joinPath <- function(x, sysName = "auto") {
-    #   if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
-    #   if(sysName == "Windows") return(paste(x, collapse = "\\"))
-    #   else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
-    #   else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
-    # }
-    
     # Load simulation chunk and parameter chunk
     sumChunk <- loadLocal(joinPath(c(dir, sumFiles[i])))
     parChunk <- loadLocal(joinPath(c(dir, parFiles[i])))
@@ -216,7 +196,6 @@ extractParams <- function(parList, params, outFormat="df") {
 
   out <- NA
   if (outFormat == "df") {
-    # out <- as.data.frame(do.call(what = rbind, args = parList))
     checkSuggested("data.table")
     # one string per parameter, e.g. for several fitnessActsOn stages or a negativeDDResponse table
     oneValue <- function(v) if (is.function(v) || length(v) > 1) paste(deparse(v), collapse = " ") else v
@@ -544,6 +523,7 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
 #' @param ... further arguments passed to ranger::ranger
 #' @return A list with two items. Item one contains the true parameters, item two contains the predicted parameters.
 #' @author Tankred Ott
+#' @keywords internal
 summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
   checkSuggested("ranger")
   nCores <- getValidatedNCores(nCores)
@@ -586,6 +566,7 @@ summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
 #' @param ... currently ignored
 #' @return Matrix of parameter predictions
 #' @author Tankred Ott
+#' @keywords internal
 summaryRedsaABC <- function (p, s, scale = TRUE, ...) {
   checkSuggested("abctools")
   weights <- abctools::saABC(p, s, plot = FALSE)$B
