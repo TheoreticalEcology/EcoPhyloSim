@@ -10,7 +10,6 @@
 #define INDIVIDUAL_H_
 
 #include "./RandomGen.h"
-//#include "Utils/RandomGen.h"
 #include "Species.h"
 
 #include <vector>
@@ -62,10 +61,6 @@ public:
     unsigned long long m_Age;
     int m_incip_Age;
 
-//	double m_DensityStrength;
-//	double m_FitnessWeight;
-//	int m_Weight;
-
     double m_nicheWidth;
     double m_Mean;
     double m_CompetitionMarker;
@@ -106,8 +101,6 @@ public:
 
 
     double dispersal(int dispersal_type, double distance);  // 1 for kernel, 2 for nearest neighbor, 3 for global
-
-    void printInfo();
 };
 
 #endif /* INDIVIDUAL_H_ */

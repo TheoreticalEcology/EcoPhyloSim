@@ -10,8 +10,6 @@
 
 #include "debug.h"
 
-#include <string>
-
 #include "Grid.h"
 
 class PhylSimModel {
@@ -26,19 +24,13 @@ public:
 
     PhylSimModel(int x, int y, int dispersal, int simulationEnd, double specRate, bool dens,
                  bool env, bool neutral, bool mort, int mortStrength, bool repro, int dispersalCutoff,
-                 int densityCutoff, std::string saveLocation, double envStrength, double compStrength,
+                 int densityCutoff, double envStrength, double compStrength,
                  int fission, double redQueen, double redQueenStrength, int protracted, std::vector<double> airmat,
                  std::vector<double> soilmat, double nicheWidth, DensityOptions ddOptions);
 
     ~PhylSimModel();
 
-    void get_data();
-
-    void getclimate();
-
     void update(unsigned int runs);
-
-    void gettraits();
 
 
 private:

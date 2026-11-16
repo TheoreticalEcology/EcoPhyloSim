@@ -6,8 +6,6 @@
  */
 
 
-#include <iostream>
-
 #include "Species.h"
 #include "debug.h"
 
@@ -71,27 +69,6 @@ void Species::operator=(const Species &spec) {
     this->m_Children = spec.m_Children;
 }
 
-/*Species::Species(unsigned long long id, unsigned long long father, unsigned long long date, std::pair<int, int> birthplace, unsigned int simulationEnd)
-{
-	this->m_ID = id;
-	this->m_Ancestor = father;
-	this->m_Count = 0;
-	this->m_Date_of_Emergence = date;
-	this->m_Origin = birthplace;
-	this->m_Variance = 0.04659906;
-	this->m_Mean = 1.0;
-	this->m_FirstMean = 1.0;
-	this->m_FirstComp = 0.5;
-	this->m_FirstNeutral = 0.5;
-	this->m_MeanSum = 0.0;
-	this->m_CompetitionSum = 0.0;
-	this->m_NeutralSum = 0.0;
-	this->m_Date_of_Extinction = simulationEnd;
-	this -> m_CompetitionMean = 0.5;
-	this -> m_NeutralMean = 0.5;
-}*/
-
-
 Species::Species(unsigned long long id, unsigned long long father,
                  unsigned long long date, std::pair<int, int> birthplace, unsigned int simulationEnd) {
     this->m_ID = id;
@@ -117,15 +94,6 @@ Species::Species(unsigned long long id, unsigned long long father,
 Species::~Species() {
 }
 
-//	void species::increase_count()
-//	{
-//		count++ ;
-//	}
-//	void  species::decrease_count()
-//	{
-//		count-- ;
-//	}
-
 void Species::addIndividual(double env, double comp, double neutral) {
     m_Count += 1;
     m_MeanSum += env;
@@ -136,14 +104,11 @@ void Species::addIndividual(double env, double comp, double neutral) {
 
 void Species::removeIndividual(double env, double comp, double neutral, int generation) {
 
-    //std::cout << "remove Ind - count" << m_Count ; 
-
 
     // before mcount -1 < 1
     if (m_Count < 2) {
         m_Date_of_Extinction = generation;
         m_Count -= 1;
-        //printInfo();
     } else {
         m_Count -= 1;
         m_MeanSum -= env;
@@ -155,20 +120,11 @@ void Species::removeIndividual(double env, double comp, double neutral, int gene
 }
 
 void Species::updateMean() {
-    //std::cout << "mean update";
     m_Mean = m_MeanSum / (double(m_Count));
     m_CompetitionMean = m_CompetitionSum / (double(m_Count));
     m_NeutralMean = m_NeutralSum / (double(m_Count));
 }
 
-unsigned long long Species::get_species_count() {
-    return m_Count;
-}
-
 unsigned long long Species::get_species_ID() {
     return m_ID;
-}
-
-void Species::printInfo() {
-
 }

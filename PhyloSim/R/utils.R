@@ -99,12 +99,8 @@ getSpeciesTraits <- function (sim, speciesID, whichRun = 1) {
   
   out <- list(environment=NA, competition=NA, neutral=NA)
   
-  # specIndices <- which(sim$Output[[whichRun]]$specMat == speciesID)
   specIndices <- getSpeciesIndices(sim, speciesID, whichRun)
   
-  # out$environment <- sim$Output[[whichRun]]$traitMat[specIndices]
-  # out$competition <- sim$Output[[whichRun]]$compMat[specIndices]
-  # out$neutral <- sim$Output[[whichRun]]$neutMat[specIndices]
   out$environment <- getSpeciesTrait(sim, speciesID, "environment", whichRun)
   out$competition <- getSpeciesTrait(sim, speciesID, "competition", whichRun)
   out$neutral <- getSpeciesTrait(sim, speciesID, "neutral", whichRun)
@@ -121,6 +117,7 @@ getSpeciesTraits <- function (sim, speciesID, whichRun = 1) {
 #' @details The function returns the positions of all individuals of the species with speciesID in the species matrix of the run selected by whichRun.
 #' @return Vector of indices
 #' @author Tankred Ott
+#' @keywords internal
 getSpeciesIndices <- function (sim, speciesID, whichRun=1) {
   return(which(sim$Output[[whichRun]]$specMat == speciesID))  
 }

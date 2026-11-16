@@ -25,3 +25,4 @@ The function returns the positions of all individuals of the species with specie
 \author{
 Tankred Ott
 }
+\keyword{internal}

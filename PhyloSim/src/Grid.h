@@ -72,14 +72,6 @@ public:
     std::vector<double> m_ddTable;
 
 
-    // Change the temperature in the environment by the given magnitude.
-    void tempChange(int sign, double magnitude);
-
-    // Change the moisture  in the environment by the given magnitude.
-    void moistChange(int sign, double magnitude);
-
-    Landscape();
-
     Landscape(int xsize, int ysize, int type, bool neutral,
               bool dd, bool env, bool mort, bool repro, unsigned int simulationEnd, double specRate,
               int dispersalCutoff, int densityCutoff, unsigned int mortalityStrength, double envStrength,
@@ -122,14 +114,10 @@ public:
     // fitness of the offspring of the individual in parent cell p in the target cell (x, y)
     double recruitFitness(int p_x, int p_y, int x, int y);
 
-
-    std::pair<int, int> get_dimensions();
 };
 
 class GlobalEnvironment : public Landscape {
 public:
-    GlobalEnvironment();
-
     GlobalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort, bool repro,
                       unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
                       unsigned int mortalityStrength,
@@ -144,8 +132,6 @@ public:
 
 class LocalEnvironment : public Landscape {
 public:
-    LocalEnvironment();
-
     LocalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort, bool repro,
                      unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
                      unsigned int mortalityStrength,
