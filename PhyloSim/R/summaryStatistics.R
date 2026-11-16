@@ -129,11 +129,9 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   
   
   # variation partitioning
-  #distance_matrix <- distances(plots$positions, limits=c(nrow(simulation$Output[[1]]$specMat), ncol(simulation$Output[[1]]$specMat)))
   env <- data.frame(unlist(lapply(plots$envPlots, mean)))
   comp <- data.frame(unlist(lapply(plots$compPlots, mean)))
   
-  #mod <- vegan::varpart(plots$communityTable, as.dist(distance_matrix), env, comp)
   mod <- vegan::varpart(plots$communityTable, env, comp)
   
   summaryStatistics$varPart_1 <- mod$part$fract$Adj.R.squared[1]
@@ -177,21 +175,6 @@ gammaDiversity <- function(result, q=0){
   gamma <- sum(gamma)^(1/(q-1))
   gamma <- 1/gamma
   return(gamma)
-}
-
-distances <- function(positions, limits){
-  distance <- function(a, b, limits){
-    # sqrt(min(|x1 - x2|, w - |x1 - x2|)^2 + min(|y1 - y2|, h - |y1-y2|)^2)
-    return(sqrt(min(abs(a[1]-b[1]), limits[1] - abs(a[1]-b[1]))^2 + min(abs(a[2]-b[2]), limits[2] - abs(a[2]-b[2]))^2))
-  }
-  dist_mat <- matrix(0, ncol=length(positions), nrow=length(positions))
-  # TODO: maybe there is a better way to implement this instead of a for loop
-  for(i in 1:nrow(dist_mat)){
-    for(j in 1:ncol(dist_mat)){
-      dist_mat[i,j] <- distance(positions[[i]], positions[[j]], limits=limits)
-    }
-  }
-  return(dist_mat)
 }
 
 clarkEvans <- function (mat, ...) {

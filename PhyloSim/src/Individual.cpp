@@ -231,8 +231,6 @@ double Individual::euclidian_distance(int x, int y) {
 
 void Individual::evolve() {
 
-    //if (m_X_coordinate == 0 && m_Y_coordinate == 0) printInfo();
-
     double width = 0.01;
 
     double upperBound = 1.0;
@@ -319,10 +317,5 @@ void Individual::reportDeath(int generation) {
 
 void Individual::reportBirth() {
     m_Species->addIndividual(m_Mean, m_CompetitionMarker, m_NeutralMarker);
-}
-
-void Individual::printInfo() {
-    
-
 }
 

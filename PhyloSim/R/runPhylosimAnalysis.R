@@ -85,14 +85,6 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   doParallel::registerDoParallel(cl)
   
   foreach(i=1:length(simFiles), .packages = c("EcoPhyloSim")) %dopar% {
-    loadLocal <- function(path) return(local(get(load(path))))
-    joinPath <- function(x, sysName = "auto") {
-      if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
-      if(sysName == "Windows") return(paste(x, collapse = "\\"))
-      else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
-      else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
-    }
-    
     # Load simulation chunk
     simChunk <- loadLocal(joinPath(c(dir, simFiles[i])))
     
@@ -142,14 +134,6 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
   }
   
   foreach(i=1:length(sumFiles), .packages = c("EcoPhyloSim")) %dopar% {
-    # loadLocal <- function(path) return(local(get(load(path))))
-    # joinPath <- function(x, sysName = "auto") {
-    #   if (sysName == "auto") sysName <- Sys.info()[["sysname"]]
-    #   if(sysName == "Windows") return(paste(x, collapse = "\\"))
-    #   else if(sysName %in% c("Linux", "Darwin")) return(paste(x, collapse = "/"))
-    #   else stop(paste(c("System", sysName, "is not supported."), collapse = " "))
-    # }
-    
     # Load simulation chunk and parameter chunk
     sumChunk <- loadLocal(joinPath(c(dir, sumFiles[i])))
     parChunk <- loadLocal(joinPath(c(dir, parFiles[i])))

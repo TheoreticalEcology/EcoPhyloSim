@@ -20,10 +20,6 @@
 #include "Species.h"
 #include "debug.h"
 
-// basic file operations for DEBUG, remove when done with debugging
-#include <iostream>
-#include <fstream>
-
 using namespace Rcpp;
 
 //' Core phylosim model
@@ -210,8 +206,6 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
         Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
 
 
-    std::string tempSaveLoc = "./";
-
     int nRuns = runs.length(); // number of consecutive simulations that are executed sequentially
     int prevNGen = 0;
 
@@ -231,7 +225,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     Rcpp::List outList = Rcpp::List::create();
 
     PhylSimModel phylSimModel(x, y, dispersal, runs[nRuns - 1], specRate, dens, env, neutral, mort, mortStrength, repro,
-                              dispersalCutoff, densityCutoff, tempSaveLoc, envStrength, compStrength, fission, redQueen,
+                              dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen,
                               redQueenStrength, protracted, airmat, soilmat, nicheWidth, ddOptions);
     if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
     else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;

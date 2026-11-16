@@ -207,10 +207,6 @@ void Landscape::reproduce(unsigned int /* generation */) {
     // to be defined, although it is void.)
 }
 
-std::pair<int, int> Landscape::get_dimensions() {
-    return std::make_pair(m_Xdimensions, m_Ydimensions);
-}
-
 
 void Landscape::increaseAge(unsigned int /* generation */) {
     for (int rows = 0; rows < this->m_Xdimensions; rows++) {
@@ -218,23 +214,6 @@ void Landscape::increaseAge(unsigned int /* generation */) {
             this->m_Individuals[rows][cols].m_Age += 1;
             this->m_Individuals[rows][cols].m_incip_Age += 1;
 
-        }
-    }
-}
-
-void Landscape::tempChange(int sign, double magnitude) {
-    for (int i = 0; i < m_Xdimensions; i++) {
-        for (int j = 0; j < m_Ydimensions; j++) {
-            m_Environment[i * m_Ydimensions + j].first = m_Environment[i * m_Ydimensions + j].first * sign * magnitude;
-        }
-    }
-}
-
-void Landscape::moistChange(int sign, double magnitude) {
-    for (int i = 0; i < m_Xdimensions; i++) {
-        for (int j = 0; j < m_Ydimensions; j++) {
-            m_Environment[i * m_Ydimensions + j].second =
-                    m_Environment[i * m_Ydimensions + j].second * sign * magnitude;
         }
     }
 }

@@ -143,7 +143,6 @@ void Species::removeIndividual(double env, double comp, double neutral, int gene
     if (m_Count < 2) {
         m_Date_of_Extinction = generation;
         m_Count -= 1;
-        //printInfo();
     } else {
         m_Count -= 1;
         m_MeanSum -= env;
@@ -161,14 +160,6 @@ void Species::updateMean() {
     m_NeutralMean = m_NeutralSum / (double(m_Count));
 }
 
-unsigned long long Species::get_species_count() {
-    return m_Count;
-}
-
 unsigned long long Species::get_species_ID() {
     return m_ID;
-}
-
-void Species::printInfo() {
-
 }

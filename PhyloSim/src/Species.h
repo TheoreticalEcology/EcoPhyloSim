@@ -32,8 +32,6 @@ public:
     unsigned long long m_Ancestor;
     std::pair<int, int> m_Origin;
 
-    void howFitAmI(double airTemp);
-
     unsigned long long m_ID;
     unsigned long long m_Date_of_Emergence;
     unsigned int m_Date_of_Extinction;
@@ -64,11 +62,7 @@ public:
 
     void removeIndividual(double env, double comp, double neutral, int generation);
 
-    unsigned long long get_species_count();
-
     unsigned long long get_species_ID();
-
-    void printInfo();
 };
 
 

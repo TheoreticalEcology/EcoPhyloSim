@@ -7,8 +7,6 @@
  */
 
 #include <Rcpp.h>
-#include <iostream>
-#include <fstream>
 #include <string>
 #include "./RandomGen.h"
 //#include "Utils/RandomGen.h"
@@ -20,7 +18,7 @@
 
 PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, double specRate, bool dens,
                            bool env, bool neutral, bool mort, int mortalityStrength, bool repro, int dispersalCutoff,
-                           int densityCutoff, std::string /* saveLocation */, double envStrength, double compStrength,
+                           int densityCutoff, double envStrength, double compStrength,
                            int fission,
                            double redQueen, double redQueenStrength, int protracted, std::vector<double> airmat,
                            std::vector<double> soilmat, double nicheWidth, DensityOptions ddOptions) {
@@ -85,40 +83,3 @@ void PhylSimModel::update(unsigned int runs) {
     }
     timeStep += runs;
 }
-
-//void model::get_data(){
-//
-//		std::ofstream test_matrix("..\\test_out.txt");
-//		for(int ba=0;ba<Landscape.get_dimensions().first;ba++){
-//			test_matrix << '\n';
-//
-//		for(int bu=0;bu<Landscape.get_dimensions().second;bu++){
-//			test_matrix << Landscape.individuals[ba][bu].Species->ID <<',';
-//		}}
-//
-//}
-
-void PhylSimModel::getclimate() {
-    int x = m_Local->get_dimensions().first;
-    int y = m_Local->get_dimensions().second;
-    std::ofstream temperature_matrix("..\\temperature_out.txt");
-    for (int ba = 0; ba < x; ba++) {
-        temperature_matrix << '\n';
-
-        for (int bu = 0; bu < y; bu++) {
-            temperature_matrix << m_Local->m_Environment[ba * y + bu].first << ',';
-        }
-    }
-
-}
-
-//void model::gettraits(){
-//	std::ofstream trait_matrix("..\\trait_out.txt");
-//		for(int ba=0;ba<Landscape.get_dimensions().first;ba++){
-//			trait_matrix << '\n';
-//
-//		for(int bu=0;bu<Landscape.get_dimensions().second;bu++){
-//			trait_matrix << Landscape.individuals[ba][bu].mean <<',';
-//		}}
-//
-//}
