@@ -38,6 +38,12 @@ info <- readLines(info)
 commit <- sub("^commit: ", "", grep("^commit: ", info, value = TRUE))
 package <- strsplit(sub("^package: ", "", grep("^package: ", info, value = TRUE)), " ")[[1]][1]
 
+# commit of the scripts, or "unknown" outside a git checkout
+gitDescribe <- function() {
+  d <- suppressWarnings(tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) ""))
+  if (length(d) == 1 && nzchar(d)) d else "unknown"
+}
+
 runTask <- function(task) {
   minFree <- as.numeric(Sys.getenv("MB_MIN_FREE_GB", "30"))
   freeGB <- function() if (.Platform$OS.type != "windows") NA else
@@ -74,8 +80,12 @@ runTask <- function(task) {
                 parameters = paste(names(model), model, sep = "=", collapse = "; ")))
     }
   }, error = function(e) list(error = conditionMessage(e)))
+  # write to a temporary file first, so that an interrupted write leaves no broken file
+  tmpFile <- paste0(task$file, ".tmp")
   for (attempt in 1:5) { # retry if the file system is briefly unavailable
-    if (!inherits(try(saveRDS(c(list(task = task), out), task$file), silent = TRUE), "try-error")) break
+    if (!inherits(try(saveRDS(c(list(task = task), out), tmpFile), silent = TRUE), "try-error") &&
+        file.rename(tmpFile, task$file)) break
+    if (attempt == 5) warning("could not save ", task$file)
     Sys.sleep(30)
   }
   invisible(NULL)
@@ -88,10 +98,11 @@ if (length(part)) {
   tasks <- tasks[seq_len(nrow(tasks)) %% p[2] == p[1] - 1, ]
 }
 # finished simulations are skipped, but only if they were run with the same
-# parameters and seed; failed simulations are rerun
+# parameters and seed; failed simulations and unreadable files are rerun
 done <- file.exists(tasks$file)
 for (i in which(done)) {
-  old <- readRDS(tasks$file[i])
+  old <- tryCatch(readRDS(tasks$file[i]), error = function(e) NULL)
+  if (is.null(old)) { done[i] <- FALSE; next }
   keys <- c(names(base), "seed")
   if (!all(keys %in% names(old$task)) ||
       !isTRUE(all.equal(old$task[keys], tasks[i, keys], check.attributes = FALSE)))
@@ -110,7 +121,7 @@ cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libr
             packageVersion("EcoPhyloSim")),
     sprintf("simulated package: %s, commit %s (INSTALLINFO.txt)\n", package, commit),
     sprintf("scripts commit: %s (git describe at the start)\n",
-            tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) "unknown")),
+            gitDescribe()),
     file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
 # provenance: command, R, platform, and the packages of all libraries used
 libs <- c(strsplit(lib, .Platform$path.sep)[[1]], .libPaths())

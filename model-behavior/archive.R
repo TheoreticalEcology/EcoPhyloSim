@@ -12,6 +12,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 4)
+if (is.na(numeric_version(args[3], strict = FALSE))) stop("<version> must be a version number, e.g. 0.3.1.9000")
 cacheDir <- args[1]
 out <- file.path(args[2], paste0(args[3], "_", args[4]))
 files <- list.files(cacheDir, pattern = "\\.rds$", full.names = TRUE)
@@ -71,7 +72,7 @@ for (n in c("census", "curves", "cndd", "maps")) {
   write.csv(get(n), con, row.names = FALSE)
   close(con)
 }
-file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*)\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE)
+invisible(file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*)\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE))
 writeLines(c(
   paste0("# Model behavior of EcoPhyloSim ", args[3], " (commit ", args[4], ")"), "",
   "Per-replicate results of the simulations that document the behavior of the model (vignette",
@@ -83,8 +84,7 @@ writeLines(c(
   "regenerate the archive is described in `model-behavior/README.md` of the repository.", "",
   "- `simulations.csv`: one row per simulation (`simulation` = `<mode>_<block>_<setting>_<rep>`;",
   "  `mode` main: the run of record, test: short check of the scripts; older archives also have",
-  "  pilot: few replicates to check the time to equilibrium), main: more",
-  "  replicates, test: short check of the scripts), with its parameters (as in `design.R`; `y` equals `x` if absent), number of",
+  "  pilot: few replicates to check the time to equilibrium), with its parameters (as in `design.R`; `y` equals `x` if absent), number of",
   "  generations, seed, status (`ok`, `error`, or `unsupported` if the model version cannot run",
   "  the setting), error message, runtime of the core simulation in seconds, the simulated",
   "  package and version, and all parameters actually used (`Model` of the result, incl. defaults).",

@@ -38,7 +38,9 @@ releaseOf <- function(run) {
   rel$version[which(numeric_version(rel$version) >= v)[1]]
 }
 # observations on the behavior of a release (problems of the code are issues)
-notes <- list("0.3.1" = c(
+notes <- list("0.3.2" = c(
+  "Compared with the run of 0.3.1 at 852c61e; of the later changes #173 and #174, only #174 can show here (Colless index per seed), as the design has no grid with an odd number of columns."),
+  "0.3.1" = c(
   "Run with `data-raw/packageBehavior.R` (before `model-behavior/run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
   "Neutral model: richness up to about 15% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
   "Density dependence is weak: richness increases only from about 20 to 25 species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
@@ -60,14 +62,15 @@ table { font-size: 0.85em; }
 new options, bug fixes and redesigns. This vignette records, for each release,
 which changes of the code alter simulation results and how. Each release is run
 with the same design (one or two parameters varied around a reference setting,
-30 replicates per setting), and indicators of diversity, spatial structure,
+30 replicates per setting; settings added to the design later are compared only
+where both runs have them), and indicators of diversity, spatial structure,
 traits and phylogeny are compared between releases. Single changes between
 releases are tested one by one to attribute the differences to them. Use it to
 check whether results obtained with an earlier release still hold, and to
 understand why they may differ. The main vignette ("The EcoPhyloSim R Package",
 `vignette("PhyloSimManual", package = "EcoPhyloSim")`) describes the current model.
 
-**Status.** Runs of the design so far: `r paste(runs, collapse = ", ")` (release
+**Status.** Runs of the design so far: `r paste(runs, collapse = ", ")` (version
 and commit). The comparisons between releases fill in as runs of further releases
 are added.
 </div>
@@ -108,8 +111,9 @@ tab <- data.frame(Release = rel$version,
                   Date = ifelse(is.na(rel$date), "planned", format(rel$date)),
                   Commit = rel$commit,
                   "Changes of results" = vapply(rel$version, count, ""),
-                  "Run of the design" = vapply(rel$version, function(v)
-                    if (v %in% s$version) paste("at commit", s$commit[s$version == v][1]) else "not yet", ""),
+                  "Run of the design" = vapply(rel$version, function(v) {
+                    r <- runs[vapply(runs, releaseOf, "") == v]
+                    if (length(r)) paste(r, collapse = ", ") else "not yet" }, ""),
                   check.names = FALSE)
 knitr::kable(tab[nrow(tab):1, ], row.names = FALSE)
 ```
@@ -210,6 +214,7 @@ compareRuns <- function(o, w) {
   sig <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
   cat(nrow(sig), " of ", sum(!is.na(m$p.adj)), " comparisons significant.\n\n", sep = "")
   shown <- unique(c("block", p[vapply(sig[p], function(x) length(unique(x)) > 1, logical(1))]))
+  if ("generations" %in% shown) sig$generations <- format(sig$generations, scientific = FALSE, big.mark = ",")
   if (nrow(sig)) print(knitr::kable(sig[c(shown, "indicator", "mean.old", "mean.new", "d", "p.adj")],
                                     digits = 3, row.names = FALSE))
 }
@@ -258,7 +263,7 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
   data.frame(Block = b$block[1], Settings = nrow(b),
              Varied = paste(vapply(varied, function(p) paste0(p, " (", paste(sort(unique(b[[p]])), collapse = ", "), ")"), ""),
                             collapse = "; "),
-             Generations = format(max(b$generations), big.mark = ","))
+             Generations = format(max(b$generations), scientific = FALSE, big.mark = ","))
 })), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1, and current names for parameters added later).")
 ```
 
@@ -268,7 +273,7 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
 | Conspecific neighbors | share of the four neighbors of a cell with the same species |
 | Cor(trait, environment) | correlation of the environmental trait and the environment over all cells |
 | SD competition trait, SD neutral trait | standard deviation of the traits over all cells (neutral trait: runs made with `model-behavior/run.R`) |
-| Colless index, gamma statistic, tree height | of the phylogeny of the extant species (Colless index normalized against the Yule model) |
+| Colless index, gamma statistic, tree height | of the phylogeny of the extant species (Colless index normalized against the Yule model; tree height: runs made with `model-behavior/run.R`) |
 | Mean species age, cor(age, abundance) | age of a species from its ID (IDs are counted up at each speciation); Spearman correlation with abundance |
 | CNDD (mortality) | logistic regression of death on the number of conspecifics within radius 2 over the last five generations, with a species effect |
 | MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities (runs made with `model-behavior/run.R`); such p-values depend on the plot size and the null model |
@@ -282,20 +287,19 @@ also documents every step (`model-behavior/README.md`). In short, from the
 repository root:
 
 ```{bash, echo = TRUE, eval = FALSE}
-# install a release (and, for 0.2 and 0.3, the archived dependencies) into own libraries
-Rscript model-behavior/installOldDeps.R ../lib-olddeps
-Rscript model-behavior/installVersion.R v0.3 ../lib-v0.3 ../lib-olddeps
-# run the design with it (12 cores; adapter 0.3 in adapters.R)
-Rscript model-behavior/run.R main 12 0.3 ../cache-v0.3 "lib=../lib-v0.3;../lib-olddeps"
-# per-replicate archive, summary per setting, and the data sets
-Rscript model-behavior/archive.R ../cache-v0.3 ../EcoPhyloSim-runs 0.3 <commit>
-Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3_<commit>
+# install a release into its own library and run the design with it (12 cores)
+Rscript model-behavior/installVersion.R v0.3.1 ../lib-0.3.1
+Rscript model-behavior/run.R main 12 0.3.1 ../cache-0.3.1 lib=../lib-0.3.1
+# per-replicate archive, summary per setting, and the data set modelHistory
+Rscript model-behavior/archive.R ../cache-0.3.1 ../EcoPhyloSim-runs 0.3.1 <commit>
+Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1_<commit>
 Rscript model-behavior/makeData.R
 ```
 
-Each simulation has its own seed, which depends only on its block, the
-parameters that differ from the reference setting and the replicate, so results
-do not depend on the number of cores. Since #175, results
+Releases 0.2 and 0.3 also need archived dependencies (see the README). In runs
+made with `run.R`, each simulation has its own seed, which depends only on the
+mode, the block, the parameters that differ from the reference setting and the
+replicate, so results do not depend on the number of cores. Since #175, results
 for a given seed no longer depend on the random number library of the compiler.
 Runs made with `run.R` record the command, the platform and the versions of all
 packages; the archives with the results per replicate are to be attached to the

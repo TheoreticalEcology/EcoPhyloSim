@@ -80,10 +80,10 @@ box3 <- function(x, y, label, w = 4.2, h = 0.75, col = "#e8f0f7") {
 }
 ys <- c(6.3, 5.1, 3.9, 2.7, 1.5)
 box3(2.6, ys[1], "Draw a random cell")
-box3(2.6, ys[2], "Does the individual die?\nfitness < U(0, 1), or every k-th draw")
-box3(2.6, ys[3], "Choose a parent\nglobal or dispersal kernel")
+box3(2.6, ys[2], "Does the individual die?\nprobability from its fitness (relative death rate)")
+box3(2.6, ys[3], "Choose a parent\nglobal or dispersal kernel (and fitness)")
 box3(2.6, ys[4], "Offspring inherits species and traits;\ntraits evolve")
-box3(2.6, ys[5], "Update the competition term\nof the neighbors")
+box3(2.6, ys[5], "Update the similarities\nof the neighbors")
 box3(7.6, 3.9, "Speciation:\nPoisson(specRate) new species", col = "#fbeee6")
 box3(7.6, 2.7, "Record the state\n(generations in runs)", col = "#fbeee6")
 arrows(2.6, ys[-5] - 0.38, 2.6, ys[-1] + 0.38, length = 0.07)
@@ -140,16 +140,26 @@ generation is one of those given in `runs`.
 
 **1. Mortality and replacement.** Cells are drawn at random (with replacement)
 until $J = x \cdot y$ individuals have died, so some individuals die several
-times per generation and others not at all. If fitness acts on mortality
-(`environment`, `density`, `redQueen` or `redQueenStrength` > 0, and
-`fitnessActsOn` is `"mortality"` or `"both"`), a drawn individual $i$ dies
-only if its fitness $w_i$ (step 3 below) is smaller than a uniform random
-number $u \sim U(0, 1)$; otherwise it survives and the next cell is drawn.
-Every $k$-th draw, with $k$ = `fitnessBaseMortalityRatio`, kills the drawn
-individual regardless of its fitness. $k$ therefore controls the strength of
-selection: with $k = 1$ all deaths are random, and the model is neutral if
-fitness acts only on mortality, even if `environment` or `density` are > 0. If
-fitness does not act on mortality, every draw kills.
+times per generation and others not at all. If fitness does not act on
+mortality, every draw kills. If it does (`fitnessActsOn` is `"mortality"` or
+`"both"`, or a combination with `"mortality"`, and `environment`, `negativeDD`, `positiveDD`, `redQueen` or
+`redQueenStrength` is > 0), a drawn individual $i$ dies with a probability
+proportional to its relative death rate
+
+$$ r_i = \prod_j \left(1 + (m - 1)(1 - w_{ij})\right), $$
+
+where the product runs over the mechanisms that are switched on (environment,
+negative and positive density dependence), $w_{ij} \in [0, 1]$ is the fitness
+term of mechanism $j$ (step 3) and $m$ = `fitnessBaseMortalityRatio`. Through
+each mechanism, an individual with $w_{ij} = 0$ thus dies $m$ times as often
+as one with $w_{ij} = 1$, and the rates of several mechanisms multiply
+(proportional hazards). As the number of deaths per generation is fixed, only
+relative rates matter: a term that is equal for all individuals has no effect,
+and with $m = 1$ the model is neutral if fitness acts only on mortality. With a
+single mechanism (or only the Red Queen), the model uses the rule that every
+$m$-th draw kills regardless of fitness and all other draws kill with
+probability $1 - w_i$; without the Red Queen, this gives the same ratios of
+death rates.
 
 The dead individual is replaced by the offspring of a parent. With global
 dispersal, the parent is drawn uniformly from all other cells; the dead
@@ -162,15 +172,30 @@ where $d$ is the Euclidean distance, $R = \lfloor 2 \cdot \texttt{dispersal}
 \rfloor$ and $\delta = R / 2$; only multiples of 0.5 of `dispersal` therefore
 have an effect. The neighborhood is a discretized circle: all cells with
 $|\Delta x| \le R$ and $|\Delta y| \le \lfloor\sqrt{R^2 - \Delta x^2}\rfloor$.
-If fitness acts on reproduction (`fitnessActsOn = "reproduction"` or
-`"both"`, possible only with local dispersal unless the model is neutral), the
-weights of the potential parents are multiplied by their fitness, if
-`environment` or `density` is > 0.
+
+Fitness can also act on the replacement:
+
+- **Reproduction** (`"reproduction"`): the dispersal weights of the potential
+  parents are multiplied by their fitness in their own cells. With global
+  dispersal, this is possible only without environment, density dependence
+  and Red Queen.
+- **Recruitment** (`"recruitment"`): the offspring of a drawn parent is
+  established only with a probability given by its fitness in the free cell,
+  evaluated with the traits of the parent and the neighbors of that cell;
+  otherwise another parent is drawn. After as many rejections as there are
+  possible parents (at most 1000), the parent is drawn directly with
+  probabilities proportional to dispersal weight times fitness. The parents
+  within dispersal range thus compete in a weighted lottery for the cell, so
+  recruitment has no effect if they all have the same fitness there.
+
+The stages can be combined, e.g. `fitnessActsOn = c("mortality",
+"recruitment")`; `"both"` is short for mortality and reproduction. The fitness
+terms then act at each of these stages.
 
 | Argument | Meaning | Default | Range |
 |---|---|---|---|
-| `fitnessBaseMortalityRatio` | every $k$-th draw kills regardless of fitness | 10 | integer $\ge 1$; 1 gives a neutral model if fitness acts only on mortality |
-| `fitnessActsOn` | whether fitness acts on mortality, reproduction or both | `"mortality"` | `"mortality"`, `"reproduction"`, `"both"`; with global dispersal only if `environment`, `density`, `redQueen` and `redQueenStrength` are 0 |
+| `fitnessActsOn` | stages on which fitness acts | `"mortality"` | `"mortality"`, `"reproduction"`, `"recruitment"`, a combination of them, or `"both"`; reproduction with global dispersal only if `environment`, `negativeDD`, `positiveDD`, `redQueen` and `redQueenStrength` are 0; not `"recruitment"` alone with `redQueen` or `redQueenStrength` > 0 |
+| `fitnessBaseMortalityRatio` | ratio $m$ of the death rates at fitness terms 0 and 1, for each mechanism acting on mortality | 10 | integer $\ge 1$; 1: no selection through mortality |
 | `dispersal` | `"global"` (or 0), or the dispersal distance | `"global"` | `"global"`, 0 or $\ge 0.5$ with $2R + 1 \le \min(x, y)$; only multiples of 0.5 have an effect |
 
 **2. Trait evolution.** The offspring inherits the species and the three traits
@@ -184,37 +209,62 @@ where $t'$ is the offspring's trait value, $t_{\mathrm{p}}$ the parent's,
 $\bar t$ is the mean trait value of the species, $\alpha = 0.2$ is a fixed
 attraction weight, and $r$ is drawn uniformly from $[-0.01, 0.01]$. Values outside $[0, 1]$ are reflected at the boundary.
 
-**3. Fitness.** The fitness of individual $i$ is the sum of an environmental
-and a competition term, each included only if the corresponding parameter is
-> 0:
+**3. Fitness.** Each mechanism that is switched on gives a fitness term between
+0 and 1. Environmental filtering, with $e$ = `environment`:
 
-$$ w_i = \underbrace{e \cdot \exp\left(-\frac{(E_i - t_i)^2}{2\sigma^2}\right) + 1 - e}_{\text{if } e > 0} \; + \; \underbrace{c \cdot D_i + 1 - c}_{\text{if } c > 0}, $$
+$$ w_{E,i} = e \cdot \exp\left(-\frac{(E_i - t_i)^2}{2\sigma^2}\right) + 1 - e, $$
 
-where $e$ = `environment`, $E_i$ is the environment of the cell, $t_i$ is the
-environmental trait of the individual, $\sigma$ = `nicheWidth` is the width of
-the niche, and $c$ = `density`. $D_i$ is the mean absolute difference between
-the competition trait $a_i$ of the individual and those of its neighbors within
-the radius $R_D$ = `densityCut` (same discretized circle as for dispersal),
+where $E_i$ is the environment of the cell, $t_i$ is the environmental trait
+of the individual and $\sigma$ = `nicheWidth` is the width of the niche.
+Negative and positive density dependence, with $c$ = `negativeDD` and $p$ =
+`positiveDD`:
 
-$$ D_i = \frac{\sum_{j \ne i} |a_i - a_j|}{n}, $$
+$$ w_{N,i} = 1 - c \cdot S_i, \qquad w_{P,i} = 1 - p \cdot (1 - S^{P}_i), $$
 
-where $n$ is the number of cells in the neighborhood, including the focal cell.
-$D_i$ is updated whenever an individual in the neighborhood is replaced.
+where $S_i$ and $S^{P}_i$ are the similarities of the individual to its
+neighbors within the radius `negativeDDCut` or `positiveDDCut`. The
+neighborhood is the discretized circle of the dispersal kernel without the
+focal cell (4, 12 and 28 neighbors for radius 1, 2 and 3). The similarity is
+the mean over the $n$ neighbors $j$ of
 
-Some consequences of this formula:
+- `"absolute"` (default for negative density dependence): $1 - |a_i - a_j|$,
+  where $a$ is the competition trait;
+- `"gaussian"`: $\exp\left(-\frac{1}{2}\left(\frac{a_i - a_j}{\omega}\right)^2\right)$,
+  with $\omega$ = `negativeDDWidth` or `positiveDDWidth`;
+- `"species"` (default for positive density dependence): 1 if $j$ belongs to
+  the same species, 0 otherwise, i.e. the share of conspecific neighbors.
 
-- Each term is at least $1 - e$ or $1 - c$. If both terms are included, $w_i$
-  can exceed 1; such individuals survive every draw except the
-  fitness-independent ones (every $k$-th draw).
-- All individuals start with the same traits (0.5), so $D_i = 0$ at the start
-  and density dependence acts only after the competition traits have diverged.
+The similarities are updated whenever an individual in the neighborhood is
+replaced. Negative density dependence thus penalizes individuals that are
+similar to their neighbors, positive density dependence those that are
+dissimilar. On reproduction and recruitment, the terms of several mechanisms
+multiply; on mortality, they combine through the death rates (step 1). The
+Red Queen bonus (next section) multiplies fitness.
+
+Some consequences of these definitions:
+
+- All individuals start as one species with the same traits (0.5), so density
+  dependence acts only after the competition traits have diverged or new
+  species have arisen (see Known limitations).
+- Strengths are not directly comparable between kernels, as the distributions
+  of the similarity differ.
+- Positive density dependence is destabilizing and quickly leads to the
+  dominance of a few species; it is meant to be combined with negative density
+  dependence at another radius or with another kernel. With the same kernel,
+  radius (and width of a Gaussian kernel), the two partly offset each other,
+  which gives a message.
 
 | Argument | Meaning | Default | Range |
 |---|---|---|---|
 | `environment` | weight $e$ of the environmental fitness term | 0 | $[0, 1]$ |
 | `nicheWidth` | width $\sigma$ (standard deviation) of the environmental niche | 0.0366 | $> 0$; a message outside $[0.003, 3]$ (if `environment` > 0) |
-| `density` | weight $c$ of the competition fitness term | 0 | $[0, 1]$ |
-| `densityCut` | radius $R_D$ of the competition neighborhood | 1 | integer $\ge 1$, $\le \min(x, y)$; $2R_D + 1 \le \min(x, y)$ if `density` > 0 |
+| `negativeDD` | strength $c$ of negative density dependence (formerly `density`) | 0 | $[0, 1]$ |
+| `negativeDDCut` | radius of its neighborhood (formerly `densityCut`) | 1 | integer $\ge 1$, $\le \min(x, y)$; $2 \cdot$ `negativeDDCut` $+ 1 \le \min(x, y)$ if `negativeDD` > 0 |
+| `negativeDDKernel` | similarity measure | `"absolute"` | `"absolute"`, `"gaussian"`, `"species"` |
+| `negativeDDWidth` | width $\omega$ of the Gaussian kernel | 0.1 | $> 0$; a message above 1 |
+| `negativeDDResponse` | experimental: the fitness term as a function of $S_i$ instead of $1 - c \cdot S_i$ | `"linear"` | `"linear"`, a function, or at least 2 values in $[0, 1]$ |
+| `positiveDD` | experimental: strength $p$ of positive density dependence | 0 | $[0, 1]$ |
+| `positiveDDCut`, `positiveDDKernel`, `positiveDDWidth` | as for negative density dependence | 1, `"species"`, 0.1 | as for negative density dependence |
 
 **Environment.** If no `airmat` is given, the environment varies only along the
 x-axis: it is $1 - |2i/x - 1|$ in column $i = 0, \dots, x - 1$, i.e., it
@@ -252,7 +302,9 @@ All speciation mechanisms implemented in the model are summarized below:
   fitness is multiplied by $1 + s \exp(-q\,a)$, where $s$ = `redQueenStrength`,
   $q$ = `redQueen` and $a$ is the number of generations since the species arose,
   minus one; without environment and density dependence, the base fitness is
-  set to 0.01.
+  set to 0.01. With several mechanisms on mortality, the death rate is divided
+  by this factor instead. The bonus does not act on recruitment, and on
+  reproduction only together with environment or density dependence.
 
 | Argument | Meaning | Default | Range |
 |---|---|---|---|
@@ -275,8 +327,10 @@ discussed in the issues of the package repository:
 - New species keep the traits of their founding individual; a trait change at
   speciation is not implemented
   ([#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).
-- Density dependence develops only after thousands of generations, so short
-  runs show little of its effect
+- With the trait kernels (`negativeDDKernel = "absolute"` or `"gaussian"`),
+  density dependence develops only after thousands of generations, so short
+  runs show little of its effect; the `"species"` kernel acts from the first
+  speciation on
   ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
 - `es()` calculates the expected number of species of the neutral model with
   $\theta = 2 \cdot$ `specRate`, about twice the value that fits the model
@@ -293,10 +347,10 @@ The package is not on CRAN yet. Follow the instructions on
 version, e.g.
 
 ```{r install, eval = FALSE}
-devtools::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
-                         subdir = "PhyloSim",
-                         dependencies = TRUE,
-                         build_vignettes = TRUE)
+remotes::install_github(repo = "TheoreticalEcology/EcoPhyloSim",
+                        subdir = "PhyloSim",
+                        dependencies = TRUE,
+                        build_vignettes = TRUE)
 
 ?EcoPhyloSim
 browseVignettes("EcoPhyloSim")
@@ -923,23 +977,30 @@ cells within the dispersal kernel and, with density dependence, at the
 neighborhood of the recruit, so larger kernels and neighborhoods take longer.
 :::
 
-The figure shows the runtime of the core simulation per 1,000 generations in
+```{r runtime-missing, echo = FALSE, results = "asis", eval = !hasRuntime}
+cat("The runtimes of these runs are stored in the data set `modelHistory`, which is",
+    "not available in this installation (see `model-behavior/README.md` of the repository).\n")
+```
+
+```{r runtime-text, echo = FALSE, results = "asis", eval = hasRuntime}
+fold <- function(cut) round(max(rtVal("density", densityCut = cut)) / rtVal("density", density = 0, densityCut = cut))
+cat(sprintf(
+"The figure shows the runtime of the core simulation per 1,000 generations in
 the runs of this chapter (replicate means; one core of a desktop PC, 10
 simulations in parallel; the runtimes of these runs are stored in the data set
 `modelHistory`). Runtimes on other computers and in the current version
-differ, but
-the ratios between settings should be similar. On 50 × 50 cells, global
-dispersal is fastest (`r rtVal("dispersal", dispersal = "global")` seconds per
-1,000 generations). With local dispersal, the runtime increases steeply with
-the dispersal distance (from `r rtVal("dispersal", dispersal = "0.5")` seconds
-at 0.5 to `r rtVal("dispersal", dispersal = "3")` seconds at 3). With dispersal 1,
-it grows somewhat faster than the number of cells. Density dependence increases it up to about
-`r round(max(rtVal("density", densityCut = 1)) / rtVal("density", density = 0, densityCut = 1))`-fold
-with neighborhood radius 1 and
-`r round(max(rtVal("density", densityCut = 2)) / rtVal("density", density = 0, densityCut = 2))`-fold
-with radius 2. Together with the time to equilibrium, this gives the cost of a
-simulation: e.g. 50,000 generations on 100 × 100 cells with dispersal 1 take
-about `r round(rtVal("gridSize", x = 100) * 50 / 60)` minutes.
+differ, but the ratios between settings should be similar. On 50 × 50 cells,
+global dispersal is fastest (%s seconds per 1,000 generations). With local
+dispersal, the runtime increases steeply with the dispersal distance (from %s
+seconds at 0.5 to %s seconds at 3). With dispersal 1, it grows somewhat faster
+than the number of cells. Density dependence increases it up to about %s-fold
+with neighborhood radius 1 and %s-fold with radius 2. Together with the time to
+equilibrium, this gives the cost of a simulation: e.g. 50,000 generations on
+100 × 100 cells with dispersal 1 take about %s minutes.
+",
+rtVal("dispersal", dispersal = "global"), rtVal("dispersal", dispersal = "0.5"),
+rtVal("dispersal", dispersal = "3"), fold(1), fold(2), round(rtVal("gridSize", x = 100) * 50 / 60)))
+```
 
 ```{r runtime, echo = FALSE, eval = hasRuntime, fig.width = 7, fig.height = 2.6, fig.cap = "Runtime of the core simulation in seconds per 1,000 generations against the dispersal kernel (50 × 50 cells), the number of cells (dispersal 1) and the strength of density dependence (dispersal 1, two neighborhood radii)."}
 op <- style(mfrow = c(1, 3))
@@ -1274,8 +1335,8 @@ the share of conspecific neighbors; with local dispersal, it changes it little.
 
 ::: {.expectation}
 **Expectation.** With `fitnessBaseMortalityRatio = 1`, every death is random
-and the model is neutral whatever the fitness; larger values make more deaths
-depend on fitness. We therefore expect the effects of environmental filtering
+and the model is neutral whatever the fitness; larger values increase the ratio
+of the death rates of unfit and fit individuals. We therefore expect the effects of environmental filtering
 and density dependence to increase with `fitnessBaseMortalityRatio`, starting
 from the neutral values.
 :::

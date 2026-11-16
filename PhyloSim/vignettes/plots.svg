@@ -18,9 +18,9 @@
   </defs>
 
   <!-- input -->
-  <ellipse class="obj" cx="380" cy="34" rx="95" ry="26"/>
+  <ellipse class="obj" cx="380" cy="34" rx="200" ry="26"/>
   <text x="380" y="31" text-anchor="middle">PhyloSim</text>
-  <text class="note" x="380" y="46" text-anchor="middle">(or one element of a PhylosimList)</text>
+  <text class="note" x="380" y="46" text-anchor="middle">(calculatePhylogeneticDispersion() also takes a PhylosimList)</text>
   <path d="M380,60 V72 M125,72 H625" stroke="#4a5568" stroke-width="1.3" fill="none"/>
   <path class="edge" d="M125,72 V86"/>
   <path class="edge" d="M360,72 V86"/>

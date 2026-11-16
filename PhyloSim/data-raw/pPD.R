@@ -24,24 +24,39 @@ pars <- lapply(seq_len(nrow(scen)), function(i)
   createCompletePar(x = 50, y = 50, runs = generations, specRate = 2,
                     dispersal = if (scen$dispersal[i] == "global") "global"
                                 else as.numeric(scen$dispersal[i]),
-                    density = scen$density[i], environment = scen$environment[i],
+                    negativeDD = scen$density[i], environment = scen$environment[i],
                     scenario = paste0("disp=", scen$dispersal[i], " dens=", scen$density[i],
                                       " env=", scen$environment[i]),
                     seed = 1000 + i))
 
-pvalues <- function(p) {
+# a failing scenario returns its error message instead of stopping the whole run (#180)
+pvalues <- function(p) tryCatch({
   set.seed(p$seed)
   simu <- runSimulation(p)
   calculatePhylogeneticDispersion(simu, plotlengths = 2:10, plots = 200,
                                   replicates = 500, type = "PhylMeta")[[1]][[1]]
-}
-
-if (cores > 1) {
+}, error = function(e) conditionMessage(e))
+runAll <- function(pars) {
+  if (cores <= 1) return(lapply(pars, pvalues))
   cl <- parallel::makeCluster(cores)
+  on.exit(parallel::stopCluster(cl))
   parallel::clusterEvalQ(cl, library(EcoPhyloSim))
-  res <- parallel::parLapplyLB(cl, pars, pvalues, chunk.size = 1)
-  parallel::stopCluster(cl)
-} else res <- lapply(pars, pvalues)
+  parallel::parLapplyLB(cl, pars, pvalues, chunk.size = 1)
+}
+res <- runAll(pars)
+# failed scenarios are run once more with another seed
+failed <- which(vapply(res, is.character, logical(1)))
+if (length(failed)) {
+  message("rerunning failed scenarios ", paste(failed, collapse = ", "), " with other seeds")
+  res[failed] <- runAll(lapply(pars[failed], function(p) { p$seed <- p$seed + 1e6; p }))
+  attr(res, "reseeded") <- failed # scenarios run with seed + 1e6
+}
+failed <- which(vapply(res, is.character, logical(1)))
+if (length(failed)) {
+  saveRDS(res, "pPD-partial.rds")
+  stop("scenarios ", paste(failed, collapse = ", "), " failed (", paste(unique(unlist(res[failed])), collapse = "; "),
+       "); results of the others are in pPD-partial.rds")
+}
 
 pPD.pvalues <- list(res)
 pPD.positions <- list(x = 1:7, y = c(4, 1, 2, 3),

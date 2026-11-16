@@ -1,16 +1,23 @@
 # Builds the data sets of the package from the runs of model-behavior/:
 # - modelHistory (vignette "Model history"): the summaries in model-behavior/runs/
 #   (addRun.R) of all versions and the table of changes, changes.csv;
-# - packageBehavior (chapter "Emerging patterns" of the main vignette), if the
-#   archive of the run of the current version (archive.R) is given: replicate
+# - packageBehavior (chapter "Emerging patterns" of the main vignette), only if
+#   asked for with the archive of the run of the current version (archive.R): replicate
 #   mean, sd and n of the indicators at all censuses, of the curves and of the
 #   CNDD coefficient, the CNDD coefficients of single species, and the runtime.
 #
 # Run from the repository root:
-#   Rscript model-behavior/makeData.R [<archive of the current version>]
+#   Rscript model-behavior/makeData.R [packageBehavior <archive of the current version>]
+# The new format of packageBehavior (all censuses in `main`, no `pilot`, generations
+# per block instead of a "default") needs the adapted chapter "Emerging patterns"
+# (#180); until then, build only modelHistory.
 
 if (!file.exists("model-behavior/changes.csv")) stop("run from the repository root")
-scripts <- tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) "unknown")
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) && (args[1] != "packageBehavior" || length(args) != 2))
+  stop("usage: makeData.R [packageBehavior <archive>]")
+scripts <- suppressWarnings(tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) ""))
+if (length(scripts) != 1 || !nzchar(scripts)) scripts <- "unknown"
 
 files <- list.files("model-behavior/runs", pattern = "\\.csv$", full.names = TRUE)
 files <- files[order(numeric_version(sub("_.*", "", basename(files))))]
@@ -28,9 +35,12 @@ modelHistory <- list(summary = summary, changes = changes[c("date", "kind", "ver
 save(modelHistory, file = "PhyloSim/data/modelHistory.rda", compress = "xz")
 message("modelHistory: ", nrow(summary), " rows")
 
-archive <- commandArgs(trailingOnly = TRUE)[1]
+archive <- args[2]
 if (!is.na(archive)) {
   sims <- read.csv(file.path(archive, "simulations.csv"))
+  # replicates and generations per block of each mode, as run (not as in the current design.R)
+  modes <- lapply(split(sims, sims$mode), function(d)
+    list(reps = max(d$rep), generations = c(tapply(d$generations, d$block, max))))
   sims <- sims[sims$mode == "main", ]
   keys <- c("block", "setting")
   settings <- unique(sims[setdiff(names(sims), c("simulation", "mode", "rep", "seed", "file", "status",
@@ -47,6 +57,7 @@ if (!is.na(archive)) {
   cndd <- read.csv(file.path(archive, "cndd.csv.gz"))
   curve <- function(type, x) { d <- stats(curves[curves$curve == type, ], "x"); names(d)[names(d) == "x"] <- x; d }
   species <- merge(sims[c("simulation", keys, "rep")], cndd[cndd$scope == "species", c("simulation", "abundance", "slope")])
+  species[c("abundance", "slope")] <- signif(species[c("abundance", "slope")], 3) # most of the size of the data set (#180)
   packageBehavior <- list(
     main = list(settings = settings[order(settings$block, settings$setting), ],
                 census = stats(census, c("generation", "indicator")),
@@ -55,7 +66,7 @@ if (!is.na(archive)) {
                 cnddSpecies = species[c(keys, "rep", "abundance", "slope")],
                 runtime = stats(data.frame(simulation = sims$simulation, value = sims$runtime), NULL)),
     info = list(archive = basename(normalizePath(archive)), commit = sub(".*_", "", basename(normalizePath(archive))),
-                modes = local({ source("model-behavior/design.R", local = TRUE); modes }), scripts = scripts,
+                modes = modes, scripts = scripts,
                 run = readLines(file.path(archive, "RUNINFO.txt")),
                 runs = nrow(sims), errors = sum(sims$status == "error"),
                 simulationHours = sum(sims$runtime, na.rm = TRUE) / 3600))

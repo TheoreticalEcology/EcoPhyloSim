@@ -8,6 +8,7 @@ args <- commandArgs(trailingOnly = TRUE)
 libs <- strsplit(Sys.getenv("R_LIBS"), .Platform$path.sep)[[1]]
 suppressPackageStartupMessages(library(args[1], character.only = TRUE, lib.loc = libs))
 par <- do.call(createCompletePar, readRDS(args[2]))
+set.seed(par$seed) # R-side randomness of versions before #174 (random resolution of polytomies)
 capture.output(sim <- suppressWarnings(runSimulation(par)))
 sim$packageVersion <- paste(args[1], utils::packageDescription(args[1], lib.loc = libs)$Version)
 saveRDS(sim, args[3])

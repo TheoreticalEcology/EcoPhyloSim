@@ -15,9 +15,10 @@ scripts, the design, the commits of the simulated versions, and in each run and
 archive the exact command, platform and package versions. The runs of 0.3.1
 (852c61e) and of #172 (2331720) were still made with the earlier script; copies of
 it are in their archives. The data sets in `PhyloSim/data/` are committed only at
-releases. `makeData.R` builds `packageBehavior` in a new format (all censuses in
-`main`, no `pilot`); the chapter "Emerging patterns" is adapted to it with the
-next run of the current version (#180).
+releases. `makeData.R packageBehavior <archive>` builds `packageBehavior` in a
+new format (all censuses in `main`, no `pilot`); the chapter "Emerging patterns"
+is adapted to it with the next run of the current version (#180), so until then
+build only `modelHistory`.
 
 ## Files
 
@@ -35,8 +36,8 @@ next run of the current version (#180).
 - `archive.R`: turns the cache of a run into the archive (tables and README).
 - `addRun.R`: writes the summary of an archive (mean, sd and n per setting and
   indicator at the last census, and the share of failed simulations) to `runs/`.
-- `makeData.R`: builds `modelHistory` from `runs/` and `changes.csv`, and
-  `packageBehavior` from the archive of the current version.
+- `makeData.R`: builds `modelHistory` from `runs/` and `changes.csv`, and, if
+  asked for, `packageBehavior` from the archive of the current version.
 - `changes.csv`: releases and the changes of the model code that change results,
   with their effects, the evidence and the settings of the attribution runs.
 - `attribution.R`: tests single changes against their parent commit (stages 1
@@ -48,7 +49,9 @@ next run of the current version (#180).
     Rscript model-behavior/run.R main 12 current ../cache-current lib=../lib-current
     Rscript model-behavior/archive.R ../cache-current ../EcoPhyloSim-runs 0.3.1.9000 <commit>
     Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1.9000_<commit>
-    Rscript model-behavior/makeData.R ../EcoPhyloSim-runs/0.3.1.9000_<commit>
+    Rscript model-behavior/makeData.R
+    # only once the chapter "Emerging patterns" is adapted to the new format (#180):
+    Rscript model-behavior/makeData.R packageBehavior ../EcoPhyloSim-runs/0.3.1.9000_<commit>
 
 - Modes (`design.R`): `main` (30 replicates, the runs of record; its censuses
   also give the time to equilibrium) and `test` (2 replicates, 300 generations,
@@ -57,7 +60,7 @@ next run of the current version (#180).
   the library (written by `installVersion.R`); `<commit>` of `archive.R` is that
   commit. The current EcoPhyloSim must also be installed in the default library,
   as it computes the indicators.
-- A `main` run of the earlier, smaller design took about 20 hours on 12 cores of a
+- A `main` run of the earlier, smaller design took about 20 hours on 10 cores of a
   Windows PC (2026, mostly the density blocks); the current design takes longer.
   Results do not depend on the number of cores, as each simulation has its own seed.
 - Use a new cache folder per version and design (run.R stops if a cached
@@ -128,7 +131,8 @@ to the repository and are to be attached to the GitHub releases.
 - New parameter: add it to `base` (with the default of the current version) and,
   if varied, to a block of `design`; add it to `params` of the versions that
   support it in `adapters.R`. Seeds of existing settings do not change, as they
-  depend only on the parameters that differ from `base`. Older archives get the
+  depend only on the mode, the block, the parameters that differ from `base` and
+  the replicate. Older archives get the
   default in `addRun.R`.
 - Renamed argument: keep the design name and add it to `rename` of the version.
 - New indicator: add it to `censusStats()` or `behavior()` in `indicators.R`
@@ -142,8 +146,8 @@ to the repository and are to be attached to the GitHub releases.
      run `attribution.R` and enter the results in `evidence`.
   3. Install the release tag with `installVersion.R`, run the design, archive it
      as `<release>_<commit>`, run `addRun.R`, delete the summaries of
-     development runs of that release from `runs/`, and run `makeData.R` with
-     the archive.
+     development runs of that release from `runs/`, and run `makeData.R`
+     (with `packageBehavior <archive>` to rebuild `packageBehavior`).
   4. Update the notes per release in `PhyloSim/vignettes/ModelHistory.Rmd` and
      the description of the runs in the chapter "Emerging patterns".
   5. Commit `runs/` and the data sets, and attach the archive to the GitHub release.

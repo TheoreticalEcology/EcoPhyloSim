@@ -148,14 +148,16 @@ NULL
 
 #' Model history: simulation results across releases
 #'
-#' Summaries of the same simulation design run with each release of the package,
+#' Summaries of the same simulation design run with each release (and development
+#' versions) of the package,
 #' and the changes of the model code that alter simulation results. Used in the
 #' vignette "Model history".
 #'
 #' @name modelHistory
 #' @format A list with three entries:
 #' \describe{
-#'   \item{summary}{data frame with one row per release run (\code{version},
+#'   \item{summary}{data frame with one row per run of a release or development
+#'   version (\code{version},
 #'   \code{commit}), setting and indicator: \code{block} (group of settings in which
 #'   one or two parameters are varied), \code{setting} (number within the block),
 #'   the parameters of the setting (names of release 0.3.1, e.g. \code{density} for
@@ -164,11 +166,11 @@ NULL
 #'   \code{sd} and number of replicates \code{n} (without \code{NA} values) at the
 #'   last census. Indicators as in \code{\link{packageBehavior}} (richness,
 #'   shannon, conspecificNeighbors, corTraitEnv, sdCompetitionTrait, colless,
-#'   gamma, treeHeight, meanSpeciesAge, corAgeAbundance, cndd) and the
+#'   gamma, meanSpeciesAge, corAgeAbundance, cndd) and the
 #'   \code{runtime} of the core simulation in seconds, the share of failed
 #'   simulations (\code{failed}); runs made with
-#'   \code{model-behavior/run.R} also evenness, dominance, sdNeutralTrait and
-#'   mpdLocal (see the vignette). The run of 0.3.1 is the run of
+#'   \code{model-behavior/run.R} also treeHeight, evenness, dominance,
+#'   sdNeutralTrait and mpdLocal (see the vignette). The run of 0.3.1 is the run of
 #'   \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
 #'   #173 and #174).}
 #'   \item{changes}{data frame of the releases and the changes of the model code
