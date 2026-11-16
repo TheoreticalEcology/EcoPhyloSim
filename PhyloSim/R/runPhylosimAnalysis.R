@@ -523,6 +523,7 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
 #' @param ... further arguments passed to ranger::ranger
 #' @return A list with two items. Item one contains the true parameters, item two contains the predicted parameters.
 #' @author Tankred Ott
+#' @keywords internal
 summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
   checkSuggested("ranger")
   nCores <- getValidatedNCores(nCores)
@@ -565,6 +566,7 @@ summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
 #' @param ... currently ignored
 #' @return Matrix of parameter predictions
 #' @author Tankred Ott
+#' @keywords internal
 summaryRedsaABC <- function (p, s, scale = TRUE, ...) {
   checkSuggested("abctools")
   weights <- abctools::saABC(p, s, plot = FALSE)$B
