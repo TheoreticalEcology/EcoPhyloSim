@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-#include <iostream>
 
 
 Individual::Individual() {
@@ -24,12 +23,6 @@ Individual::Individual() {
     this->m_LocalDensity = 0.0; // density experienced around itself, will be updated automatically
     this->m_Age = 0;
     this->m_incip_Age = -99999999;
-
-    // THESE SEEM OBSOLTE ???
-    //this ->m_FitnessWeight = 0.5;
-    //this ->m_DensityStrength = 0.4;
-    //this ->m_Weight = 1.0;
-    // END OBSOLETE
 
     this->m_nicheWidth = 0.03659906; // environmental niche width (standard deviation), see getFitness
     this->m_Mean = 0.5; // environmental trait
@@ -56,9 +49,6 @@ Individual::Individual(const Individual &ind) {
     this->m_LocalDensity = ind.m_LocalDensity;
     this->m_Age = 0;
     this->m_incip_Age = -99999999;
-//	this -> m_FitnessWeight = ind.m_FitnessWeight;
-//	this -> m_DensityStrength = ind.m_DensityStrength;
-//	this -> m_Weight = ind.m_Weight;
     this->m_nicheWidth = ind.m_nicheWidth;
     this->m_Mean = ind.m_Mean;
 
@@ -89,10 +79,6 @@ void Individual::operator=(const Individual &ind) {
     this->m_Age = 0;
     this->m_incip_Age = -99999999;
 
-//	this -> m_FitnessWeight = ind.m_FitnessWeight;
-//	this -> m_DensityStrength = ind.m_DensityStrength;
-//	this -> m_Weight = ind.m_Weight;
-
     this->m_nicheWidth = ind.m_nicheWidth;
 
     this->m_Mean = ind.m_Mean;
@@ -100,7 +86,6 @@ void Individual::operator=(const Individual &ind) {
     this->m_NeutralMarker = ind.m_NeutralMarker;
     this->m_dispersalDistance = ind.m_dispersalDistance;
 
-    this->m_dispersalDistance = ind.m_dispersalDistance;
 
     this->m_envStrength = ind.m_envStrength;
     this->m_compStrength = ind.m_compStrength;
@@ -122,7 +107,6 @@ double Individual::kernel(double distance) {
 double Individual::dispersal(int dispersal_type, double distance) {
     if (dispersal_type == 3) // kernel
     {
-        //return exp(-distance / cutoff / 2.0) ;
         return kernel(distance); // for some weird reason, this option is considerably faster!!!
     } else if (dispersal_type == 2) //nearest neighbor
     {

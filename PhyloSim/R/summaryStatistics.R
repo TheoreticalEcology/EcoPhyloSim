@@ -124,7 +124,6 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   summaryStatistics$gammaStatistics <- .gammaStat(extant)
   
   # mean node age
-  #summaryStatistics$meanNodeAge <- ape::chronoMPL(simulation$Output[[1]]$phylogeny)
   summaryStatistics$meanNodeAge <- mean(extant$edge.length)
   
   

@@ -72,8 +72,6 @@ public:
     std::vector<double> m_ddTable;
 
 
-    Landscape();
-
     Landscape(int xsize, int ysize, int type, bool neutral,
               bool dd, bool env, bool mort, bool repro, unsigned int simulationEnd, double specRate,
               int dispersalCutoff, int densityCutoff, unsigned int mortalityStrength, double envStrength,
@@ -120,8 +118,6 @@ public:
 
 class GlobalEnvironment : public Landscape {
 public:
-    GlobalEnvironment();
-
     GlobalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort, bool repro,
                       unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
                       unsigned int mortalityStrength,
@@ -136,8 +132,6 @@ public:
 
 class LocalEnvironment : public Landscape {
 public:
-    LocalEnvironment();
-
     LocalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort, bool repro,
                      unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
                      unsigned int mortalityStrength,

@@ -7,9 +7,7 @@
  */
 
 #include <Rcpp.h>
-#include <string>
 #include "./RandomGen.h"
-//#include "Utils/RandomGen.h"
 #include "Individual.h"
 #include "Grid.h"
 #include "PhylSimModel.h"
@@ -59,7 +57,6 @@ PhylSimModel::~PhylSimModel() {
 void PhylSimModel::update(unsigned int runs) {
     for (unsigned int generation = 1; generation < runs + 1; generation++) {
 
-        // std::cout << "generation :" <<  generation << '/' << runs << '\n';
 
 #ifdef DEBUG
         if(generation % 1000 == 0){
@@ -72,13 +69,11 @@ void PhylSimModel::update(unsigned int runs) {
             m_Global->reproduce(timeStep + generation);
             m_Global->speciation(timeStep + generation);
             m_Global->m_Phylogeny.pruneIfLarge();
-            //  std::cout << "Disp generation :" <<  generation << '/' << runs << '\n';
         } else if (m_Dispersal == 3) {
             m_Local->increaseAge(timeStep + generation);
             m_Local->reproduce(timeStep + generation);
             m_Local->speciation(timeStep + generation);
             m_Local->m_Phylogeny.pruneIfLarge();
-            //   std::cout << "Disp generation :" <<  generation << '/' << runs << '\n';
         }
     }
     timeStep += runs;

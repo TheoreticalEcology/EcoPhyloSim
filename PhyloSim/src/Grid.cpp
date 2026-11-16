@@ -9,19 +9,16 @@
 #include <Rcpp.h>
 #include <cfloat>
 #include <cmath>
-#include <iostream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 #include <numeric>
-#include <math.h>
 #include<algorithm>
 
 #include "Grid.h"
 #include "Individual.h"
 #include "Species.h"
 #include "debug.h"
-//#include "./Utils/RandomGen.h"
 #include "./RandomGen.h"
 
 const int Landscape::maxRecruitTries; // definition, as it is passed by reference to std::min
@@ -91,7 +88,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
             this->m_Individuals[cols][rows].m_ddTable = m_ddTable.empty() ? NULL : &m_ddTable;
             this->m_Individuals[cols][rows].m_posStrength = ddOptions.posStrength;
 
-            //this->individuals[cols][rows].Species->date_of_extinction = runs;
         }
     }
     // TODO - should the species be updated?
@@ -202,7 +198,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
         int x_coordinate, y_coordinate, x_parent, y_parent;
 
-        //srand(time(0));
         for (unsigned int event = 0; event < m_LandscapeSize; event++) {
 
             // choose random individual to die
@@ -215,7 +210,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                 y_parent = m_RandomGenerator.randomInt(0, m_Ydimensions - 1);
             } while (x_parent == x_coordinate && y_parent == y_coordinate);
 
-            //std::cout << x_coordinate << "::" << x_parent << "::" << y_coordinate << "::" << y_parent << '\n';
 
             m_Individuals[x_coordinate][y_coordinate].reportDeath(generation);
 
@@ -243,9 +237,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         unsigned int numberOfRuns = 0;
         int new_parent = 0;
         unsigned int array_length;
-
-        //double averageCompetitionTrait = 0;
-        //double spread = 0;
 
         std::vector<double> weights(m_LandscapeSize); // fixes #149 (heap instead of stack)
         std::vector<double> cumWeights(m_LandscapeSize);
@@ -282,8 +273,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
         } // END  if (m_reproduction)
 
-        //if(m_mortality) numberOfRuns = m_LandscapeSize*2;
-        //else numberOfRuns = m_LandscapeSize;
         // TODO could make numberofruns a parameter
 
         numberOfRuns = m_LandscapeSize;
@@ -314,7 +303,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
                         m_redQueenStrength, m_redQueen);
                 // important!! the frequency in relation to the base mortality controls the intensity of the mechanisms
                 double chanceOfDeath = m_RandomGenerator.randomDouble(0.0, 1.0);
-                //std::cout<<weight<<"\n"; // DEBUG
                 if (weight > chanceOfDeath) {
                     continue;
                 }
@@ -382,12 +370,6 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             parents[x_coordinate * m_Ydimensions + y_coordinate].first = x_coordinate;
             parents[x_coordinate * m_Ydimensions + y_coordinate].second = y_coordinate;
 
-            // start reproduction updates
-            // this seems to be suboptimally programmed at the moment
-            // below, the individual class functions should be used for calculating values
-            // need to chek if other speedups are possible
-            // However, I left it for now because we dont use it for the mortality
-
 
             if (!m_reproduction && needsDensity()) densityUpdate(x_coordinate, y_coordinate);
 
@@ -431,9 +413,6 @@ void LocalEnvironment::reproduce(unsigned int generation) {
     int new_parent;
     unsigned int numberOfRuns = 0;
     m_KernelSize = ((2 * m_Cutoff + 1) * (2 * m_Cutoff + 1) - 1);
-
-    //if(m_mortality) numberOfRuns =  m_LandscapeSize*2;
-    //else numberOfRuns =  m_LandscapeSize;
 
     numberOfRuns = m_LandscapeSize;
 
@@ -623,7 +602,6 @@ void Landscape::speciation(unsigned int generation) {
 
     for (int i = 0; i < specRate; i++) {
 
-        // std::cout << specRate << std::endl;
         int x = m_RandomGenerator.randomInt(0, m_Xdimensions - 1); // rand() % xdimensions;
         int y = m_RandomGenerator.randomInt(0, m_Ydimensions - 1); // rand() % ydimensions;
 

@@ -77,13 +77,6 @@ runSimulation <- function(par)
     
     print (paste("Core simulation finished after",floor(((proc.time() - ptm)[3])/60), "minute(s) and", ((proc.time() - ptm)[3])%%60, "second(s). Converting data"))
     
-    #     Rcpp::List listResults = Rcpp::List::create(Rcpp::Named("Species") = specOut,
-    #                                                 Rcpp::Named("EnvTrait") = traitOut,
-    #                                                 Rcpp::Named("NeutralTrait") = neutralOut,
-    #                                                 Rcpp::Named("CompetitionTrait") = compOut,
-    #                                                 Rcpp::Named("Environment") = envOut,
-    #                                                 Rcpp::Named("Phylogeny") = phyloOut);
-    
     # The following code reshuffles the output to the structure 
     # of a phylosim class
     output<-list()

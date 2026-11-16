@@ -10,7 +10,6 @@
 #define INDIVIDUAL_H_
 
 #include "./RandomGen.h"
-//#include "Utils/RandomGen.h"
 #include "Species.h"
 
 #include <vector>
@@ -61,10 +60,6 @@ public:
     double m_LocalDensity;
     unsigned long long m_Age;
     int m_incip_Age;
-
-//	double m_DensityStrength;
-//	double m_FitnessWeight;
-//	int m_Weight;
 
     double m_nicheWidth;
     double m_Mean;

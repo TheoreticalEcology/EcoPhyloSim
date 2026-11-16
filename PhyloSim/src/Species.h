@@ -13,12 +13,9 @@
 
 #include <utility>
 #include  <vector>
-// #include "Tests/ConcreteTests/SpeciesTestSuite.h"
 
 
 class Species {
-    // Define corresponding TestSuite as friend class
-    // friend class PhyloTest::SpeciesTestSuite;
 private:
     double m_MeanSum;
     double m_NeutralSum;
@@ -41,10 +38,6 @@ public:
     double m_CompetitionMean;
     std::vector<unsigned long long> m_Children;
 
-
-    /*Species(unsigned long long id, unsigned long long  father,
-          unsigned long long date, std::pair<int, int> birthplace, unsigned int runs);
-          */
 
     Species();
 
