@@ -116,9 +116,11 @@ checkPar <- function(par) {
   }
   for (dd in c("negativeDD", "positiveDD")) {
     width <- par[[paste0(dd, "Width")]]
-    if (par[[dd]] > 0 && par[[paste0(dd, "Kernel")]] == "gaussian" && width > 1) {
-      message(dd, "Width = ", width, " is larger than the range of the competition trait [0, 1], ",
-              "so all neighbors count as similar.")
+    if (par[[dd]] > 0 && par[[paste0(dd, "Kernel")]] == "gaussian") {
+      if (width > 1) message(dd, "Width = ", width, " is larger than the range of the competition trait [0, 1], ",
+                             "so all neighbors count as similar.")
+      if (width < 0.001) message(dd, "Width = ", width, " is far below the trait differences within species ",
+                                 "(about 0.01), so almost no neighbor counts as similar.")
     }
   }
   same <- function(s) par[[paste0("negativeDD", s)]] == par[[paste0("positiveDD", s)]]
