@@ -99,12 +99,8 @@ getSpeciesTraits <- function (sim, speciesID, whichRun = 1) {
   
   out <- list(environment=NA, competition=NA, neutral=NA)
   
-  # specIndices <- which(sim$Output[[whichRun]]$specMat == speciesID)
   specIndices <- getSpeciesIndices(sim, speciesID, whichRun)
   
-  # out$environment <- sim$Output[[whichRun]]$traitMat[specIndices]
-  # out$competition <- sim$Output[[whichRun]]$compMat[specIndices]
-  # out$neutral <- sim$Output[[whichRun]]$neutMat[specIndices]
   out$environment <- getSpeciesTrait(sim, speciesID, "environment", whichRun)
   out$competition <- getSpeciesTrait(sim, speciesID, "competition", whichRun)
   out$neutral <- getSpeciesTrait(sim, speciesID, "neutral", whichRun)

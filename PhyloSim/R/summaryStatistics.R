@@ -247,9 +247,6 @@ nb8Idx <- function (mat) {
     id_freqs[i] <- sum(mat == ids[i])
   }
   
-  # print(nRow)
-  # print(nCol)
-  
   nbRates <- vector("numeric", length(ids))
   names(nbRates) <- ids
   
@@ -259,14 +256,11 @@ nb8Idx <- function (mat) {
       nbrs <- getNeighbours8(col, row, mat, nRow = nRow, nCol = nCol)
       
       r <- sum(id == nbrs) / length(nbrs)
-      # r <- r * (id_freqs[which(ids == id)] / n)
-      # r <- r * (n / id_freqs[which(ids == id)])
       r <- r / id_freqs[which(ids == id)]
       nbRates[as.character(id)] <- nbRates[as.character(id)] + r
     }
   }
   
-  # return(sum(nbRates) / length(nbRates))
   return(sum(nbRates))
 }
 

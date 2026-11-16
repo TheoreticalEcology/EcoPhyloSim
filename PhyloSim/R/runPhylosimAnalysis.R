@@ -46,9 +46,6 @@ runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summ
   
   # write an first overview over the parameters to file
   writeParamOverview(defaultParams, fixedParams, variableParams, joinPath(c(outDir, "paramOverview.txt")))
-  # # read it later in like this:
-  # inp <- readLines("argsOut.txt")
-  # strsplit(inp, split = " ")
   
   # get the number of parallel cores
   nCores <- getValidatedNCores(nCores)
@@ -91,7 +88,6 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
     # Calculate summaries
     tryCalcSummaries <- function(x,...)return(tryCatch(EcoPhyloSim::calculateSummaryStatistics(x,...),
                                                    error=function(x)return(NA)))
-    # summaryChunk <- lapply(simChunk, EcoPhyloSim::calculateSummaryStatistics, strict=TRUE)
     summaryChunk <- lapply(simChunk, tryCalcSummaries, strict=TRUE)
     
     # Determine file name
@@ -200,7 +196,6 @@ extractParams <- function(parList, params, outFormat="df") {
 
   out <- NA
   if (outFormat == "df") {
-    # out <- as.data.frame(do.call(what = rbind, args = parList))
     checkSuggested("data.table")
     # one string per parameter, e.g. for several fitnessActsOn stages or a negativeDDResponse table
     oneValue <- function(v) if (is.function(v) || length(v) > 1) paste(deparse(v), collapse = " ") else v
