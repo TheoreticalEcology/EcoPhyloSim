@@ -386,7 +386,7 @@ The single simulations can be accessed by indexing, e.g. `simuBatch[[1]]`. An
 overview of the basic classes and functions to run simulations is provided
 below.
 
-```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Overview of the basic model functions in the EcoPhyloSim package. Functions are represented by bubbles, objects by circles. Objects of the class PhylosimList can be indexed if a single PhyloSim object is needed."}
+```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Functions (boxes) and objects (ellipses) to run simulations. A single PhyloSim object is taken from a PhylosimList by indexing."}
 knitr::include_graphics("runsimulation.svg")
 ```
 
@@ -411,6 +411,10 @@ The table gives an overview.
 | `localPlots()` | random subplots (an observation model) | What would a field survey see? |
 | `getMortalityData()` | death and conspecific neighbors of each individual | How strong is conspecific density dependence? |
 | `nullModel()`, `calculatePhylogeneticDispersion()` | phylogenetic dispersion against random communities | Are local communities phylogenetically clustered or overdispersed? |
+
+```{r plotsfig, echo = FALSE, out.width = "90%", fig.cap = "Functions (boxes) to plot and summarize a simulation, and the objects (ellipses) they return. Arrows within a group show which function uses the output of another or calls it internally."}
+knitr::include_graphics("plots.svg")
+```
 
 ## Plot functions
 

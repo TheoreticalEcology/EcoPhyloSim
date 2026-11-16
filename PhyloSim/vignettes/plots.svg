@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 500" width="760" height="500" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1a202c">
+  <!-- Overview of the functions to plot and summarize a simulation (vignette PhyloSimManual, chapter
+       "Plots and summary statistics"). Functions: rounded boxes (class fun), objects: ellipses (class obj).
+       Edit as text. -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a5568"/>
+    </marker>
+    <style>
+      .fun { fill: #e8f1fb; stroke: #2b6cb0; stroke-width: 1.2; }
+      .obj { fill: #fdf3d0; stroke: #b7791f; stroke-width: 1.2; }
+      .group { fill: none; stroke: #a0aec0; stroke-width: 1; stroke-dasharray: 4 3; }
+      .head { font-weight: bold; font-size: 13.5px; }
+      .code { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 12px; }
+      .note { fill: #4a5568; font-size: 11.5px; }
+      .edge { stroke: #4a5568; stroke-width: 1.3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <!-- input -->
+  <ellipse class="obj" cx="380" cy="34" rx="95" ry="26"/>
+  <text x="380" y="31" text-anchor="middle">PhyloSim</text>
+  <text class="note" x="380" y="46" text-anchor="middle">(or one element of a PhylosimList)</text>
+  <path d="M380,60 V72 M125,72 H625" stroke="#4a5568" stroke-width="1.3" fill="none"/>
+  <path class="edge" d="M125,72 V86"/>
+  <path class="edge" d="M360,72 V86"/>
+  <path class="edge" d="M625,72 V86"/>
+
+  <!-- plots -->
+  <rect class="group" x="15" y="88" width="220" height="366" rx="8"/>
+  <text class="head" x="125" y="108" text-anchor="middle">Plots</text>
+  <rect class="fun" x="25" y="120" width="200" height="34" rx="15"/>
+  <text class="code" x="125" y="141" text-anchor="middle">plot()</text>
+  <path class="edge" d="M125,154 V178"/>
+  <text class="note" x="132" y="170">calls</text>
+  <rect class="fun" x="25" y="180" width="200" height="34" rx="15"/>
+  <text class="code" x="125" y="201" text-anchor="middle">plotSpatialPhylo()</text>
+  <rect class="fun" x="25" y="240" width="200" height="34" rx="15"/>
+  <text class="code" x="125" y="261" text-anchor="middle">plotTraitDistribution()</text>
+  <rect class="fun" x="25" y="300" width="200" height="34" rx="15"/>
+  <text class="code" x="125" y="321" text-anchor="middle">phyloReconstruct()</text>
+  <path class="edge" d="M125,334 V353"/>
+  <ellipse class="obj" cx="125" cy="375" rx="80" ry="20"/>
+  <text x="125" y="379" text-anchor="middle">tree (class phylo)</text>
+
+  <!-- summary statistics -->
+  <rect class="group" x="250" y="88" width="220" height="366" rx="8"/>
+  <text class="head" x="360" y="108" text-anchor="middle">Summary statistics</text>
+  <rect class="fun" x="258" y="120" width="204" height="34" rx="15"/>
+  <text class="code" x="360" y="141" text-anchor="middle">specRich()</text>
+  <rect class="fun" x="258" y="166" width="204" height="34" rx="15"/>
+  <text class="code" x="360" y="187" text-anchor="middle">collessImbalance()</text>
+  <rect class="fun" x="258" y="212" width="204" height="34" rx="15"/>
+  <text class="code" x="360" y="233" text-anchor="middle">sac(), rac()</text>
+  <rect class="fun" x="258" y="258" width="204" height="34" rx="15"/>
+  <text class="code" x="360" y="279" text-anchor="middle">getAverageTraits()</text>
+  <rect class="fun" x="258" y="304" width="204" height="34" rx="15"/>
+  <text class="code" x="360" y="325" text-anchor="middle">getMortalityData()</text>
+  <rect class="fun" x="258" y="350" width="204" height="34" rx="15"/>
+  <text class="code" x="360" y="371" text-anchor="middle">calculateSummaryStatistics()</text>
+
+  <!-- subplots and null models -->
+  <rect class="group" x="485" y="88" width="260" height="366" rx="8"/>
+  <text class="head" x="615" y="108" text-anchor="middle">Subplots and null models</text>
+  <rect class="fun" x="505" y="120" width="230" height="34" rx="15"/>
+  <text class="code" x="620" y="141" text-anchor="middle">localPlots()</text>
+  <path class="edge" d="M620,154 V178"/>
+  <rect class="fun" x="505" y="180" width="230" height="34" rx="15"/>
+  <text class="code" x="620" y="201" text-anchor="middle">highlightLocalPhylo()</text>
+  <path class="edge" d="M505,137 H495 V257 H503"/>
+  <rect class="fun" x="505" y="240" width="230" height="34" rx="15"/>
+  <text class="code" x="620" y="261" text-anchor="middle">nullModel()</text>
+  <path class="edge" d="M620,274 V298"/>
+  <rect class="fun" x="505" y="300" width="230" height="34" rx="15"/>
+  <text class="code" x="620" y="321" text-anchor="middle">calculatePhylogeneticDispersion()</text>
+  <path class="edge" d="M620,334 V353"/>
+  <ellipse class="obj" cx="620" cy="375" rx="60" ry="20"/>
+  <text x="620" y="379" text-anchor="middle">p-values</text>
+  <path class="edge" d="M620,395 V408"/>
+  <rect class="fun" x="505" y="410" width="230" height="34" rx="15"/>
+  <text class="code" x="620" y="431" text-anchor="middle">plotPhylogeneticDispersion()</text>
+
+  <!-- legend -->
+  <rect class="fun" x="20" y="470" width="70" height="22" rx="10"/>
+  <text class="note" x="98" y="485">function</text>
+  <ellipse class="obj" cx="190" cy="481" rx="35" ry="11"/>
+  <text class="note" x="232" y="485">object</text>
+  <path class="edge" d="M300,481 H340"/>
+  <text class="note" x="348" y="485">input, output, or used internally</text>
+</svg>
