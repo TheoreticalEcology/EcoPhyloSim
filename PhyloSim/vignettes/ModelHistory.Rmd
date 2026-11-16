@@ -12,6 +12,16 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r data, echo = FALSE, results = "asis"}
+# the data set is built with model-behavior/makeData.R and added to the package at releases
+if (!exists("modelHistory") &&
+    !"modelHistory" %in% utils::data(package = "EcoPhyloSim")$results[, "Item"]) {
+  cat("The data set `modelHistory` is not available in this installation; it is",
+      "built with `model-behavior/makeData.R` of the package repository.\n")
+  knitr::knit_exit()
+}
+```
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.width = 7, fig.height = 4)
 if (!exists("modelHistory")) data("modelHistory", package = "EcoPhyloSim")
