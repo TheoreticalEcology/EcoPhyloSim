@@ -36,7 +36,9 @@ simulations <- perSimulation(function(r) data.frame(
   r$task[names(r$task) != "file"],
   status = if (!is.null(r$error)) "error" else if (isTRUE(r$unsupported)) "unsupported" else "ok",
   error = if (is.null(r$error)) NA else r$error,
-  runtime = if (is.null(r$runtime)) NA else r$runtime))
+  runtime = if (is.null(r$runtime)) NA else r$runtime,
+  package = if (is.null(r$package)) NA else r$package,
+  parameters = if (is.null(r$parameters)) NA else r$parameters))
 simulations <- data.frame(simulation = simulations$simulation,
                           mode = sub("_.*", "", simulations$simulation), simulations[-1])
 
@@ -81,7 +83,8 @@ writeLines(c(
   "  `mode` pilot: few replicates and many censuses to check the time to equilibrium, main: more",
   "  replicates, test: short check of the scripts), with its parameters (as in `design.R`; `y` equals `x` if absent), number of",
   "  generations, seed, status (`ok`, `error`, or `unsupported` if the model version cannot run",
-  "  the setting), error message and runtime of the core simulation in seconds.",
+  "  the setting), error message, runtime of the core simulation in seconds, the simulated",
+  "  package and version, and all parameters actually used (`Model` of the result, incl. defaults).",
   "- `census.csv.gz`: value of each indicator at each census of each simulation (`mpdLocal`, the",
   "  phylogenetic dispersion of local communities, only at the last census).",
   "- `maps.csv.gz`: species of each cell (`row`, `col`) at the end of the first replicate of each setting.",

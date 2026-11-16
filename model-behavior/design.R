@@ -49,8 +49,8 @@ design <- list(
   gridShape   = data.frame(x = c(49, 50), y = c(49, 40), environment = 1)
 )
 
-# seed from a hash of mode, block, setting and replicate, so that seeds do not
-# depend on the order of the blocks
+# seed from a hash of mode, block, parameter values and replicate, so that seeds
+# do not depend on the order of blocks or settings
 hashSeed <- function(s) {
   h <- 0
   for (b in utf8ToInt(s)) h <- (h * 31 + b) %% 2147483647
@@ -69,7 +69,8 @@ taskTable <- function(mode, cacheDir) {
     d <- d[rep(seq_len(nrow(d)), each = m$reps), ]
     d$rep <- rep(seq_len(m$reps), length.out = nrow(d))
     d$generations <- if (b %in% names(m$generations)) m$generations[[b]] else m$generations[["default"]]
-    d$seed <- vapply(sprintf("%s/%s/%d/%d", mode, b, d$setting, d$rep), hashSeed, integer(1))
+    d$seed <- vapply(paste(mode, b, do.call(paste, c(d[names(base)], sep = "/")), d$rep, sep = "/"),
+                     hashSeed, integer(1))
     d$file <- file.path(cacheDir, sprintf("%s_%s_%02d_%02d.rds", mode, b, d$setting, d$rep))
     d[c("block", "setting", "rep", names(base), "generations", "seed", "file")]
   }))
