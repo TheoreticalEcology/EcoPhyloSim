@@ -6,7 +6,7 @@ This page is for the EcoPhyloSim team (maintainers and collaborators with write 
 
 - Set the target release as the milestone of the issue or pull request.
 - Team members may merge their own pull requests. If in doubt, request a review from another team member first.
-- As an exception to the pull request workflow, trivial changes and changes outside the package folder `PhyloSim/` (e.g., `.github/`, `Code/`; in `PhyloSim/` only `NEWS.md` and the version bump after a release) can be committed directly to `master`.
+- As an exception to the pull request workflow, trivial changes and changes outside the package folder `PhyloSim/` (e.g., `.github/`; in `PhyloSim/` only `NEWS.md` and the version bump after a release) can be committed directly to `master`.
 
 ## Branches
 

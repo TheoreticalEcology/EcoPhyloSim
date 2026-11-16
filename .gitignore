@@ -1,8 +1,5 @@
 *.gz
 *.html
-workspace/.metadata/
-workspace/
-.metadata/
 *.txt
 *.out
 *.RData
@@ -13,26 +10,13 @@ workspace/
 00check.log
 
 *.so
-PhyloSimManual-concordance.tex
-PhyloSimManual.bbl
-PhyloSim/vignettes/PhyloSimManual.blg
-PhyloSim/vignettes/PhyloSimManual.log
-PhyloSim/vignettes/PhyloSimManual.pdf
-PhyloSimManual.toc
-PhyloSim/vignettes/Sweave.sty
-PhyloSim/vignettes/Sweavel.sty
-PhyloSim/vignettes/figure
-PhyloSim/vignettes/PhyloSimManual.tex
-PhyloSim/examples/SAC/SAC_cache/
 PhyloSim/vignettes/Vignette_bib.bib.bak
-PhyloSim/inst/doc/PhyloSimManual.Rnw
 PhyloSim/inst/doc/PhyloSimManual.R
+PhyloSim/vignettes/PhyloSimManual.R
 
 
 *.aux
 *.idea
-CMakeFiles
-cmake-build-debug
 .positai
 .DS_Store
 .Rhistory
