@@ -22,6 +22,7 @@ nullModel <- function(simu, which.result=NULL, abundance = FALSE, localPlotSize,
   speciesMatrix <- simu$specMat
   
   extantPhyloCophen <- stats::cophenetic(.dropFossil(phylogeny)) # distance matrix of the extant species
+  phylogeny$root.edge <- 0 # fixes #176 (picante::pd() needs a rooted tree, also with a root polytomy)
   
   # calculate fun for "real matrix"
   ifelse (fun == "mpd", observedMPD <- picante::mpd(samp = comMat, dis = extantPhyloCophen, abundance.weighted = T),
