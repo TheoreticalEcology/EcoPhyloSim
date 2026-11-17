@@ -6,7 +6,7 @@
 # See README.md.
 #
 # Run from the repository root:
-#   Rscript model-behavior/run.R <mode> <cores> <version> <cache folder> lib=<libraries>
+#   Rscript PhyloSim/data-raw/model-behavior/run.R <mode> <cores> <version> <cache folder> lib=<libraries>
 #     [<blocks>] [part=i/n]
 # <mode>: main or test (design.R); <version>: a name in `versions` of adapters.R.
 # lib=: the library into which installVersion.R installed the simulated commit,
@@ -17,9 +17,9 @@
 # Environment variable MB_MIN_FREE_GB (default 30): free memory to wait for
 # before each simulation (checked on Windows only).
 
-if (!file.exists("model-behavior/design.R")) stop("run from the repository root")
+if (!file.exists("PhyloSim/data-raw/model-behavior/design.R")) stop("run from the repository root")
 library(EcoPhyloSim)
-sources <- file.path("model-behavior", c("design.R", "indicators.R", "adapters.R"))
+sources <- file.path("PhyloSim", "data-raw", "model-behavior", c("design.R", "indicators.R", "adapters.R"))
 for (f in sources) source(f)
 args <- commandArgs(trailingOnly = TRUE)
 mode <- args[1]
@@ -68,7 +68,7 @@ runTask <- function(task) {
       Sys.setenv(R_LIBS = lib)
       log <- sub("\\.rds$", ".log", task$file)
       status <- system2(file.path(R.home("bin"), "Rscript"),
-                        shQuote(c("model-behavior/simulate.R", package, tmp[1], tmp[2])),
+                        shQuote(c("PhyloSim/data-raw/model-behavior/simulate.R", package, tmp[1], tmp[2])),
                         stdout = log, stderr = log)
       if (status != 0 || !file.exists(tmp[2])) stop("simulation failed (exit status ", status, "), see ", log)
       unlink(log)
@@ -121,13 +121,13 @@ for (i in which(done)) {
 tasks <- tasks[!done, ]
 # runs of record only from committed scripts in a git checkout, so that RUNINFO.txt names them
 if (mode == "main" && (gitDescribe() == "unknown" ||
-    length(suppressWarnings(system("git status --porcelain -- model-behavior/*.R", intern = TRUE)))))
-  stop("mode main runs only from a git checkout with committed scripts (model-behavior/*.R)")
+    length(suppressWarnings(system("git status --porcelain -- PhyloSim/data-raw/model-behavior/*.R", intern = TRUE)))))
+  stop("mode main runs only from a git checkout with committed scripts (PhyloSim/data-raw/model-behavior/*.R)")
 dir.create(cacheDir, showWarnings = FALSE, recursive = TRUE)
 message(nrow(tasks), " simulations to run on ", nCores, " cores")
 # record the run and keep copies of the scripts in the cache (archived by archive.R)
 stamp <- format(Sys.time(), "%Y%m%d-%H%M")
-for (f in file.path("model-behavior", c("design.R", "indicators.R", "adapters.R", "run.R", "simulate.R")))
+for (f in file.path("PhyloSim", "data-raw", "model-behavior", c("design.R", "indicators.R", "adapters.R", "run.R", "simulate.R")))
   file.copy(f, file.path(cacheDir, sub("\\.R$", paste0("-", stamp, ".R"), basename(f))))
 cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libraries %s, indicators with EcoPhyloSim %s\n",
             format(Sys.time()), mode, version, nrow(tasks), nCores, lib,
@@ -139,7 +139,7 @@ cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libr
 # provenance: command, R, platform, and the packages of all libraries used
 libs <- c(strsplit(lib, .Platform$path.sep)[[1]], .libPaths())
 installInfo <- file.path(libs, "INSTALLINFO.txt")
-writeLines(c(paste("command: Rscript model-behavior/run.R", paste(commandArgs(trailingOnly = TRUE), collapse = " ")),
+writeLines(c(paste("command: Rscript PhyloSim/data-raw/model-behavior/run.R", paste(commandArgs(trailingOnly = TRUE), collapse = " ")),
              paste("platform:", R.version$platform, "-", paste(Sys.info()[c("sysname", "release")], collapse = " ")),
              "", "Session of the indicators:", capture.output(sessionInfo()), "",
              "Installations of the libraries used (INSTALLINFO.txt of installVersion.R):",

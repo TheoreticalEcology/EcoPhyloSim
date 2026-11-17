@@ -3,10 +3,10 @@
 # default library.
 #
 # Run from the repository root:
-#   Rscript model-behavior/installOldDeps.R <library>
+#   Rscript PhyloSim/data-raw/model-behavior/installOldDeps.R <library>
 
 lib <- commandArgs(trailingOnly = TRUE)[1]
-if (is.na(lib)) stop("usage: Rscript model-behavior/installOldDeps.R <library>")
+if (is.na(lib)) stop("usage: Rscript PhyloSim/data-raw/model-behavior/installOldDeps.R <library>")
 dir.create(lib, showWarnings = FALSE, recursive = TRUE)
 .libPaths(c(lib, .libPaths()))
 cran <- "https://cloud.r-project.org"

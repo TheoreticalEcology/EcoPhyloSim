@@ -8,11 +8,11 @@
 # Writes <library>/INSTALLINFO.txt with the commit, the fixes and the R session.
 #
 # Run from the repository root:
-#   Rscript model-behavior/installVersion.R <commit> <library> [<library of old dependencies>]
+#   Rscript PhyloSim/data-raw/model-behavior/installVersion.R <commit> <library> [<library of old dependencies>]
 # The old versions (package PhyloSim) need the library of installOldDeps.R.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) stop("usage: Rscript model-behavior/installVersion.R <commit> <library> [<library>]")
+if (length(args) < 2) stop("usage: Rscript PhyloSim/data-raw/model-behavior/installVersion.R <commit> <library> [<library>]")
 commit <- system2("git", c("rev-parse", "--verify", paste0(args[1], "^{commit}")), stdout = TRUE)
 lib <- args[2]
 if (length(args) > 2) .libPaths(c(args[3], .libPaths()))

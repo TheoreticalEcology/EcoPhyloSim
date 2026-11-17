@@ -4,16 +4,16 @@
 # runtime and the share of failed simulations ("failed"), from an archive created
 # with archive.R.
 # Run from the repository root:
-#   Rscript model-behavior/addRun.R <archive folder> [<mode>]
-# e.g. Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1_852c61e
-# writes model-behavior/runs/<archive folder name>.csv (mode main by default).
+#   Rscript PhyloSim/data-raw/model-behavior/addRun.R <archive folder> [<mode>]
+# e.g. Rscript PhyloSim/data-raw/model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1_852c61e
+# writes PhyloSim/data-raw/model-behavior/runs/<archive folder name>.csv (mode main by default).
 # Parameters that are not in the archive (older designs) get their default from
 # design.R, so that the settings of all versions can be matched.
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) %in% 1:2)
 a <- args[1]
 mode <- if (length(args) == 2) args[2] else "main"
-source("model-behavior/design.R")
+source("PhyloSim/data-raw/model-behavior/design.R")
 sims <- read.csv(file.path(a, "simulations.csv"))
 sims <- sims[sims$mode == mode & sims$status != "unsupported", ]
 if (nrow(sims) == 0) stop("no simulations of mode ", mode, " in ", a)
@@ -38,5 +38,5 @@ d <- d[!is.na(d$value), ]
 s <- aggregate(d["value"], d[c(params, "indicator")], function(v) c(mean = mean(v), sd = sd(v), n = length(v)))
 out <- data.frame(s[c(params, "indicator")], signif(s$value, 6))
 out <- out[do.call(order, out[c("block", "setting", "indicator")]), ]
-write.csv(out, file.path("model-behavior", "runs", paste0(basename(a), ".csv")), row.names = FALSE)
+write.csv(out, file.path("PhyloSim", "data-raw", "model-behavior", "runs", paste0(basename(a), ".csv")), row.names = FALSE)
 message("written: ", basename(a), " (", nrow(out), " rows)")

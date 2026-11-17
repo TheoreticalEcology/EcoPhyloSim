@@ -1,7 +1,7 @@
 # Runs one simulation with the package of another model version (called by
 # run.R with R_LIBS set to the library of that version, followed by the
 # libraries of its dependencies):
-#   Rscript model-behavior/simulate.R <package> <parameter file> <output file>
+#   Rscript PhyloSim/data-raw/model-behavior/simulate.R <package> <parameter file> <output file>
 # The package is loaded from these libraries only, never from the default
 # library, and its version is saved with the result.
 args <- commandArgs(trailingOnly = TRUE)

@@ -19,7 +19,7 @@ shannon, conspecificNeighbors, corTraitEnv, sdCompetitionTrait, colless,
 gamma, meanSpeciesAge, corAgeAbundance, cndd) and the
 \code{runtime} of the core simulation in seconds, the share of failed
 simulations (\code{failed}); runs made with
-\code{model-behavior/run.R} also treeHeight, evenness, dominance,
+\code{data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
 sdNeutralTrait and mpdLocal (see the vignette). The run of 0.3.1 is the run of
 \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
 #173 and #174).}
@@ -35,7 +35,7 @@ of R.}
 }
 \source{
 Simulated and built with the scripts in the folder
-\code{model-behavior} of the package repository
+\code{data-raw/model-behavior} of the package repository
 (\url{https://github.com/TheoreticalEcology/EcoPhyloSim}); its
 \code{README.md} describes how to regenerate the data.
 }

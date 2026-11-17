@@ -675,7 +675,7 @@ at their defaults), with replicate runs per setting. The simulations take
 hours to days, so they are not run when this vignette is built: they were run
 with the script `data-raw/packageBehavior.R` of the
 [package repository](https://github.com/TheoreticalEcology/EcoPhyloSim) (tag
-v0.3.1; now replaced by the scripts in its folder `model-behavior`), and
+v0.3.1; now replaced by the scripts in `data-raw/model-behavior`), and
 their summaries are stored in the data set `packageBehavior` (see
 `?packageBehavior`). They were run with an earlier version of the package
 (commit
@@ -952,7 +952,7 @@ knitr::kable(tab, caption = "Generations to equilibrium in the pilot runs.")
 
 ```{r runtime-setup, echo = FALSE}
 # runtimes of the runs of this chapter, stored in modelHistory (built with
-# model-behavior/makeData.R; missing in installations without it)
+# data-raw/model-behavior/makeData.R; missing in installations without it)
 hasRuntime <- exists("modelHistory") ||
   "modelHistory" %in% utils::data(package = "EcoPhyloSim")$results[, "Item"]
 if (hasRuntime && !exists("modelHistory")) data("modelHistory")
@@ -979,7 +979,7 @@ neighborhood of the recruit, so larger kernels and neighborhoods take longer.
 
 ```{r runtime-missing, echo = FALSE, results = "asis", eval = !hasRuntime}
 cat("The runtimes of these runs are stored in the data set `modelHistory`, which is",
-    "not available in this installation (see `model-behavior/README.md` of the repository).\n")
+    "not available in this installation (see `data-raw/model-behavior/README.md` of the repository).\n")
 ```
 
 ```{r runtime-text, echo = FALSE, results = "asis", eval = hasRuntime}

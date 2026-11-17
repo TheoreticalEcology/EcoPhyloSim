@@ -13,11 +13,11 @@ vignette: >
 ---
 
 ```{r data, echo = FALSE, results = "asis"}
-# the data set is built with model-behavior/makeData.R and added to the package at releases
+# the data set is built with data-raw/model-behavior/makeData.R and added to the package at releases
 if (!exists("modelHistory") &&
     !"modelHistory" %in% utils::data(package = "EcoPhyloSim")$results[, "Item"]) {
   cat("The data set `modelHistory` is not available in this installation; it is",
-      "built with `model-behavior/makeData.R` of the package repository.\n")
+      "built with `data-raw/model-behavior/makeData.R` of the package repository.\n")
   knitr::knit_exit()
 }
 ```
@@ -56,7 +56,7 @@ n0 <- s[s$version == "0.3.1" & s$block == "neutral" & s$indicator == "richness",
 notes <- list("0.3.2" = c(
   "Compared with the run of 0.3.1 at 852c61e; of the later changes #173 and #174, only #174 can show here (Colless index per seed), as the design has no grid with an odd number of columns."),
   "0.3.1" = c(
-  "Run with `data-raw/packageBehavior.R` (tag v0.3.1; before `model-behavior/run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
+  "Run with `data-raw/packageBehavior.R` (tag v0.3.1; before `run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
   sprintf("Neutral model: richness up to about %s%% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
           round(100 * max(n0$mean / mapply(ewens, n0$x * n0$y, n0$specRate) - 1))),
   sprintf("Density dependence is weak: richness increases only from about %s to %s species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
@@ -293,31 +293,31 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
 
 | Indicator | Definition |
 |---|---|
-| Richness, Shannon, evenness, dominance | number of species; Shannon index; Shannon index / log(richness); share of the most abundant species (evenness and dominance: runs made with `model-behavior/run.R`) |
+| Richness, Shannon, evenness, dominance | number of species; Shannon index; Shannon index / log(richness); share of the most abundant species (evenness and dominance: runs made with `run.R`) |
 | Conspecific neighbors | share of the four neighbors of a cell with the same species |
 | Cor(trait, environment) | correlation of the environmental trait and the environment over all cells |
-| SD competition trait, SD neutral trait | standard deviation of the traits over all cells (neutral trait: runs made with `model-behavior/run.R`) |
-| Colless index, gamma statistic, tree height | of the phylogeny of the extant species (Colless index normalized against the Yule model; tree height: runs made with `model-behavior/run.R`) |
+| SD competition trait, SD neutral trait | standard deviation of the traits over all cells (neutral trait: runs made with `run.R`) |
+| Colless index, gamma statistic, tree height | of the phylogeny of the extant species (Colless index normalized against the Yule model; tree height: runs made with `run.R`) |
 | Mean species age, cor(age, abundance) | age of a species from its ID (IDs are counted up at each speciation); Spearman correlation with abundance |
 | CNDD (mortality) | logistic regression of death on the number of conspecifics within radius 2 over the last five generations, with a species effect |
-| MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities (runs made with `model-behavior/run.R`); such p-values depend on the plot size and the null model |
+| MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities (runs made with `run.R`); such p-values depend on the plot size and the null model |
 | Runtime | of the core simulation, in seconds (machine-dependent, not tested) |
 
 # Reproducing the data
 
-The simulations are run with the scripts in the folder `model-behavior` of the
+The simulations are run with the scripts in the folder `data-raw/model-behavior` of the
 package repository (<https://github.com/TheoreticalEcology/EcoPhyloSim>), which
-also documents every step (`model-behavior/README.md`). In short, from the
+also documents every step (`data-raw/model-behavior/README.md`). In short, from the
 repository root:
 
 ```{bash, echo = TRUE, eval = FALSE}
 # install a release into its own library and run the design with it (12 cores)
-Rscript model-behavior/installVersion.R v0.3.1 ../lib-0.3.1
-Rscript model-behavior/run.R main 12 0.3.1 ../cache-0.3.1 lib=../lib-0.3.1
+Rscript PhyloSim/data-raw/model-behavior/installVersion.R v0.3.1 ../lib-0.3.1
+Rscript PhyloSim/data-raw/model-behavior/run.R main 12 0.3.1 ../cache-0.3.1 lib=../lib-0.3.1
 # per-replicate archive, summary per setting, and the data set modelHistory
-Rscript model-behavior/archive.R ../cache-0.3.1 ../EcoPhyloSim-runs 0.3.1 <commit>
-Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1_<commit>
-Rscript model-behavior/makeData.R
+Rscript PhyloSim/data-raw/model-behavior/archive.R ../cache-0.3.1 ../EcoPhyloSim-runs 0.3.1 <commit>
+Rscript PhyloSim/data-raw/model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1_<commit>
+Rscript PhyloSim/data-raw/model-behavior/makeData.R
 ```
 
 Releases 0.2 and 0.3 also need archived dependencies (see the README). In runs
@@ -327,4 +327,4 @@ replicate, so results do not depend on the number of cores. Since #175, results
 for a given seed no longer depend on the random number library of the compiler.
 Runs made with `run.R` record the command, the platform and the versions of all
 packages; the archives of the release runs with the results per replicate are to
-be attached to the GitHub releases. Single changes are attributed with `model-behavior/attribution.R`.
+be attached to the GitHub releases. Single changes are attributed with `attribution.R`.

@@ -48,13 +48,13 @@ build only `modelHistory`.
 
 ## Workflow (from the repository root)
 
-    Rscript model-behavior/installVersion.R HEAD ../lib-current
-    Rscript model-behavior/run.R main 12 current ../cache-current lib=../lib-current
-    Rscript model-behavior/archive.R ../cache-current ../EcoPhyloSim-runs 0.3.1.9000 <commit>
-    Rscript model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1.9000_<commit>
-    Rscript model-behavior/makeData.R
+    Rscript PhyloSim/data-raw/model-behavior/installVersion.R HEAD ../lib-current
+    Rscript PhyloSim/data-raw/model-behavior/run.R main 12 current ../cache-current lib=../lib-current
+    Rscript PhyloSim/data-raw/model-behavior/archive.R ../cache-current ../EcoPhyloSim-runs 0.3.1.9000 <commit>
+    Rscript PhyloSim/data-raw/model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1.9000_<commit>
+    Rscript PhyloSim/data-raw/model-behavior/makeData.R
     # only once the chapter "Emerging patterns" is adapted to the new format (#180):
-    Rscript model-behavior/makeData.R packageBehavior ../EcoPhyloSim-runs/0.3.1.9000_<commit>
+    Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior ../EcoPhyloSim-runs/0.3.1.9000_<commit>
 
 - Modes (`design.R`): `main` (30 replicates, the runs of record; its censuses
   also give the time to equilibrium) and `test` (2 replicates, 300 generations,
@@ -86,9 +86,9 @@ build only `modelHistory`.
 
 ## Older versions and single commits
 
-    Rscript model-behavior/installOldDeps.R ../lib-olddeps
-    Rscript model-behavior/installVersion.R v0.3 ../lib-v0.3 ../lib-olddeps
-    Rscript model-behavior/run.R main 12 0.3 ../cache-v0.3 "lib=../lib-v0.3;../lib-olddeps"
+    Rscript PhyloSim/data-raw/model-behavior/installOldDeps.R ../lib-olddeps
+    Rscript PhyloSim/data-raw/model-behavior/installVersion.R v0.3 ../lib-v0.3 ../lib-olddeps
+    Rscript PhyloSim/data-raw/model-behavior/run.R main 12 0.3 ../cache-v0.3 "lib=../lib-v0.3;../lib-olddeps"
 
 - `installVersion.R` applies build fixes only: v0.2 and v0.3 lack
   `src/RcppExports.cpp` (#102), which is generated with `Rcpp::compileAttributes()`;
@@ -107,10 +107,10 @@ The columns `parent`, `adapter`, `parentAdapter`, `stage2` and `stage2Commit` of
 adapters of both, the blocks for stage 2 and, if stage 2 compares another commit
 with the parent (e.g. when the change itself crashes), that commit.
 
-    Rscript model-behavior/attribution.R run 1 6 ../attribution
-    Rscript model-behavior/attribution.R compare 1 ../attribution
-    Rscript model-behavior/attribution.R run 2 6 ../attribution
-    Rscript model-behavior/attribution.R compare 2 ../attribution
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R run 1 6 ../attribution
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R compare 1 ../attribution
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R run 2 6 ../attribution
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R compare 2 ../attribution
 
 Stage 1 runs mode `test` for each change and its parent with the same seeds and
 reports per block how many simulations have no result (failed or unsupported) and

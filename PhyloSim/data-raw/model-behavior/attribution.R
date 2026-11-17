@@ -8,8 +8,8 @@
 # last census compared with Welch tests (false discovery rate per change).
 #
 # Run from the repository root:
-#   Rscript model-behavior/attribution.R run <stage> <cores> <work folder> [<commit> ...]
-#   Rscript model-behavior/attribution.R compare <stage> <work folder>
+#   Rscript PhyloSim/data-raw/model-behavior/attribution.R run <stage> <cores> <work folder> [<commit> ...]
+#   Rscript PhyloSim/data-raw/model-behavior/attribution.R compare <stage> <work folder>
 # run installs each commit (installVersion.R, archived dependencies with
 # installOldDeps.R) into <work folder>/lib-<commit> and runs run.R into
 # <work folder>/stage<stage>-<commit>; finished simulations are skipped. compare
@@ -17,8 +17,8 @@
 # evidence of changes.csv.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (!file.exists("model-behavior/changes.csv")) stop("run from the repository root")
-a <- read.csv("model-behavior/changes.csv", colClasses = "character")
+if (!file.exists("PhyloSim/data-raw/model-behavior/changes.csv")) stop("run from the repository root")
+a <- read.csv("PhyloSim/data-raw/model-behavior/changes.csv", colClasses = "character")
 a <- a[a$parent != "", ]
 stage <- args[2]
 if (args[1] == "run" && length(args) > 4) a <- a[a$commit %in% args[-(1:4)] | a$stage2Commit %in% args[-(1:4)], ]
@@ -35,16 +35,16 @@ if (args[1] == "run") {
   work <- args[4]
   deps <- file.path(work, "lib-olddeps")
   if (!all(c("cubature", "kulife", "apTreeshape", "PhyloMeasures") %in% rownames(installed.packages(deps))))
-    system2(Rscript, shQuote(c("model-behavior/installOldDeps.R", deps)))
+    system2(Rscript, shQuote(c("PhyloSim/data-raw/model-behavior/installOldDeps.R", deps)))
   for (i in seq_len(nrow(a))) for (h in c(a$commit[i], a$parent[i])) {
     lib <- file.path(work, paste0("lib-", h))
     # a failed install would let every simulation fail
-    if (!installed(lib) && (system2(Rscript, shQuote(c("model-behavior/installVersion.R", h, lib, deps))) != 0 ||
+    if (!installed(lib) && (system2(Rscript, shQuote(c("PhyloSim/data-raw/model-behavior/installVersion.R", h, lib, deps))) != 0 ||
                             !installed(lib)))
       stop("installation of ", h, " failed")
     adapter <- if (h == a$commit[i]) a$adapter[i] else a$parentAdapter[i]
     blocks <- if (stage == "2") strsplit(a$stage2[i], " ")[[1]]
-    status <- system2(Rscript, shQuote(c("model-behavior/run.R", if (stage == "1") "test" else "main", cores,
+    status <- system2(Rscript, shQuote(c("PhyloSim/data-raw/model-behavior/run.R", if (stage == "1") "test" else "main", cores,
                                          adapter, cacheOf(h), paste0("lib=", lib, .Platform$path.sep, deps),
                                          blocks)))
     if (status != 0) message("run.R failed for ", h, " (exit status ", status, ")")
