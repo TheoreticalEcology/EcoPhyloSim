@@ -23,7 +23,7 @@ test_that("nullModel(fun = 'pd') works for a phylogeny with a polytomy at the ro
 
 test_that("nullModel gives roughly uniform p-values in a neutral model with global dispersal (#186)", {
   skip_on_cran()
-  simus <- lapply(1:3, function(s) quietSimulation(x = 50, y = 50, dispersal = "global", runs = 2000,
+  simus <- lapply(1:3, function(s) quietSimulation(x = 50, y = 50, dispersal = "global", runs = 5000,
                                                    specRate = 5, seed = s))
   for (abundance in c(FALSE, TRUE)) {
     set.seed(1)
