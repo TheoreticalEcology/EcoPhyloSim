@@ -2,7 +2,8 @@
 
 Scripts that document how the biological behavior of EcoPhyloSim changes between
 versions (issues #180, #181). Each version runs the same simulation design; the
-indicators are always computed with the current package. The runs give the data
+indicators are computed with the current package (in the runs of 0.3.1 and #172,
+made with the earlier script, with the simulated version). The runs give the data
 set `packageBehavior` (chapter "Emerging patterns" of the main vignette, from the
 run of the current version) and the data set `modelHistory` (vignette "Model
 history", from the runs of all versions). The `packageBehavior` of release 0.3.1
@@ -33,7 +34,8 @@ build only `modelHistory`.
   tag into its own library, and the archived dependencies of the old versions.
 - `run.R`, `simulate.R`: run the design with one installed version, each
   simulation in its own R process.
-- `archive.R`: turns the cache of a run into the archive (tables and README).
+- `archive.R`: turns the cache of a run into the archive (tables, raw outputs and
+  README).
 - `addRun.R`: writes the summary of an archive (mean, sd and n per setting and
   indicator at the last census, and the share of failed simulations) to `runs/`.
 - `makeData.R`: builds `modelHistory` from `runs/` and `changes.csv`, and, if
@@ -57,20 +59,29 @@ build only `modelHistory`.
   also give the time to equilibrium) and `test` (2 replicates, 300 generations,
   a quick check of the scripts and stage 1).
 - `run.R` takes the simulated commit and package name from `INSTALLINFO.txt` of
-  the library (written by `installVersion.R`); `<commit>` of `archive.R` is that
-  commit. The current EcoPhyloSim must also be installed in the default library,
-  as it computes the indicators.
+  the library (written by `installVersion.R`). The current EcoPhyloSim computes
+  the indicators: install it in the default library, or, to record its commit,
+  with `installVersion.R` into a library put first in `R_LIBS`; `SESSION-*.txt`
+  then contains its `INSTALLINFO.txt`.
 - A `main` run of the earlier, smaller design took about 20 hours on 10 cores of a
   Windows PC (2026, mostly the density blocks); the current design takes longer.
   Results do not depend on the number of cores, as each simulation has its own seed.
 - Use a new cache folder per version and design (run.R stops if a cached
-  simulation was run with other parameters or seeds, e.g. in caches of earlier
-  script versions). Interrupted runs resume; failed simulations are run again.
+  simulation was run with other parameters, generations or seeds, e.g. in caches
+  of earlier script versions). Interrupted runs resume; failed simulations are
+  run again.
 - Do not edit the scripts while a run is going: Rscript reads a script while it
-  runs. For long runs, run a copy of the scripts or a separate checkout.
-- Commit the scripts before a run of record, so that `RUNINFO.txt` names a clean
-  commit.
-- The archive name must start with a version number.
+  runs. For long runs, use a separate git checkout.
+- `run.R` runs mode `main` only from a git checkout with committed scripts, so
+  that `RUNINFO.txt` names their commit.
+- The archive name must start with a version number; `<commit>` must match the
+  simulated commit in `RUNINFO.txt`. Existing archives are not overwritten (delete
+  the folder of a failed attempt).
+- Only the archives of release runs (at the release tag) are attached to the
+  GitHub release, without the raw outputs (`raw/`: species maps and phylogenies
+  of all simulations, trait maps of the first replicates), which stay local:
+  `tar -czf <archive>.tar.gz --exclude=raw <archive>`. Development and
+  attribution runs stay local.
 
 ## Older versions and single commits
 
@@ -117,14 +128,14 @@ Each run records in its cache folder, and `archive.R` copies to the archive:
 - `RUNINFO.txt`: start, mode, version, number of simulations and cores, libraries,
   simulated package and commit, and commit of the scripts (`git describe --dirty`);
 - `SESSION-<start>.txt`: the command, the platform, the R session of the
-  indicators, `INSTALLINFO.txt` of the simulated version, and all packages with
-  their versions in the libraries used;
+  indicators, `INSTALLINFO.txt` of the libraries used, and all packages with
+  their versions in these libraries;
 - copies of the scripts at the start of the run.
 
 Since #175 (R's random number generator), results for a given seed no longer
 depend on the random number library of the compiler; for older versions they may
 depend on platform and compiler. The archives are kept in `EcoPhyloSim-runs` next
-to the repository and are to be attached to the GitHub releases.
+to the repository.
 
 ## Extending
 
@@ -150,4 +161,5 @@ to the repository and are to be attached to the GitHub releases.
      (with `packageBehavior <archive>` to rebuild `packageBehavior`).
   4. Update the notes per release in `PhyloSim/vignettes/ModelHistory.Rmd` and
      the description of the runs in the chapter "Emerging patterns".
-  5. Commit `runs/` and the data sets, and attach the archive to the GitHub release.
+  5. Commit `runs/` and the data sets, and attach the archive to the GitHub release
+     (without `raw/`, see Workflow).

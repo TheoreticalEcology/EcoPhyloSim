@@ -2,7 +2,8 @@
 # the earlier PhyloSim/data-raw/packageBehavior.R: all .rds files in the folder,
 # plus RUNINFO.txt and the script copies) into the archive of model behavior for
 # one version: per-replicate tables that can be read without R, with a README.md
-# that describes the files.
+# that describes the files, and the raw outputs (raw/). Existing archives are not
+# overwritten, and <commit> must be the simulated commit recorded in RUNINFO.txt.
 #
 # Run from the repository root:
 #   Rscript model-behavior/archive.R <cache folder> <output folder> <version> <commit>
@@ -15,9 +16,23 @@ stopifnot(length(args) == 4)
 if (is.na(numeric_version(args[3], strict = FALSE))) stop("<version> must be a version number, e.g. 0.3.1.9000")
 cacheDir <- args[1]
 out <- file.path(args[2], paste0(args[3], "_", args[4]))
+if (dir.exists(out)) stop(out, " exists; archives are not overwritten")
+# the commit must be the simulated one recorded by run.R
+runInfo <- file.path(cacheDir, "RUNINFO.txt")
+runCommit <- if (file.exists(runInfo))
+  sub(".*commit ([0-9a-f]+) .*", "\\1", grep("^simulated package:", readLines(runInfo), value = TRUE))
+if (length(runCommit) && !all(startsWith(runCommit, args[4])))
+  stop("<commit> ", args[4], " differs from the simulated commit in RUNINFO.txt: ", paste(unique(runCommit), collapse = ", "))
 files <- list.files(cacheDir, pattern = "\\.rds$", full.names = TRUE)
 if (length(files) == 0) stop("no .rds files in ", cacheDir)
-dir.create(out, recursive = TRUE, showWarnings = FALSE)
+# simulations of the design of the run (its copy of design.R) missing in the cache (not counted as failed)
+designCopy <- tail(sort(list.files(cacheDir, "^design-.*\\.R$", full.names = TRUE)), 1)
+if (length(designCopy)) {
+  source(designCopy)
+  modesRun <- intersect(unique(sub("_.*", "", basename(files))), names(modes))
+  absent <- setdiff(unlist(lapply(modesRun, function(m) basename(taskTable(m, cacheDir)$file))), basename(files))
+  if (length(absent)) message(length(absent), " simulations of the design are missing in the cache")
+}
 res <- lapply(files, readRDS)
 id <- sub("\\.rds$", "", basename(files))
 
@@ -43,14 +58,12 @@ simulations <- perSimulation(function(r) data.frame(
 simulations <- data.frame(simulation = simulations$simulation,
                           mode = sub("_.*", "", simulations$simulation), simulations[-1])
 
-# indicators at each census; indicators computed only at the end (mpdLocal) at the last census
+# indicators at each census, one column per indicator; indicators computed only at the end
+# (mpdLocal) at the last census
 census <- perSimulation(function(r) if (!is.null(r$census)) {
-  ind <- setdiff(names(r$census), "generation")
-  rbind(data.frame(generation = rep(r$census$generation, length(ind)),
-                   indicator = rep(ind, each = nrow(r$census)),
-                   value = as.numeric(unlist(r$census[ind]))),
-        if (!is.null(r$mpdLocal)) data.frame(generation = max(r$census$generation),
-                                              indicator = "mpdLocal", value = r$mpdLocal))
+  d <- r$census
+  if (!is.null(r$mpdLocal)) d$mpdLocal <- ifelse(d$generation == max(d$generation), r$mpdLocal, NA)
+  d
 })
 
 curves <- perSimulation(function(r) rbind(
@@ -63,14 +76,23 @@ cndd <- perSimulation(function(r) rbind(
   if (NROW(r$cnddSpecies) > 0) data.frame(scope = "species", abundance = r$cnddSpecies$abundance,
                                           slope = r$cnddSpecies$slope)))
 
-maps <- perSimulation(function(r) if (!is.null(r$specMat))
-  data.frame(row = c(row(r$specMat)), col = c(col(r$specMat)), species = c(r$specMat)))
-
+dir.create(out, recursive = TRUE)
 write.csv(simulations, file.path(out, "simulations.csv"), row.names = FALSE)
-for (n in c("census", "curves", "cndd", "maps")) {
+# 6 significant digits keep the archive of a release small enough to attach it to the release
+for (n in c("census", "curves", "cndd")) {
+  d <- get(n)
+  num <- vapply(d, is.double, logical(1))
+  d[num] <- lapply(d[num], signif, 6)
   con <- gzfile(file.path(out, paste0(n, ".csv.gz")), "w")
-  write.csv(get(n), con, row.names = FALSE)
+  write.csv(d, con, row.names = FALSE)
   close(con)
+}
+# raw outputs (species maps, phylogenies, trait maps): kept with the archive, but not attached to the release
+if (dir.exists(file.path(cacheDir, "raw"))) {
+  if (!file.copy(file.path(cacheDir, "raw"), out, recursive = TRUE)) warning("raw/ could not be copied")
+  nRaw <- length(list.files(file.path(out, "raw"), "\\.rds$"))
+  if (nRaw < sum(simulations$status == "ok")) message("raw/ has outputs of ", nRaw, " of ",
+                                                       sum(simulations$status == "ok"), " simulations")
 }
 invisible(file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*)\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE))
 writeLines(c(
@@ -88,16 +110,18 @@ writeLines(c(
   "  generations, seed, status (`ok`, `error`, or `unsupported` if the model version cannot run",
   "  the setting), error message, runtime of the core simulation in seconds, the simulated",
   "  package and version, and all parameters actually used (`Model` of the result, incl. defaults).",
-  "- `census.csv.gz`: value of each indicator at each census of each simulation (`mpdLocal`, the",
-  "  phylogenetic dispersion of local communities, only at the last census).",
-  "- `maps.csv.gz`: species of each cell (`row`, `col`) at the end of the first replicate of each setting.",
+  "- `census.csv.gz`: one row per census of each simulation, one column per indicator (`mpdLocal`,",
+  "  the phylogenetic dispersion of local communities, only at the last census).",
   "- `curves.csv.gz`: species-area curve (`sac`: mean richness in subplots of `x` cells),",
   "  rank-abundance curve (`rac`: abundance at rank `x`) and distance decay (`decay`: share of",
   "  cells at distance `x` with the same species) at the end of each simulation.",
   "- `cndd.csv.gz`: coefficient (`slope`) of the number of conspecifics within radius 2 in a",
   "  logistic regression of death over the last five generations: pooled with species intercepts",
   "  (`abundance` NA) and per species with at least 50 observations (`abundance`: mean number of",
-  "  individuals per census).", "",
-  "Trait maps and phylogenies are not stored."),
+  "  individuals per census).",
+  "- `raw/` (not attached to the GitHub release): for each simulation that ran, the species map",
+  "  (`specMat`) and the phylogeny at the end, and for the first replicate of each setting also the",
+  "  trait maps (`traitMat`, `compMat`, `neutMat`), as .rds files.", "",
+  "Numbers in the `.csv.gz` tables are rounded to 6 significant digits."),
   file.path(out, "README.md"))
 message("archived ", nrow(simulations), " simulations in ", out)

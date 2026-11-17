@@ -52,7 +52,10 @@ if (!is.na(archive)) {
     a <- aggregate(d["value"], d[c(keys, by)], function(v) c(mean = mean(v), sd = sd(v), n = length(v)))
     data.frame(a[c(keys, by)], a$value)
   }
-  census <- read.csv(file.path(archive, "census.csv.gz"))
+  census <- read.csv(file.path(archive, "census.csv.gz")) # one column per indicator (archive.R)
+  ind <- setdiff(names(census), c("simulation", "generation"))
+  s <- stack(census[ind])
+  census <- data.frame(census[c("simulation", "generation")], indicator = as.character(s$ind), value = s$values)
   curves <- read.csv(file.path(archive, "curves.csv.gz"))
   cndd <- read.csv(file.path(archive, "cndd.csv.gz"))
   curve <- function(type, x) { d <- stats(curves[curves$curve == type, ], "x"); names(d)[names(d) == "x"] <- x; d }

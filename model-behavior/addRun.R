@@ -19,6 +19,10 @@ sims <- sims[sims$mode == mode & sims$status != "unsupported", ]
 if (nrow(sims) == 0) stop("no simulations of mode ", mode, " in ", a)
 for (n in setdiff(names(base), names(sims))) sims[[n]] <- if (n == "y") sims$x else base[[n]]
 census <- read.csv(file.path(a, "census.csv.gz"))
+if (!"indicator" %in% names(census)) { # one column per indicator (archive.R since #181)
+  s <- stack(census[setdiff(names(census), c("simulation", "generation"))])
+  census <- data.frame(census[c("simulation", "generation")], indicator = as.character(s$ind), value = s$values)
+}
 census <- merge(census, sims[c("simulation", "generations")])
 census <- census[census$generation == census$generations, c("simulation", "indicator", "value")]
 cndd <- read.csv(file.path(a, "cndd.csv.gz"))

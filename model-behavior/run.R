@@ -1,6 +1,7 @@
 # Runs the simulations of design.R with one model version and saves the
 # indicators of each simulation (indicators.R) in a cache folder, one .rds file
-# per simulation; finished simulations are skipped (failed ones are rerun), so an
+# per simulation, and its raw output (species map, phylogeny, trait maps of the first
+# replicate) in raw/; finished simulations are skipped (failed ones are rerun), so an
 # interrupted run resumes. The cache is turned into an archive with archive.R.
 # See README.md.
 #
@@ -37,6 +38,7 @@ if (!file.exists(info)) stop(info, " not found; install the commit with installV
 info <- readLines(info)
 commit <- sub("^commit: ", "", grep("^commit: ", info, value = TRUE))
 package <- strsplit(sub("^package: ", "", grep("^package: ", info, value = TRUE)), " ")[[1]][1]
+if (length(commit) != 1 || is.na(package)) stop("commit or package missing in INSTALLINFO.txt")
 
 # commit of the scripts, or "unknown" outside a git checkout
 gitDescribe <- function() {
@@ -73,7 +75,14 @@ runTask <- function(task) {
       sim <- readRDS(tmp[2])
       set.seed(task$seed) # R-side randomness of the indicators (sac(), nullModel())
       r <- behavior(sim, censusTimes(task$generations))
-      if (task$rep != 1) r$specMat <- NULL # species map of the first replicate only
+      # raw output of the last census, kept only locally (not in the archive tables): species map
+      # and phylogeny of each replicate, trait maps of the first replicate
+      final <- sim$Output[[length(sim$Output)]]
+      keep <- c("specMat", "phylogeny", if (task$rep == 1) c("traitMat", "compMat", "neutMat"))
+      dir.create(file.path(dirname(task$file), "raw"), showWarnings = FALSE)
+      saveRDS(final[intersect(keep, names(final))], file.path(dirname(task$file), "raw", basename(task$file)),
+              compress = "xz")
+      r$specMat <- NULL
       # parameters actually used, including the defaults of the version
       model <- sim$Model[vapply(sim$Model, function(v) is.atomic(v) && length(v) == 1, logical(1))]
       c(r, list(runtime = sim$Model$runtime, package = sim$packageVersion,
@@ -103,13 +112,17 @@ done <- file.exists(tasks$file)
 for (i in which(done)) {
   old <- tryCatch(readRDS(tasks$file[i]), error = function(e) NULL)
   if (is.null(old)) { done[i] <- FALSE; next }
-  keys <- c(names(base), "seed")
+  keys <- c(names(base), "generations", "seed")
   if (!all(keys %in% names(old$task)) ||
       !isTRUE(all.equal(old$task[keys], tasks[i, keys], check.attributes = FALSE)))
-    stop(tasks$file[i], " was run with other parameters or seed; use a new cache folder")
+    stop(tasks$file[i], " was run with other parameters, generations or seed; use a new cache folder")
   if (!is.null(old$error)) done[i] <- FALSE
 }
 tasks <- tasks[!done, ]
+# runs of record only from committed scripts in a git checkout, so that RUNINFO.txt names them
+if (mode == "main" && (gitDescribe() == "unknown" ||
+    length(suppressWarnings(system("git status --porcelain -- model-behavior/*.R", intern = TRUE)))))
+  stop("mode main runs only from a git checkout with committed scripts (model-behavior/*.R)")
 dir.create(cacheDir, showWarnings = FALSE, recursive = TRUE)
 message(nrow(tasks), " simulations to run on ", nCores, " cores")
 # record the run and keep copies of the scripts in the cache (archived by archive.R)
@@ -129,7 +142,7 @@ installInfo <- file.path(libs, "INSTALLINFO.txt")
 writeLines(c(paste("command: Rscript model-behavior/run.R", paste(commandArgs(trailingOnly = TRUE), collapse = " ")),
              paste("platform:", R.version$platform, "-", paste(Sys.info()[c("sysname", "release")], collapse = " ")),
              "", "Session of the indicators:", capture.output(sessionInfo()), "",
-             "Installation of the simulated version (installVersion.R):",
+             "Installations of the libraries used (INSTALLINFO.txt of installVersion.R):",
              unlist(lapply(installInfo[file.exists(installInfo)], readLines)), "",
              "Packages in the libraries (searched in this order by the simulations):",
              capture.output(print(installed.packages(libs)[, c("Package", "Version", "LibPath")],

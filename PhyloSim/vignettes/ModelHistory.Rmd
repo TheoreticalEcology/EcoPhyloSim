@@ -302,5 +302,5 @@ mode, the block, the parameters that differ from the reference setting and the
 replicate, so results do not depend on the number of cores. Since #175, results
 for a given seed no longer depend on the random number library of the compiler.
 Runs made with `run.R` record the command, the platform and the versions of all
-packages; the archives with the results per replicate are to be attached to the
-GitHub releases. Single changes are attributed with `model-behavior/attribution.R`.
+packages; the archives of the release runs with the results per replicate are to
+be attached to the GitHub releases. Single changes are attributed with `model-behavior/attribution.R`.
