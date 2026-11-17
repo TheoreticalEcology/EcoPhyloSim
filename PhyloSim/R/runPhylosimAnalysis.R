@@ -101,7 +101,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
 }
 
 #' @title Clean up parameter and summary chunks
-#' @description Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes failed simulations and those with at least one NA summary statistic (e.g. the plot statistics on grids with fewer than 15 cells in x or y, see \code{\link{calculateSummaryStatistics}}), with a message giving the number of removed simulations. The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
+#' @description Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes failed simulations and those with at least one NA summary statistic (e.g. the plot statistics on grids with fewer than 15 cells in x or y, see \code{\link{calculateSummaryStatistics}}), with a message giving the number of removed simulations, if any. The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
 #' @author Tankred Ott
 #' @param dir Directory to which the results of runPhylosimAnalysis (and chunkwiseCalculateSummaries) were saved.
 #' @param nCores "auto" or number of parallel cores to use
