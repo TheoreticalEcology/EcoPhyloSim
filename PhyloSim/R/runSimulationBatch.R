@@ -42,7 +42,6 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
           OUT <- OUT$Output[[1]]$summaries
           class(OUT) <- "list"
         }
-        else stop("EcoPhyloSim::runSimulationBatch unrecognized argument to strip")
       }
       OUT
     }
@@ -65,7 +64,6 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
           OUT <- OUT$Output[[1]]$summaries
           class(OUT) <- "list"
         }
-        else stop("EcoPhyloSim::runSimulationBatch unrecognized argument to strip")
       }
       OUT
     }
