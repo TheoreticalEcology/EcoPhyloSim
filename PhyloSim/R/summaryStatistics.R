@@ -21,7 +21,7 @@
 #'   \item{nb8}{Index of local species clustering among neighboring grid cells.}
 #'   \item{envSorting}{Share of the variance of the environment across all cells that is explained by species identity, 1 - sum((e - e_s)^2) / sum((e - mean(e))^2), where e is the environment of a cell and e_s the mean environment of the cells occupied by its species. 0 if all species occupy the same mix of environments, 1 if each species occupies a single environmental value; NA if the environment is constant. Without environmental sorting, the expected value is about (S - 1) / (N - 1) for S species in N cells, so it increases with the number of species; with local dispersal, spatial clustering alone gives values above 0.}
 #' }
-#' The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter).
+#' The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter). These six statistics use square plots of fixed size, independent of the grid size (plot sizes 1 to 15 cells for sacAuc, 20 random plots of 10 x 10 cells for the others); on grids with fewer than 15 cells in x or y, they are NA, with a message.
 #' @return A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
 #' @example /inst/examples/summaryStatistics-help.R
 #' @export
@@ -65,37 +65,44 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   summaryStatistics$racAuc <- auc(x = rac$Rank,
                                   y = rac$Abundance)
   
-  # SAC
-  sac <- sac(simulation, which.result = which.result, size = seq(1,15), plot = F)
-  summaryStatistics$sacAuc <- auc(x = sac$size,
-                                  y = sac$sr.Mean)
+  # statistics from random plots need at least 15 cells in x and y (fixes #157)
+  plotStats <- min(dim(result$specMat)) >= 15
+  if (!plotStats) message("The grid (", ncol(result$specMat), " x ", nrow(result$specMat), " cells) has fewer than 15 cells in x or y, ",
+                          "so sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 are NA.")
+
+  if (plotStats) {
+    # SAC
+    sac <- sac(simulation, which.result = which.result, size = seq(1,15), plot = F)
+    summaryStatistics$sacAuc <- auc(x = sac$size,
+                                    y = sac$sr.Mean)
   
   
-  # alpha and beta diversity
+    # alpha and beta diversity
   
-  # Draw random plots
-  # TODO: let the user chose the plot size and number of plots
-  nSubPlots <- 20
-  sizeSubPlots <- 10
+    # Draw random plots
+    # TODO: let the user chose the plot size and number of plots
+    nSubPlots <- 20
+    sizeSubPlots <- 10
   
-  plots <- localPlots(simulation,
-                      which.result = which.result,
-                      n = nSubPlots,
-                      size = sizeSubPlots,
-                      plot = F,
-                      community = T)
+    plots <- localPlots(simulation,
+                        which.result = which.result,
+                        n = nSubPlots,
+                        size = sizeSubPlots,
+                        plot = F,
+                        community = T)
   
-  # alpha diversity
-  # in this case alpha diversity = mean number of species per subplot
-  summaryStatistics$alphaDiversity <- mean(rowSums(plots$communityTable>0))
+    # alpha diversity
+    # in this case alpha diversity = mean number of species per subplot
+    summaryStatistics$alphaDiversity <- mean(rowSums(plots$communityTable>0))
   
-  # beta diversity
-  # uses vegan's beta diversity function
-  # see betadiver(help=TRUE)
-  # TODO: let the user chose the method
-  method = 1
-  summaryStatistics$betaDiversity <- mean(vegan::betadiver(plots$communityTable,
-                                                           method=method))
+    # beta diversity
+    # uses vegan's beta diversity function
+    # see betadiver(help=TRUE)
+    # TODO: let the user chose the method
+    method = 1
+    summaryStatistics$betaDiversity <- mean(vegan::betadiver(plots$communityTable,
+                                                             method=method))
+  }
   
   # gamma diversity
   summaryStatistics$gammaDiversity <- gammaDiversity(result)
@@ -113,10 +120,12 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
   # picante::ses.mpd, which is maintained and already a dependency.
   # The species pool is the extant species, also with prunePhylogeny = FALSE (#168).
-  sesMpd <- picante::ses.mpd(plots$communityTable,
-                             stats::cophenetic(extant),
-                             null.model = "taxa.labels", runs = 999)
-  summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
+  if (plotStats) {
+    sesMpd <- picante::ses.mpd(plots$communityTable,
+                               stats::cophenetic(extant),
+                               null.model = "taxa.labels", runs = 999)
+    summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
+  }
   
   # gamma statistics
   # uses ape's implementation of the gammaStatistics
@@ -128,13 +137,15 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   
   
   # variation partitioning
-  env <- data.frame(unlist(lapply(plots$envPlots, mean)))
-  comp <- data.frame(unlist(lapply(plots$compPlots, mean)))
+  if (plotStats) {
+    env <- data.frame(unlist(lapply(plots$envPlots, mean)))
+    comp <- data.frame(unlist(lapply(plots$compPlots, mean)))
   
-  mod <- vegan::varpart(plots$communityTable, env, comp)
+    mod <- vegan::varpart(plots$communityTable, env, comp)
   
-  summaryStatistics$varPart_1 <- mod$part$fract$Adj.R.squared[1]
-  summaryStatistics$varPart_2 <- mod$part$fract$Adj.R.squared[2]
+    summaryStatistics$varPart_1 <- mod$part$fract$Adj.R.squared[1]
+    summaryStatistics$varPart_2 <- mod$part$fract$Adj.R.squared[2]
+  }
   
   
   # Clark Evans

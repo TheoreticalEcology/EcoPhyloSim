@@ -103,7 +103,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
 }
 
 #' @title Clean up parameter and summary chunks
-#' @description Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes crashed simulations (those where summaries == NA). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
+#' @description Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes failed simulations and those with at least one NA summary statistic (e.g. the plot statistics on grids with fewer than 15 cells in x or y, see \code{\link{calculateSummaryStatistics}}). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
 #' @author Tankred Ott
 #' @param dir Directory to which the results of runPhylosimAnalysis (and chunkwiseCalculateSummaries) were saved.
 #' @param nCores "auto" or number of parallel cores to use
@@ -141,7 +141,7 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     parChunk[naIndices] <- NULL
     
     # replace NULL with "NULL". Necessary for data.table::rbindlist in later analysis
-    for(j in 1:length(parChunk)) {
+    for(j in seq_along(parChunk)) {
       for(k in 1:length(parChunk[[j]])) {
         if (is.null(parChunk[[j]][[k]])) parChunk[[j]][[k]] <- "NULL"
       }
@@ -246,7 +246,12 @@ runSimulationChunkwise <- function (fixedParamsList, variableParams, nRuns, chun
     save(params, file = joinPath(c(outDir, paramFileName)))
     
     # run simulations in parallel
-    out <- tryCatch(runSimulationBatch(params, nCores, strip = if (summariesOnly) "summaries"), error=function(e)return(NA))
+    # a failed simulation gives NA at its position, so that out matches params (fixes #158)
+    out <- tryCatch(runSimulationBatch(params, nCores, strip = if (summariesOnly) "summaries", onError = "NA"),
+                    error = function(e) {
+                      warning("Chunk ", from, "-", to, " failed: ", conditionMessage(e), call. = FALSE)
+                      rep(list(structure(NA, error = conditionMessage(e))), n)
+                    })
     
     save(out, file = joinPath(c(outDir, outFileName)))
     cat(paste(c("Finished chunk", i ,"of", paste0(nChunks, "."), "time elapsed:", proc.time()[3]-t0[3], "\n"), collapse = " "))
