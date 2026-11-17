@@ -6,8 +6,7 @@
 \format{
 A list with three entries:
 \describe{
-\item{summary}{data frame with one row per run of a release or development
-version (\code{version},
+\item{summary}{data frame with one row per run of a release (\code{version},
 \code{commit}), setting and indicator: \code{block} (group of settings in which
 one or two parameters are varied), \code{setting} (number within the block),
 the parameters of the setting (names of release 0.3.1, e.g. \code{density} for
@@ -19,7 +18,7 @@ shannon, conspecificNeighbors, corTraitEnv, sdCompetitionTrait, colless,
 gamma, meanSpeciesAge, corAgeAbundance, cndd) and the
 \code{runtime} of the core simulation in seconds, the share of failed
 simulations (\code{failed}); runs made with
-\code{data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
+\code{PhyloSim/data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
 sdNeutralTrait and mpdLocal (see the vignette). The run of 0.3.1 is the run of
 \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
 #173 and #174).}
@@ -36,13 +35,12 @@ earlier script), the version of the scripts and of R.}
 }
 \source{
 Simulated and built with the scripts in the folder
-\code{data-raw/model-behavior} of the package repository
+\code{PhyloSim/data-raw/model-behavior} of the package repository
 (\url{https://github.com/TheoreticalEcology/EcoPhyloSim}); its
 \code{README.md} describes how to regenerate the data.
 }
 \description{
-Summaries of the same simulation design run with each release (and development
-versions) of the package,
+Summaries of the same simulation design run with each release of the package,
 and the changes of the model code that alter simulation results. Used in the
 vignette "Model history".
 }

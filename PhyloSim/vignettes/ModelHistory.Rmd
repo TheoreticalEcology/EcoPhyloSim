@@ -13,11 +13,11 @@ vignette: >
 ---
 
 ```{r data, echo = FALSE, results = "asis"}
-# the data set is built with data-raw/model-behavior/makeData.R and added to the package at releases
+# the data set is built with PhyloSim/data-raw/model-behavior/makeData.R and committed with new runs of releases
 if (!exists("modelHistory") &&
     !"modelHistory" %in% utils::data(package = "EcoPhyloSim")$results[, "Item"]) {
   cat("The data set `modelHistory` is not available in this installation; it is",
-      "built with `data-raw/model-behavior/makeData.R` of the package repository.\n")
+      "built with `PhyloSim/data-raw/model-behavior/makeData.R` of the package repository.\n")
   knitr::knit_exit()
 }
 ```
@@ -56,7 +56,7 @@ n0 <- s[s$version == "0.3.1" & s$block == "neutral" & s$indicator == "richness",
 notes <- list("0.3.2" = c(
   "Compared with the run of 0.3.1 at 852c61e; of the later changes #173 and #174, only #174 can show here (Colless index per seed), as the design has no grid with an odd number of columns."),
   "0.3.1" = c(
-  "Run with `data-raw/packageBehavior.R` (tag v0.3.1; before `run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
+  "Run with `PhyloSim/data-raw/packageBehavior.R` (tag v0.3.1; before `run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
   sprintf("Neutral model: richness up to about %s%% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
           round(100 * max(n0$mean / mapply(ewens, n0$x * n0$y, n0$specRate) - 1))),
   sprintf("Density dependence is weak: richness increases only from about %s to %s species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
@@ -330,7 +330,7 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
 The simulations are run with the scripts in the folder
 `PhyloSim/data-raw/model-behavior` of the package repository
 (<https://github.com/TheoreticalEcology/EcoPhyloSim>); its `README.md` describes
-every step. Each simulation has its own seed, which depends only on the block,
+every step. Each simulation has its own seed, which depends only on the mode (main or test), the block,
 the parameters that differ from the reference setting and the replicate, so
 results do not depend on the number of cores; since #175, they no longer depend
 on the random number library of the compiler. All releases are evaluated with the

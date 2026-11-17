@@ -20,7 +20,7 @@ dir.create(lib, showWarnings = FALSE, recursive = TRUE)
 src <- tempfile("src")
 dir.create(src)
 tarFile <- file.path(src, "src.tar")
-if (system2("git", c("archive", "-o", tarFile, commit, "PhyloSim")) != 0) stop("git archive failed")
+if (system2("git", c("archive", "-o", shQuote(tarFile), commit, "PhyloSim")) != 0) stop("git archive failed")
 untar(tarFile, exdir = src)
 pkg <- file.path(src, "PhyloSim")
 name <- read.dcf(file.path(pkg, "DESCRIPTION"), "Package")[1, 1]

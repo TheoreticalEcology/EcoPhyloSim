@@ -175,7 +175,7 @@ parallel::stopCluster(cl)
 
 # archive a complete run of mode main without failed simulations (archive.R as at the start)
 if (mode == "main" && !length(blocks) && !length(part)) {
-  failed <- sum(vapply(allTasks$file, function(f) !file.exists(f) || !is.null(readRDS(f)$error), logical(1)))
+  failed <- sum(vapply(allTasks$file, function(f) !file.exists(f) || !is.null(tryCatch(readRDS(f)$error, error = function(e) "unreadable")), logical(1)))
   if (failed) message(failed, " simulations failed; rerun run.R to retry them, or archive the run as it is with\n",
                       "  Rscript ", file.path(mb, "archive.R"), " ", cacheDir) else
     system2(Rscript, shQuote(c(file.path(mb, "archive.R"), cacheDir)))

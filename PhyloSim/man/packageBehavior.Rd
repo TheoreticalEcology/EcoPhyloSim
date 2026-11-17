@@ -55,10 +55,10 @@ compared with the current version. The same run is part of
 852c61e, without #173 and #174).
 }
 \source{
-created with the script \code{data-raw/packageBehavior.R} of the
+created with the script \code{PhyloSim/data-raw/packageBehavior.R} of the
 package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim},
 tag v0.3.1), which is replaced by the scripts in
-\code{data-raw/model-behavior}; from the next release on, \code{makeData.R} builds the
+\code{PhyloSim/data-raw/model-behavior}; from the next release on, \code{makeData.R} builds the
 data set from the archive of the run of the current version, in a new format
 (all censuses in \code{main}, no \code{pilot} and no \code{cnddSpecies}).
 }

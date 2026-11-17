@@ -60,7 +60,7 @@ NULL
 #'
 #' @name pPD.pvalues
 #' @format A list of length 1, wrapping a list of 28 scenarios (one for each combination of the 7 x-axis and 4 y-axis positions in \code{\link{pPD.positions}}). Each scenario is itself a list of 9 elements, named "2" to "10", corresponding to the sample plot sizes (argument \code{plotlengths}) used when the data was generated with \code{\link{calculatePhylogeneticDispersion}}. Each of these holds a numeric vector of p-values, one for each of the 200 sample plots drawn for that scenario/plot-size combination.
-#' @source created with the script \code{data-raw/model-behavior/pPD.R} in the package
+#' @source created with the script \code{PhyloSim/data-raw/model-behavior/pPD.R} in the package
 #' repository at each release: one run of 50,000 generations per scenario on a 50 x 50
 #' grid, and the "PhylMeta" null model of \code{\link{calculatePhylogeneticDispersion}}
 #' with 500 replicates; from the next rerun on, \code{attr(pPD.pvalues, "provenance")}
@@ -139,10 +139,10 @@ NULL
 #' compared with the current version. The same run is part of
 #' \code{\link{modelHistory}} as the run of 0.3.1 (at the pre-release commit
 #' 852c61e, without #173 and #174).
-#' @source created with the script \code{data-raw/packageBehavior.R} of the
+#' @source created with the script \code{PhyloSim/data-raw/packageBehavior.R} of the
 #' package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim},
 #' tag v0.3.1), which is replaced by the scripts in
-#' \code{data-raw/model-behavior}; from the next release on, \code{makeData.R} builds the
+#' \code{PhyloSim/data-raw/model-behavior}; from the next release on, \code{makeData.R} builds the
 #' data set from the archive of the run of the current version, in a new format
 #' (all censuses in \code{main}, no \code{pilot} and no \code{cnddSpecies}).
 NULL
@@ -150,16 +150,14 @@ NULL
 
 #' Model history: simulation results across releases
 #'
-#' Summaries of the same simulation design run with each release (and development
-#' versions) of the package,
+#' Summaries of the same simulation design run with each release of the package,
 #' and the changes of the model code that alter simulation results. Used in the
 #' vignette "Model history".
 #'
 #' @name modelHistory
 #' @format A list with three entries:
 #' \describe{
-#'   \item{summary}{data frame with one row per run of a release or development
-#'   version (\code{version},
+#'   \item{summary}{data frame with one row per run of a release (\code{version},
 #'   \code{commit}), setting and indicator: \code{block} (group of settings in which
 #'   one or two parameters are varied), \code{setting} (number within the block),
 #'   the parameters of the setting (names of release 0.3.1, e.g. \code{density} for
@@ -171,7 +169,7 @@ NULL
 #'   gamma, meanSpeciesAge, corAgeAbundance, cndd) and the
 #'   \code{runtime} of the core simulation in seconds, the share of failed
 #'   simulations (\code{failed}); runs made with
-#'   \code{data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
+#'   \code{PhyloSim/data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
 #'   sdNeutralTrait and mpdLocal (see the vignette). The run of 0.3.1 is the run of
 #'   \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
 #'   #173 and #174).}
@@ -186,7 +184,7 @@ NULL
 #'   earlier script), the version of the scripts and of R.}
 #' }
 #' @source Simulated and built with the scripts in the folder
-#' \code{data-raw/model-behavior} of the package repository
+#' \code{PhyloSim/data-raw/model-behavior} of the package repository
 #' (\url{https://github.com/TheoreticalEcology/EcoPhyloSim}); its
 #' \code{README.md} describes how to regenerate the data.
 NULL

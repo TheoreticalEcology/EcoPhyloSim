@@ -5,20 +5,20 @@
 
 versions <- list(
   # oldDeps: needs the archived dependencies of installOldDeps.R
-  "0.2"   = list(package = "PhyloSim", oldDeps = TRUE,
+  "0.2"   = list(oldDeps = TRUE,
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "fitnessActsOn", "fitnessBaseMortalityRatio")),
-  "0.3"   = list(package = "PhyloSim", oldDeps = TRUE,
+  "0.3"   = list(oldDeps = TRUE,
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "fitnessActsOn", "fitnessBaseMortalityRatio", "fission", "protracted",
                             "redQueen", "redQueenStrength")),
-  "0.3.1" = list(package = "EcoPhyloSim",
+  "0.3.1" = list(
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
                             "protracted", "redQueen", "redQueenStrength")),
   # since #172: density, densityCut are the arguments negativeDD, negativeDDCut;
   # fitness can act on recruitment; kernels and positive density dependence
-  current = list(package = "EcoPhyloSim",
+  current = list(
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
                             "protracted", "redQueen", "redQueenStrength", "negativeDDKernel",

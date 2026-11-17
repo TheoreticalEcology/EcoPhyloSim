@@ -7,7 +7,7 @@
 A list of length 1, wrapping a list of 28 scenarios (one for each combination of the 7 x-axis and 4 y-axis positions in \code{\link{pPD.positions}}). Each scenario is itself a list of 9 elements, named "2" to "10", corresponding to the sample plot sizes (argument \code{plotlengths}) used when the data was generated with \code{\link{calculatePhylogeneticDispersion}}. Each of these holds a numeric vector of p-values, one for each of the 200 sample plots drawn for that scenario/plot-size combination.
 }
 \source{
-created with the script \code{data-raw/model-behavior/pPD.R} in the package
+created with the script \code{PhyloSim/data-raw/model-behavior/pPD.R} in the package
 repository at each release: one run of 50,000 generations per scenario on a 50 x 50
 grid, and the "PhylMeta" null model of \code{\link{calculatePhylogeneticDispersion}}
 with 500 replicates; from the next rerun on, \code{attr(pPD.pvalues, "provenance")}

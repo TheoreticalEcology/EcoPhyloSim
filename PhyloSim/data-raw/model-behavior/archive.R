@@ -116,7 +116,7 @@ message("archived ", nrow(simulations), " simulations in ", out)
 
 # summary of mode main for makeData.R (data set modelHistory)
 sims <- simulations[simulations$mode == "main" & simulations$status != "unsupported", ]
-if (nrow(sims)) {
+if (nrow(sims) && length(ind)) {  # no summary if no simulation succeeded
   last <- merge(census, sims[c("simulation", "generations")])
   last <- last[last$generation == last$generations, setdiff(names(last), c("generation", "generations"))]
   s <- stack(last[-1])

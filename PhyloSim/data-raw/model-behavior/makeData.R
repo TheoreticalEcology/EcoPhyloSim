@@ -9,9 +9,8 @@
 #
 # Run from the repository root:
 #   Rscript PhyloSim/data-raw/model-behavior/makeData.R [packageBehavior <archive>]
-# The new format of packageBehavior (all censuses in `main`, no `pilot` and `cnddSpecies`, generations
-# per block instead of a "default") needs the adapted chapter "Emerging patterns"
-# (#180); until then, build only modelHistory.
+# Until the run of 0.3.2, build only modelHistory, from new runs of the releases (see
+# "Transition" in README.md).
 
 source("PhyloSim/data-raw/model-behavior/common.R")
 source(file.path(mb, "design.R"))
