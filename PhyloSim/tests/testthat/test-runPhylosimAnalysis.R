@@ -58,10 +58,23 @@ test_that("runPhylosimAnalysis and chunkwiseCleanup drop only the failed simulat
                                      nRuns = 4, outDir = dir, summariesOnly = TRUE, nCores = 1, chunkSize = 3))
   expect_length(get(load(file.path(dir, "summary_1-3"))), 3)
   skip_on_cran() # starts a cluster
-  chunkwiseCleanup(dir, nCores = 1)
+  expect_message(chunkwiseCleanup(dir, nCores = 1), "Removed 2 of 4 simulations")
   cleaned <- file.path(dir, "cleaned_up")
   expect_equal(sapply(get(load(file.path(cleaned, "summary_clean_1-2"))), `[[`, "specRate"), c(2, 4))
   expect_equal(sapply(get(load(file.path(cleaned, "param_clean_1-2"))), `[[`, "specRate"), c(2, 4))
+})
+
+test_that("chunkwiseCleanup gives a message with the number of removed simulations (#191)", {
+  skip_on_cran() # starts a cluster
+  dir <- tempfile()
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE))
+  summaryChunk <- list(list(gammaDiversity = 5, alphaDiversity = NA), list(gammaDiversity = 6, alphaDiversity = 2))
+  paramChunk <- list(list(x = 10), list(x = 20))
+  save(summaryChunk, file = file.path(dir, "summary_1-2"))
+  save(paramChunk, file = file.path(dir, "param_1-2"))
+  expect_message(chunkwiseCleanup(dir, nCores = 1), "Removed 1 of 2 simulations")
+  expect_equal(get(load(file.path(dir, "cleaned_up", "param_clean_1-1"))), list(list(x = 20)))
 })
 
 test_that("cluster workers load EcoPhyloSim from the first library of the session (#190)", {

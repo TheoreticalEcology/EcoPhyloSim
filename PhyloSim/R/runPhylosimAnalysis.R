@@ -101,7 +101,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
 }
 
 #' @title Clean up parameter and summary chunks
-#' @description Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes failed simulations and those with at least one NA summary statistic (e.g. the plot statistics on grids with fewer than 15 cells in x or y, see \code{\link{calculateSummaryStatistics}}). The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
+#' @description Reads in summary files created with chunkwiseCalculateSummaries or with runPhylosimAnalysis(summariesOnly = TRUE), and parameter files created with runPhylosimAnalysis and removes failed simulations and those with at least one NA summary statistic (e.g. the plot statistics on grids with fewer than 15 cells in x or y, see \code{\link{calculateSummaryStatistics}}), with a message giving the number of removed simulations. The resulting cleaned-up chunks are saved to the subfolder "cleaned_up".
 #' @author Tankred Ott
 #' @param dir Directory to which the results of runPhylosimAnalysis (and chunkwiseCalculateSummaries) were saved.
 #' @param nCores "auto" or number of parallel cores to use
@@ -125,13 +125,14 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     dir.create(outDir)
   }
   
-  foreach(i=1:length(sumFiles), .packages = c("EcoPhyloSim")) %dopar% {
+  counts <- foreach(i=1:length(sumFiles), .packages = c("EcoPhyloSim"), .combine = "+") %dopar% {
     # Load simulation chunk and parameter chunk
     sumChunk <- loadLocal(joinPath(c(dir, sumFiles[i])))
     parChunk <- loadLocal(joinPath(c(dir, parFiles[i])))
     # Find indices where summaries are NA and remove them
     naIndices <- which(is.na(sumChunk))
     naIndices <- c(naIndices, which(sapply(sumChunk, function (x) sum(is.na(x)) > 0)))
+    nChunk <- length(sumChunk)
     
     sumChunk[naIndices] <- NULL
     parChunk[naIndices] <- NULL
@@ -153,8 +154,12 @@ chunkwiseCleanup <- function (dir=".", nCores="auto") {
     # save file
     save(sumChunk, file = joinPath(c(outDir, sumFileName)))
     save(parChunk, file = joinPath(c(outDir, parFileName)))
+    c(nChunk - n, nChunk)
   }
   parallel::stopCluster(cl)
+  # fixes #191 (removal was silent, e.g. all simulations on grids with fewer than 15 cells)
+  if (counts[1] > 0) message("Removed ", counts[1], " of ", counts[2],
+                             " simulations that failed or have at least one NA summary statistic.")
 }
 
 #' @title combine chunks
