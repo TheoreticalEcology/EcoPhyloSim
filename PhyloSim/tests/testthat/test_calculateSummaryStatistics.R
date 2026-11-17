@@ -53,3 +53,19 @@ test_that("the gamma statistic resolves polytomies (#169)", {
   expect_equal(calculateSummaryStatistics(simu, strict = FALSE)$gammaStatistics, gamma)
   expect_output(summary(simu), paste("Gamma: ", format(gamma)), fixed = TRUE)
 })
+
+test_that("calculateSummaryStatistics gives NA for the plot statistics on grids with fewer than 15 cells in x or y (#157)", {
+  plotStats <- c("sacAuc", "alphaDiversity", "betaDiversity", "dispersion", "varPart_1", "varPart_2")
+  for (d in list(c(12, 12), c(30, 12))) {
+    simu <- quietSimulation(x = d[1], y = d[2], specRate = 2, runs = 100, seed = 1)
+    expect_message(summStat <- calculateSummaryStatistics(simu), "fewer than 15 cells")
+    expect_true(all(is.na(unlist(summStat[plotStats]))))
+    expect_equal(summStat$gammaDiversity, specRich(simu))
+    expect_false(is.na(summStat$racAuc))
+    expect_identical(suppressMessages(calculateSummaryStatistics(simu, strict = TRUE)), NA)
+  }
+  # the simulation is kept
+  expect_message(simu <- quietSimulation(x = 10, y = 10, specRate = 2, runs = 100, seed = 1, calculateSummaries = TRUE),
+                 "fewer than 15 cells")
+  expect_equal(simu$Output[[1]]$summaries$gammaDiversity, specRich(simu))
+})

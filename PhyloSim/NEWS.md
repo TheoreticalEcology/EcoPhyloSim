@@ -6,6 +6,7 @@
 * `createCompletePar()`: new argument `negativeDDResponse` (experimental) sets the term of negative density dependence as a function of the similarity to the neighbors (stored as its values) or as a vector of such values (#144).
 * `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
+* `runSimulationBatch()`: new argument `onError = "NA"` returns NA for failed simulations instead of stopping (#158).
 * `callModel()`: new arguments for recruitment, the kernels, the response table and positive density dependence (#144, #165).
 
 ## Changes
@@ -21,6 +22,8 @@
 
 * `nullModel(fun = "pd")` works for phylogenies with a polytomy at the root, which failed because `picante::pd()` treated them as unrooted (#176).
 * `extractParams()` returns one row per parameter set also if a parameter has several values (e.g. `runs` or `fitnessActsOn`); such values are combined into one string.
+* `calculateSummaryStatistics()` and `runSimulation(calculateSummaries = TRUE)` no longer fail on grids with fewer than 15 cells in x or y; the statistics from plots are NA on such grids (#157).
+* `runPhylosimAnalysis()`: a failed simulation gives NA at its position instead of replacing the results of its whole chunk by a single NA, so that `chunkwiseCleanup()` removes only that simulation (#158).
 
 ## Documentation
 

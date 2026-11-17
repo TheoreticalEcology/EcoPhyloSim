@@ -4,7 +4,8 @@
 \alias{runSimulationBatch}
 \title{Batch runner}
 \usage{
-runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL)
+runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL,
+  onError = c("stop", "NA"))
 }
 \arguments{
 \item{pars}{A list of parameter sets as created by \code{\link{createCompletePar}}}
@@ -14,9 +15,11 @@ runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL)
 \item{backup}{Logical, determining whether the results of the individual scenario runs should be saved with saveRDS() as \emph{scenario}.rds in the working directory (advised if the simulation takes a long time, or if the individual scenarios vary greatly in runtime. Default is FALSE)}
 
 \item{strip}{NULL or "summaries", determining whether the whole simulation or only the summary statistics should be returned. Summary statistics are only available if \code{calculateSummaries = TRUE} in \code{\link{createCompletePar}}.}
+
+\item{onError}{"stop" (default) to stop at the first simulation that fails, or "NA" to return NA for each failed simulation, with the error message as attribute "error" and a warning that lists the failed simulations.}
 }
 \value{
-An object of class "PhylosimList", or, if strip = "summaries", a plain list of the summary statistics of each scenario.
+An object of class "PhylosimList", or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhylosimList" may fail.
 }
 \description{
 A model of species community assembly under different assembly mechanisms, using parallel computing to make use of multi core CPUs and clusters in order to reduce computation time. The function is an extension to \link{runSimulation} in order to accelerate the simulation of multiple scenarios.
