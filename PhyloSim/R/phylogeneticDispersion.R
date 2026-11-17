@@ -9,7 +9,7 @@
 #' @param reduce Logical, currently not used by this function (reserved for a future implementation; has no effect on the output).
 #' @param fun String, currently not used by this function; MPD is always used.
 #' @details In the type argument "PhylMeta" is equivalent to \code{\link{nullModel}} with abundance = FALSE, "PhylSample" is equivalent to the same function with abundance = TRUE, whereas the two other options use \code{\link[picante]{ses.mpd}}. "PhylPool" uses the argument null.model = "phylogeny.pool", "SamplePool" is setting null.model to "sample.pool". \cr\cr For more information see \code{\link{nullModel}}. \cr\cr If you choose which.result = NULL (default), the length of the output corresponds to the length of the 'runs' argument in your parameter definition. Otherwise the list has length max(which.result); elements of results not requested are NULL. \cr\cr The structure of the output is organized as follows: with `output[[t]]` you will get the results for result (time step) 't'. With `output[[t]][[n]]` you will get the results for scenario 'n' at 't'. `output[[t]][[n]]` is a list that contains one vector with p values for each element in the plotlengths argument.
-#' @return A list with pValues for each plot in the observed metacommunity. If you have calculated multiple scenarios, the results can be visualized by \code{\link{plotPhylogeneticDispersion}}.
+#' @return A list with pValues for each plot in the observed metacommunity; plots with a single species get NA. If you have calculated multiple scenarios, the results can be visualized by \code{\link{plotPhylogeneticDispersion}}.
 #' @example /inst/examples/phylogeneticDispersion-help.R
 #'
 #' @export

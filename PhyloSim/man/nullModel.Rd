@@ -23,7 +23,7 @@ nullModel(simu, which.result = NULL, abundance = FALSE, localPlotSize,
 \item{fun}{String, phylogenetic measure that is used. Possible inputs are "mpd" (\code{\link[picante]{mpd}}) and "pd" (\code{\link[picante]{pd}}).}
 }
 \value{
-A numeric vector with pValues for each plot in the observed metacommunity
+A numeric vector with pValues for each plot in the observed metacommunity. With fun = "mpd", plots with a single species have no MPD and get NA; null communities with a single species are left out of the null distribution.
 }
 \description{
 Generates a null model and compares the observed results against it.

@@ -46,12 +46,11 @@ For everyone, including the EcoPhyloSim team: if AI tools wrote substantial part
 - Members of the EcoPhyloSim team create branches in this repository; other contributors work in a fork, where the branch name is up to them.
 - Every branch in this repository addresses at least one issue (except trivial fixes, see [Submitting pull requests](#submitting-pull-requests)). Create it from `master` and name it as follows, with `-` as separator and `<shortName>` in lowerCamelCase:
   - one issue: `i<issue number>-<shortName>`, e.g., `i115-sacLogSpacing`.
-  - several closely related issues for the same release: `v<release>-<shortName>`, e.g., `v0.4-docFixes`.
+  - several closely related issues: `i<n1>-<n2>-<shortName>`, e.g., `i157-158-smallGridsFailedRuns`.
   - trivial fixes without an issue: `<shortName>`, e.g., `fixTypoVignette`.
-  - Do not name a branch exactly like a release tag (e.g., `v0.4`).
 - Keep each pull request focused on one issue, or on several closely related issues for the same release, and open it against `master`. Do not split one issue across several pull requests; follow-up work gets a new issue.
 - Keep the diff small: no unrelated reformatting (indentation, line endings, whitespace) or refactoring, and reuse existing helper functions instead of duplicating logic. If reformatting is needed, it goes into a separate pull request without other changes.
-- Never commit compiled files (`.o`, `.so`, `.dll`) or other build output, and do not remove the entries for them in `.gitignore`.
+- Never commit compiled files (`.o`, `.so`, `.dll`), other build output, rendered documents (e.g., HTML, PDF) or raw simulation output that is easy to regenerate; list them in `.gitignore` and do not remove existing entries. Small derived results that the package, vignettes or reports read (e.g., `PhyloSim/data/`, `model-behavior/runs/`) may be committed.
 - Once the approach is agreed in the issue, open the pull request early, as a draft if the work is not finished yet, so that work in progress is visible and linked to its issues. If the work is abandoned, close the pull request with a short explanation.
 - A pull request or commit that resolves an issue should contain `Fixes #115` or `Closes #115` (with your issue number) in its description or commit message, so that GitHub closes the issue automatically when it is merged into `master`. For several issues, repeat the keyword for each, e.g., `Fixes #115, fixes #116`.
 - The pull request description has the following sections; keep it short, details belong in the issues:
