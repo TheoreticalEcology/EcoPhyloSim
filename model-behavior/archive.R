@@ -101,7 +101,7 @@ writeLines(c(
   "chapter \"Emerging patterns\"; `model-behavior/run.R`, earlier `PhyloSim/data-raw/packageBehavior.R`),",
   "created with `model-behavior/archive.R`. `RUNINFO.txt` and the copies of the scripts (`*.R`)",
   "record the versions used and notes on the run; the indicators are defined in `indicators.R`",
-  "(earlier in `censusStats()` of `packageBehavior.R`). `SESSION-*.txt` record the command, the",
+  "(earlier in `censusStats()` of `packageBehavior.R`, tag v0.3.1). `SESSION-*.txt` record the command, the",
   "platform, the installation of the simulated version and the versions of all packages. How to",
   "regenerate the archive is described in `model-behavior/README.md` of the repository.", "",
   "- `simulations.csv`: one row per simulation (`simulation` = `<mode>_<block>_<setting>_<rep>`;",

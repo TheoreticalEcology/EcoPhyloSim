@@ -37,19 +37,43 @@ releaseOf <- function(run) {
   v <- numeric_version(sub(" .*", "", run))
   rel$version[which(numeric_version(rel$version) >= v)[1]]
 }
+# replicate mean of an indicator in the run of a version, for the setting of a block with
+# the given parameter values (several settings: the largest mean)
+val <- function(version, block, indicator, ..., digits = 2) {
+  d <- s[s$version == version & s$block == block & s$indicator == indicator, ]
+  v <- list(...)
+  for (n in names(v)) d <- d[d[[n]] == v[[n]], ]
+  if (!nrow(d)) NA else signif(max(d$mean), digits)
+}
+# expected richness of the neutral model (Ewens sampling formula)
+ewens <- function(J, specRate) {
+  nu <- specRate / J
+  theta <- (J - 1) * nu / (1 - nu)
+  sum(theta / (theta + 0:(J - 1)))
+}
+n0 <- s[s$version == "0.3.1" & s$block == "neutral" & s$indicator == "richness", ]
 # observations on the behavior of a release (problems of the code are issues)
 notes <- list("0.3.2" = c(
   "Compared with the run of 0.3.1 at 852c61e; of the later changes #173 and #174, only #174 can show here (Colless index per seed), as the design has no grid with an odd number of columns."),
   "0.3.1" = c(
-  "Run with `data-raw/packageBehavior.R` (before `model-behavior/run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
-  "Neutral model: richness up to about 15% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
-  "Density dependence is weak: richness increases only from about 20 to 25 species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
+  "Run with `data-raw/packageBehavior.R` (tag v0.3.1; before `model-behavior/run.R` existed) at the pre-release commit 852c61e, i.e. before #173 (only odd grid widths) and #174 (polytomies were still resolved at random, which changes the Colless index per seed); 50,000 generations (100,000 in the density block, 200,000 in the neutral block).",
+  sprintf("Neutral model: richness up to about %s%% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
+          round(100 * max(n0$mean / mapply(ewens, n0$x * n0$y, n0$specRate) - 1))),
+  sprintf("Density dependence is weak: richness increases only from about %s to %s species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
+          val("0.3.1", "density", "richness", density = 0, densityCut = 1, digits = 2),
+          val("0.3.1", "density", "richness", densityCut = 1, digits = 2)),
   "The model is neutral if environment and density are both > 0 and their sum is ≤ 1 (#144).",
-  "Environmental filtering with global dispersal stays weak (correlation of trait and environment 0.24 at `environment = 1`); with local dispersal, traits match the environment almost perfectly. Narrow niches make filtering with global dispersal even weaker.",
+  sprintf("Environmental filtering with global dispersal stays weak (correlation of trait and environment %s at `environment = 1`); with local dispersal, traits match the environment almost perfectly (%s). Narrow niches make filtering with global dispersal even weaker.",
+          val("0.3.1", "environment", "corTraitEnv", dispersal = "global", environment = 1),
+          val("0.3.1", "environment", "corTraitEnv", dispersal = "1", environment = 1)),
   "Filtering does not increase spatial aggregation; it makes trees more balanced (Colless index < 0) and increases the gamma statistic.",
   "Protracted speciation acts like a speciation rate reduced by exp(-p).",
   "CNDD estimated from mortality: about 0 in the neutral model, positive with density dependence, negative with environmental filtering (strongest with global dispersal).",
-  "A Red Queen advantage of 0.01 with strength 100 more than doubles richness and reduces the mean species age from about 400 to 20 generations."))
+  sprintf("A Red Queen advantage of 0.01 with strength 100 increases richness from about %s to %s species and reduces the mean species age from about %s to %s generations.",
+          val("0.3.1", "speciation", "richness", protracted = 0, redQueen = 0),
+          val("0.3.1", "speciation", "richness", redQueen = 0.01),
+          val("0.3.1", "speciation", "meanSpeciesAge", protracted = 0, redQueen = 0),
+          val("0.3.1", "speciation", "meanSpeciesAge", redQueen = 0.01))))
 ```
 
 ```{css, echo = FALSE}

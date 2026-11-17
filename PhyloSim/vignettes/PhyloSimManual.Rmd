@@ -674,8 +674,8 @@ setting (50 × 50 cells, `dispersal = 1`, `specRate = 2`, all other parameters
 at their defaults), with replicate runs per setting. The simulations take
 hours to days, so they are not run when this vignette is built: they were run
 with the script `data-raw/packageBehavior.R` of the
-[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim) (now
-replaced by the scripts in its folder `model-behavior`), and
+[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim) (tag
+v0.3.1; now replaced by the scripts in its folder `model-behavior`), and
 their summaries are stored in the data set `packageBehavior` (see
 `?packageBehavior`). They were run with an earlier version of the package
 (commit
@@ -712,7 +712,7 @@ expectations that the following sections test.
 | Environment and density dependence | effects can mask each other; in the runs of this chapter (before #172), neutral if both are > 0 and their sum is ≤ 1 | @kraft2015 |
 | Assembly processes and dispersal | environmental filtering increases, density dependence reduces aggregation; both increase richness; dispersal changes how strongly each shows | @kraft2015, @mouquet2003, @adler2005 |
 | Niche width | richness possibly highest at an intermediate width; best match of traits and environment for narrow niches | @allouche2012 |
-| CNDD from mortality | coefficient close to 0 without and positive with density dependence; per-species estimates biased towards stronger CNDD of rare species | @comita2010, @hulsmann2024, @detto2019 |
+| CNDD from mortality | coefficient close to 0 without and positive with density dependence | @comita2010, @hulsmann2024 |
 
 ```{css, echo = FALSE}
 .expectation {
@@ -1480,18 +1480,10 @@ neighbors, so the coefficient should be close to 0; this is a check of the analy
 With density dependence, it should be positive. With environmental filtering
 and local dispersal, conspecific neighbors indicate suitable habitat, so
 mortality may decrease with their number, which would hide density dependence
-in such an analysis. In tropical forests, rare species show stronger CNDD than
-common ones [@comita2010; @hulsmann2024]. However, the number of conspecific
-neighbors is only a proxy for the actual interactions, and in survival analyses
-this biases the per-species estimates more for abundant than for rare species,
-which can create a negative relationship between CNDD and abundance even if it
-does not exist [@detto2019]. In the model, all species have the same density
-dependence, so a relationship between the per-species slopes and abundance,
-in particular in the neutral model, indicates such a bias.
+in such an analysis.
 :::
 
-```{r cndd, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Left: CNDD coefficient per scenario and dispersal (replicate mean and 95% confidence interval; dashed: no effect). Right: CNDD slope of single species against their abundance with local dispersal, without (neutral) and with density dependence (all replicates; lines: linear fits)."}
-op <- par(mfrow = c(1, 2))
+```{r cndd, echo = FALSE, fig.width = 5, fig.height = 3.5, fig.cap = "CNDD coefficient per scenario and dispersal (replicate mean and 95% confidence interval; dashed: no effect)."}
 f <- merge(main$settings[a, ], main$cndd[main$cndd$block == "assembly", ])
 f$ci <- qt(0.975, pmax(f$n - 1, 1)) * f$sd / sqrt(f$n)
 f <- f[order(f$density, f$environment, f$dispersal), ]
@@ -1503,31 +1495,13 @@ axis(1, at = seq_along(sc), labels = sc)
 ciBars(xpos, f$mean, f$ci, cols[1 + (f$dispersal != "global")])
 abline(h = 0, lty = 2)
 legend("topleft", legend = c("global", "1"), pch = 16, col = cols[1:2], title = "dispersal", bty = "n")
-sp <- lapply(c(neutral = 0, density = 1), function(dens)
-  main$cnddSpecies[main$cnddSpecies$block == "assembly" &
-                     main$cnddSpecies$setting == settingId(main, "assembly", environment = 0,
-                                                           density = dens, dispersal = "1"), ])
-all <- do.call(rbind, sp)
-plot(all$abundance, all$slope, log = "x", type = "n", xlab = "Abundance", ylab = "CNDD slope")
-for (k in seq_along(sp)) {
-  points(sp[[k]]$abundance, sp[[k]]$slope, pch = 16, col = adjustcolor(cols[k + 2], 0.4))
-  abline(lm(slope ~ log10(abundance), sp[[k]]), col = cols[k + 2], lwd = 2)
-}
-abline(h = 0, lty = 2)
-legend("topright", legend = names(sp), pch = 16, col = cols[3:4], bty = "n")
-par(op)
 ```
 
 **Result.** As expected, the CNDD coefficient is close to 0 in the neutral model
 and positive with density dependence. Environmental filtering makes it negative,
 and with both processes it is negative as well, so filtering hides the density
 dependence in this analysis. Contrary to the expectation, the effect is stronger with global
-than with local dispersal. The per-species slopes depend only weakly on abundance
-in the scenarios shown. In the neutral model with global dispersal, a linear fit
-of the slopes against log abundance is negative in all settings of the
-speciation rate and grid size (not shown), although no species has density
-dependence; this agrees with the bias described by @detto2019, but the trend is
-weak compared with the scatter of the slopes.
+than with local dispersal.
 
 # Fitting the model to data
 

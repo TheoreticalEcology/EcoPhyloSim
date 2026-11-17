@@ -4,11 +4,11 @@
 # - packageBehavior (chapter "Emerging patterns" of the main vignette), only if
 #   asked for with the archive of the run of the current version (archive.R): replicate
 #   mean, sd and n of the indicators at all censuses, of the curves and of the
-#   CNDD coefficient, the CNDD coefficients of single species, and the runtime.
+#   CNDD coefficient, and the runtime.
 #
 # Run from the repository root:
 #   Rscript model-behavior/makeData.R [packageBehavior <archive of the current version>]
-# The new format of packageBehavior (all censuses in `main`, no `pilot`, generations
+# The new format of packageBehavior (all censuses in `main`, no `pilot` and no `cnddSpecies`, generations
 # per block instead of a "default") needs the adapted chapter "Emerging patterns"
 # (#180); until then, build only modelHistory.
 
@@ -59,14 +59,11 @@ if (!is.na(archive)) {
   curves <- read.csv(file.path(archive, "curves.csv.gz"))
   cndd <- read.csv(file.path(archive, "cndd.csv.gz"))
   curve <- function(type, x) { d <- stats(curves[curves$curve == type, ], "x"); names(d)[names(d) == "x"] <- x; d }
-  species <- merge(sims[c("simulation", keys, "rep")], cndd[cndd$scope == "species", c("simulation", "abundance", "slope")])
-  species[c("abundance", "slope")] <- signif(species[c("abundance", "slope")], 3) # most of the size of the data set (#180)
   packageBehavior <- list(
     main = list(settings = settings[order(settings$block, settings$setting), ],
                 census = stats(census, c("generation", "indicator")),
                 sac = curve("sac", "size"), rac = curve("rac", "rank"), decay = curve("decay", "distance"),
                 cndd = stats(data.frame(simulation = cndd$simulation, value = cndd$slope)[cndd$scope == "pooled", ], NULL),
-                cnddSpecies = species[c(keys, "rep", "abundance", "slope")],
                 runtime = stats(data.frame(simulation = sims$simulation, value = sims$runtime), NULL)),
     info = list(archive = basename(normalizePath(archive)), commit = sub(".*_", "", basename(normalizePath(archive))),
                 modes = modes, scripts = scripts,

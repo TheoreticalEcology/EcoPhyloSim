@@ -7,8 +7,8 @@ made with the earlier script, with the simulated version). The runs give the dat
 set `packageBehavior` (chapter "Emerging patterns" of the main vignette, from the
 run of the current version) and the data set `modelHistory` (vignette "Model
 history", from the runs of all versions). The `packageBehavior` of release 0.3.1
-was still made with the earlier script `PhyloSim/data-raw/packageBehavior.R`,
-which these scripts replace.
+was still made with the earlier script `PhyloSim/data-raw/packageBehavior.R`
+(see tag v0.3.1), which these scripts replace.
 
 The per-replicate archives are not tracked in git (they are too large; `runs/`
 keeps one summary per run), but everything needed to regenerate them is: the
@@ -17,7 +17,8 @@ archive the exact command, platform and package versions. The runs of 0.3.1
 (852c61e) and of #172 (2331720) were still made with the earlier script; copies of
 it are in their archives. The data sets in `PhyloSim/data/` are committed only at
 releases. `makeData.R packageBehavior <archive>` builds `packageBehavior` in a
-new format (all censuses in `main`, no `pilot`); the chapter "Emerging patterns"
+new format (all censuses in `main`, no `pilot` and no CNDD coefficients of single
+species); the chapter "Emerging patterns"
 is adapted to it with the next run of the current version (#180), so until then
 build only `modelHistory`.
 
