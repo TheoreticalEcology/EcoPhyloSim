@@ -63,3 +63,19 @@ test_that("runPhylosimAnalysis and chunkwiseCleanup drop only the failed simulat
   expect_equal(sapply(get(load(file.path(cleaned, "summary_clean_1-2"))), `[[`, "specRate"), c(2, 4))
   expect_equal(sapply(get(load(file.path(cleaned, "param_clean_1-2"))), `[[`, "specRate"), c(2, 4))
 })
+
+test_that("cluster workers load EcoPhyloSim from the first library of the session (#190)", {
+  skip_on_cran() # copies the installed package and starts a cluster
+  pkg <- find.package("EcoPhyloSim")
+  skip_if_not(file.exists(file.path(pkg, "Meta", "package.rds")), "EcoPhyloSim is not installed")
+  lib <- tempfile("lib")
+  dir.create(lib)
+  oldLib <- .libPaths()
+  on.exit({.libPaths(oldLib); unlink(lib, recursive = TRUE)})
+  file.copy(pkg, lib, recursive = TRUE)
+  .libPaths(c(lib, oldLib))
+  cl <- startCluster(1)
+  on.exit(parallel::stopCluster(cl), add = TRUE, after = FALSE)
+  workerPath <- parallel::clusterEvalQ(cl, getNamespaceInfo(loadNamespace("EcoPhyloSim"), "path"))[[1]]
+  expect_equal(normalizePath(workerPath), normalizePath(file.path(lib, "EcoPhyloSim")))
+})

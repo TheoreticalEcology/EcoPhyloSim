@@ -23,10 +23,7 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
     
     if (parallel == TRUE | parallel == "auto") cores <- parallel::detectCores() - 1
     if (is.numeric(parallel)) cores <- parallel
-    cl <- parallel::makeCluster(cores)
-    # pass the library paths to the workers; otherwise they may not find EcoPhyloSim (e.g. vignette build on CI, see #120)
-    parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
-    doParallel::registerDoParallel(cl)
+    cl <- startCluster(cores)
     
     out <- foreach(i=1:length(pars), .packages = c("EcoPhyloSim"), .errorhandling = errorHandling) %dopar%{
       
