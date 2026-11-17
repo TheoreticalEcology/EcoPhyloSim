@@ -25,6 +25,7 @@
 * `extractParams()` returns one row per parameter set also if a parameter has several values (e.g. `runs` or `fitnessActsOn`); such values are combined into one string.
 * `calculateSummaryStatistics()` and `runSimulation(calculateSummaries = TRUE)` no longer fail on grids with fewer than 15 cells in x or y; the statistics from plots are NA on such grids (#157).
 * `runPhylosimAnalysis()`: a failed simulation gives NA at its position instead of replacing the results of its whole chunk by a single NA, so that `chunkwiseCleanup()` removes only that simulation (#158).
+* `runSimulationBatch()`, `runPhylosimAnalysis()`, `chunkwiseCalculateSummaries()`, `chunkwiseCleanup()`, `rejectionSample()` and `rejectionSamplePhylosimAnalysis()`: the parallel workers load EcoPhyloSim from the library paths of the session; before, they could load another installed version from their default library (#190).
 
 ## Documentation
 

@@ -77,9 +77,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
   chunkSize <- length(loadLocal(joinPath(c(dir, simFiles[1]))))
   
   nCores <- getValidatedNCores(nCores)
-  cl <- parallel::makeCluster(nCores)
-  parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
-  doParallel::registerDoParallel(cl)
+  cl <- startCluster(nCores)
   
   foreach(i=1:length(simFiles), .packages = c("EcoPhyloSim")) %dopar% {
     # Load simulation chunk
@@ -111,9 +109,7 @@ chunkwiseCalculateSummaries <- function (dir=".", nCores="auto") {
 #' @export
 chunkwiseCleanup <- function (dir=".", nCores="auto") {
   nCores <- getValidatedNCores(nCores)
-  cl <- parallel::makeCluster(nCores)
-  parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
-  doParallel::registerDoParallel(cl)
+  cl <- startCluster(nCores)
   
   sumFiles <- getFileNames(path=dir, pattern="^summary_[0-9]+-[0-9]+$")
   if (length(sumFiles) == 0) stop(paste("No PhyloSim summary files found in", if (dir == ".") getwd() else dir))
@@ -403,6 +399,16 @@ getValidatedNCores <- function (nCores) {
   return(nCores)
 }
 
+# starts a PSOCK cluster whose workers use the library paths of the session (#120) and registers it for foreach.
+# The paths are passed as a call, not as a package function, which the worker could only
+# unserialize after loading EcoPhyloSim from its default library (fixes #190)
+startCluster <- function(nCores) {
+  cl <- parallel::makeCluster(nCores)
+  parallel::clusterCall(cl, eval, call(".libPaths", .libPaths()))
+  doParallel::registerDoParallel(cl)
+  return(cl)
+}
+
 #' @author Tankred Ott
 loadLocal <- function(path) return(local(get(load(path))))
 
@@ -488,9 +494,7 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
   
   # initialize parallel cores
   nCores <- getValidatedNCores(nCores)
-  cl <- parallel::makeCluster(nCores)
-  parallel::clusterCall(cl, function(lp) .libPaths(lp), .libPaths())
-  doParallel::registerDoParallel(cl)
+  cl <- startCluster(nCores)
   
   # for each draw do rejection sampling against all remaining samples
   OUT <- foreach(i=1:nDraws, .combine = rbind) %dopar% {
