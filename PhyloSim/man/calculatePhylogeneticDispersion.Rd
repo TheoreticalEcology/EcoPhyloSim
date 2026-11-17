@@ -26,7 +26,7 @@ calculatePhylogeneticDispersion(simu, plotlengths = 10, plots = 200,
 \item{fun}{String, currently not used by this function; MPD is always used.}
 }
 \value{
-A list with pValues for each plot in the observed metacommunity. If you have calculated multiple scenarios, the results can be visualized by \code{\link{plotPhylogeneticDispersion}}.
+A list with pValues for each plot in the observed metacommunity; plots with a single species get NA. If you have calculated multiple scenarios, the results can be visualized by \code{\link{plotPhylogeneticDispersion}}.
 }
 \description{
 Generates null models for a list of PhyloSim objects as created by \code{\link{runSimulationBatch}} and compares the observed results against them.
