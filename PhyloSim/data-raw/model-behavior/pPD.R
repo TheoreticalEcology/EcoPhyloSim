@@ -3,9 +3,13 @@
 # of density dependence and environmental filtering) on a 50 x 50 grid, and the
 # p-values of the "PhylMeta" null model for 200 subplots of each size 2 to 10.
 #
-# Run from the repository root, with the package installed:
-#   Rscript PhyloSim/data-raw/pPD.R [cores] [generations]
-# The results are illustrative only (one run per scenario).
+# Run at each release from the repository root (a git checkout of the release),
+# with this version of the package installed (the parallel workers load it from
+# R_LIBS as set before R starts, or from the default library, not from a library
+# added with .libPaths() in the session, #190):
+#   Rscript PhyloSim/data-raw/model-behavior/pPD.R [cores] [generations]
+# The results are illustrative only (one run per scenario). The attribute
+# "provenance" of pPD.pvalues records the run (#180).
 
 library(EcoPhyloSim)
 args <- commandArgs(trailingOnly = TRUE)
@@ -59,6 +63,13 @@ if (length(failed)) {
 }
 
 pPD.pvalues <- list(res)
+git <- suppressWarnings(tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) ""))
+if (length(git) != 1 || !nzchar(git)) git <- "unknown"
+attr(pPD.pvalues, "provenance") <- c(
+  date = format(Sys.time(), "%Y-%m-%d %H:%M"), commit = git,
+  package = paste("EcoPhyloSim", packageVersion("EcoPhyloSim")),
+  R = R.version.string, platform = R.version$platform, generations = generations,
+  reseeded = paste(attr(res, "reseeded"), collapse = " "))
 pPD.positions <- list(x = 1:7, y = c(4, 1, 2, 3),
                       zname = c("neutral", "1", "0.75", "0.5", "0.25", "0", "both"),
                       yname = c("global", "0.5", "2", "4"),

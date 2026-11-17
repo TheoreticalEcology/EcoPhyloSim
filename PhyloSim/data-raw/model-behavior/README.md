@@ -43,6 +43,9 @@ build only `modelHistory`.
   asked for, `packageBehavior` from the archive of the current version.
 - `changes.csv`: releases and the changes of the model code that change results,
   with their effects, the evidence and the settings of the attribution runs.
+- `pPD.R`: the example data sets `pPD.pvalues` and `pPD.positions` of
+  `plotPhylogeneticDispersion()` (one run per scenario, rerun at each release;
+  `attr(pPD.pvalues, "provenance")` records date, commit, package and R version).
 - `attribution.R`: tests single changes against their parent commit (stages 1
   and 2, see below).
 
@@ -55,6 +58,8 @@ build only `modelHistory`.
     Rscript PhyloSim/data-raw/model-behavior/makeData.R
     # only once the chapter "Emerging patterns" is adapted to the new format (#180):
     Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior ../EcoPhyloSim-runs/0.3.1.9000_<commit>
+    # at each release, the example data of plotPhylogeneticDispersion():
+    Rscript PhyloSim/data-raw/model-behavior/pPD.R 12
 
 - Modes (`design.R`): `main` (30 replicates, the runs of record; its censuses
   also give the time to equilibrium) and `test` (2 replicates, 300 generations,
