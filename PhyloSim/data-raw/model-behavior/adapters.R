@@ -1,13 +1,14 @@
 # Model versions that can be run, and the mapping of a task of design.R to the
 # arguments of createCompletePar() of a version. adapt() returns NULL if the
 # version cannot run the task (a parameter or value it does not support).
-# To add a release, see "New release" in README.md.
+# To add a release, see "Release" in README.md.
 
 versions <- list(
-  "0.2"   = list(package = "PhyloSim",
+  # oldDeps: needs the archived dependencies of installOldDeps.R
+  "0.2"   = list(package = "PhyloSim", oldDeps = TRUE,
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "fitnessActsOn", "fitnessBaseMortalityRatio")),
-  "0.3"   = list(package = "PhyloSim",
+  "0.3"   = list(package = "PhyloSim", oldDeps = TRUE,
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "fitnessActsOn", "fitnessBaseMortalityRatio", "fission", "protracted",
                             "redQueen", "redQueenStrength")),

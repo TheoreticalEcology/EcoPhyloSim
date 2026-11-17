@@ -5,6 +5,11 @@
 # arguments negativeDD, negativeDDCut since #172), and the current names for
 # parameters added later; adapters.R maps them to the arguments of each version.
 
+# commit of the EcoPhyloSim that computes the indicators in the runs of all versions
+# (run.R installs it); a new commit means new runs of all versions, as makeData.R
+# accepts only runs with this commit
+indicatorCommit <- "0c893e5"
+
 # replicates and generations per mode; generations per block ("default" for all others)
 modes <- list(
   main  = list(reps = 30, generations = c(default = 50000, density = 100000, densityDispersal = 100000,

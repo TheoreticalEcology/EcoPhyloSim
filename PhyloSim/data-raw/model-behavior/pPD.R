@@ -3,15 +3,18 @@
 # of density dependence and environmental filtering) on a 50 x 50 grid, and the
 # p-values of the "PhylMeta" null model for 200 subplots of each size 2 to 10.
 #
-# Run at each release from the repository root (a git checkout of the release),
-# with this version of the package installed (the parallel workers load it from
-# R_LIBS as set before R starts, or from the default library, not from a library
-# added with .libPaths() in the session, #190):
+# Run at each release from the repository root, with the release commit checked
+# out (its package is installed into lib/ if missing):
 #   Rscript PhyloSim/data-raw/model-behavior/pPD.R [cores] [generations]
 # The results are illustrative only (one run per scenario). The attribute
 # "provenance" of pPD.pvalues records the run (#180).
 
-library(EcoPhyloSim)
+source("PhyloSim/data-raw/model-behavior/common.R")
+# the package of the checked-out commit (installed into lib/ if missing), also for the
+# parallel workers (R_LIBS before they start, #190)
+lib <- libraryOf("HEAD")
+Sys.setenv(R_LIBS = lib)
+library(EcoPhyloSim, lib.loc = lib)
 args <- commandArgs(trailingOnly = TRUE)
 cores <- if (length(args) >= 1) as.integer(args[1]) else 1
 generations <- if (length(args) >= 2) as.integer(args[2]) else 50000
@@ -57,17 +60,17 @@ if (length(failed)) {
 }
 failed <- which(vapply(res, is.character, logical(1)))
 if (length(failed)) {
-  saveRDS(res, "pPD-partial.rds")
+  partial <- dataDir("cache", "pPD-partial.rds")
+  dir.create(dirname(partial), showWarnings = FALSE)
+  saveRDS(res, partial)
   stop("scenarios ", paste(failed, collapse = ", "), " failed (", paste(unique(unlist(res[failed])), collapse = "; "),
-       "); results of the others are in pPD-partial.rds")
+       "); results of the others are in ", partial)
 }
 
 pPD.pvalues <- list(res)
-git <- suppressWarnings(tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) ""))
-if (length(git) != 1 || !nzchar(git)) git <- "unknown"
 attr(pPD.pvalues, "provenance") <- c(
-  date = format(Sys.time(), "%Y-%m-%d %H:%M"), commit = git,
-  package = paste("EcoPhyloSim", packageVersion("EcoPhyloSim")),
+  date = format(Sys.time(), "%Y-%m-%d %H:%M"), commit = gitDescribe(),
+  package = paste("EcoPhyloSim", packageVersion("EcoPhyloSim", lib.loc = lib)),
   R = R.version.string, platform = R.version$platform, generations = generations,
   reseeded = paste(attr(res, "reseeded"), collapse = " "))
 pPD.positions <- list(x = 1:7, y = c(4, 1, 2, 3),

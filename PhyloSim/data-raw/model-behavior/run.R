@@ -1,53 +1,55 @@
 # Runs the simulations of design.R with one model version and saves the
 # indicators of each simulation (indicators.R) in a cache folder, one .rds file
-# per simulation, and its raw output (species map, phylogeny, trait maps of the first
-# replicate) in raw/; finished simulations are skipped (failed ones are rerun), so an
-# interrupted run resumes. The cache is turned into an archive with archive.R.
-# See README.md.
+# per simulation, and its raw output (maps of the last six censuses, phylogeny) in
+# raw/; finished simulations are skipped (failed ones are rerun), so an
+# interrupted run resumes. A complete run of mode main without failed simulations
+# is archived with archive.R. See README.md.
 #
 # Run from the repository root:
-#   Rscript PhyloSim/data-raw/model-behavior/run.R <mode> <cores> <version> <cache folder> lib=<libraries>
-#     [<blocks>] [part=i/n]
+#   Rscript PhyloSim/data-raw/model-behavior/run.R <mode> <cores> <version> <commit or tag> [<blocks>] [part=i/n]
 # <mode>: main or test (design.R); <version>: a name in `versions` of adapters.R.
-# lib=: the library into which installVersion.R installed the simulated commit,
-# followed by the libraries of its dependencies (separated by ";" on Windows and
-# ":" otherwise); each simulation runs in its own R process with that package.
-# The commit and package name are taken from INSTALLINFO.txt of that library.
-# The current EcoPhyloSim must be installed in the default library (indicators).
-# Environment variable MB_MIN_FREE_GB (default 30): free memory to wait for
+# The commit and the EcoPhyloSim that computes the indicators (`indicatorCommit` of
+# design.R) are installed into lib/ if missing; the cache is
+# cache/<mode>_<version>_<commit>/ (folders in the main checkout, see README.md).
+# Each simulation runs in its own R process with the package of the commit.
+# Environment variable MB_MIN_FREE_GB (default 16): free memory to wait for
 # before each simulation (checked on Windows only).
 
-if (!file.exists("PhyloSim/data-raw/model-behavior/design.R")) stop("run from the repository root")
-library(EcoPhyloSim)
-sources <- file.path("PhyloSim", "data-raw", "model-behavior", c("design.R", "indicators.R", "adapters.R"))
+source("PhyloSim/data-raw/model-behavior/common.R")
+sources <- file.path(mb, c("common.R", "design.R", "adapters.R"))
 for (f in sources) source(f)
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) < 4) stop("usage: run.R <mode> <cores> <version> <commit or tag> [<blocks>] [part=i/n]")
 mode <- args[1]
 nCores <- as.integer(args[2])
 version <- args[3]
-cacheDir <- args[4]
 rest <- args[-(1:4)]
-lib <- sub("^lib=", "", grep("^lib=", rest, value = TRUE))
 part <- grep("^part=", rest, value = TRUE)
-blocks <- rest[!grepl("^(lib|part)=", rest)]
+blocks <- rest[!grepl("^part=", rest)]
+if (is.null(modes[[mode]])) stop("unknown mode ", mode)
 if (is.null(versions[[version]])) stop("unknown version ", version)
-if (!length(lib)) stop("lib=<libraries> is needed (install the commit with installVersion.R)")
-# commit and package of the simulated version, recorded by installVersion.R
-info <- file.path(strsplit(lib, .Platform$path.sep)[[1]][1], "INSTALLINFO.txt")
-if (!file.exists(info)) stop(info, " not found; install the commit with installVersion.R")
-info <- readLines(info)
-commit <- sub("^commit: ", "", grep("^commit: ", info, value = TRUE))
-package <- strsplit(sub("^package: ", "", grep("^package: ", info, value = TRUE)), " ")[[1]][1]
-if (length(commit) != 1 || is.na(package)) stop("commit or package missing in INSTALLINFO.txt")
 
-# commit of the scripts, or "unknown" outside a git checkout
-gitDescribe <- function() {
-  d <- suppressWarnings(tryCatch(system("git describe --always --dirty", intern = TRUE), error = function(e) ""))
-  if (length(d) == 1 && nzchar(d)) d else "unknown"
-}
+# the EcoPhyloSim of the indicators, the same for all versions; R_LIBS is set
+# before the workers start, which do not see .libPaths() of this session (#190)
+indLib <- libraryOf(indicatorCommit)
+Sys.setenv(R_LIBS = indLib)
+.libPaths(c(indLib, .libPaths()))
+library(EcoPhyloSim, lib.loc = indLib)
+sources <- c(sources, file.path(mb, "indicators.R"))
+source(sources[4])
+indicators <- installInfo(indLib, "commit")
+# the simulated commit, its package and the name of its archive (release number,
+# or the package version for a development version)
+lib <- libraryOf(args[4], isTRUE(versions[[version]]$oldDeps))
+commit <- installInfo(lib, "commit")
+pkg <- strsplit(installInfo(lib, "package"), " ")[[1]]
+package <- pkg[1]
+archiveName <- paste0(if (mode != "main") paste0(mode, "-"), if (version == "current") pkg[2] else version,
+                      "_", substr(commit, 1, 7))
+cacheDir <- cacheOf(mode, version, commit)
 
 runTask <- function(task) {
-  minFree <- as.numeric(Sys.getenv("MB_MIN_FREE_GB", "30"))
+  minFree <- as.numeric(Sys.getenv("MB_MIN_FREE_GB", "16"))
   freeGB <- function() if (.Platform$OS.type != "windows") NA else
     tryCatch(as.numeric(system2("powershell", c("-NoProfile", "-Command",
       "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"), stdout = TRUE)) / 1024^2,
@@ -67,25 +69,25 @@ runTask <- function(task) {
       saveRDS(par, tmp[1])
       Sys.setenv(R_LIBS = lib)
       log <- sub("\\.rds$", ".log", task$file)
-      status <- system2(file.path(R.home("bin"), "Rscript"),
-                        shQuote(c("PhyloSim/data-raw/model-behavior/simulate.R", package, tmp[1], tmp[2])),
-                        stdout = log, stderr = log)
+      status <- system2(Rscript, shQuote(c(simScript, package, tmp[1], tmp[2])), stdout = log, stderr = log)
       if (status != 0 || !file.exists(tmp[2])) stop("simulation failed (exit status ", status, "), see ", log)
       unlink(log)
       sim <- readRDS(tmp[2])
       set.seed(task$seed) # R-side randomness of the indicators (sac(), nullModel())
       r <- behavior(sim, censusTimes(task$generations))
-      # raw output of the last census, kept only locally (not in the archive tables): species map
-      # and phylogeny of each replicate, trait maps of the first replicate
-      final <- sim$Output[[length(sim$Output)]]
-      keep <- c("specMat", "phylogeny", if (task$rep == 1) c("traitMat", "compMat", "neutMat"))
+      # raw output, kept only locally (not in the archive tables), enough to recompute the
+      # indicators at the end: all maps of the last six censuses (CNDD) and the last phylogeny
+      last <- length(sim$Output)
+      lastSix <- max(1, last - 5):last
+      maps <- c("specMat", "traitMat", "envMat", "compMat", "neutMat")
+      raw <- list(runs = sim$Model$runs[lastSix], Output = lapply(lastSix, function(i)
+        sim$Output[[i]][intersect(c(maps, if (i == last) "phylogeny"), names(sim$Output[[i]]))]))
       dir.create(file.path(dirname(task$file), "raw"), showWarnings = FALSE)
-      saveRDS(final[intersect(keep, names(final))], file.path(dirname(task$file), "raw", basename(task$file)),
-              compress = "xz")
+      saveRDS(raw, file.path(dirname(task$file), "raw", basename(task$file)), compress = "xz")
       r$specMat <- NULL
       # parameters actually used, including the defaults of the version
       model <- sim$Model[vapply(sim$Model, function(v) is.atomic(v) && length(v) == 1, logical(1))]
-      c(r, list(runtime = sim$Model$runtime, package = sim$packageVersion,
+      c(r, list(runtime = sim$Model$runtime, package = sim$packageVersion, indicators = indicators,
                 parameters = paste(names(model), model, sep = "=", collapse = "; ")))
     }
   }, error = function(e) list(error = conditionMessage(e)))
@@ -100,7 +102,7 @@ runTask <- function(task) {
   invisible(NULL)
 }
 
-tasks <- taskTable(mode, cacheDir)
+allTasks <- tasks <- taskTable(mode, cacheDir)
 if (length(blocks)) tasks <- tasks[tasks$block %in% blocks, ]
 if (length(part)) {
   p <- as.integer(strsplit(sub("part=", "", part), "/")[[1]])
@@ -115,41 +117,52 @@ for (i in which(done)) {
   keys <- c(names(base), "generations", "seed")
   if (!all(keys %in% names(old$task)) ||
       !isTRUE(all.equal(old$task[keys], tasks[i, keys], check.attributes = FALSE)))
-    stop(tasks$file[i], " was run with other parameters, generations or seed; use a new cache folder")
+    stop(tasks$file[i], " was run with other parameters, generations or seed; delete the cache folder")
   if (!is.null(old$error)) done[i] <- FALSE
 }
 tasks <- tasks[!done, ]
-# runs of record only from committed scripts in a git checkout, so that RUNINFO.txt names them
-if (mode == "main" && (gitDescribe() == "unknown" ||
-    length(suppressWarnings(system("git status --porcelain -- PhyloSim/data-raw/model-behavior/*.R", intern = TRUE)))))
-  stop("mode main runs only from a git checkout with committed scripts (PhyloSim/data-raw/model-behavior/*.R)")
+scripts <- file.path(mb, c("common.R", "design.R", "indicators.R", "adapters.R", "run.R", "simulate.R",
+                           "archive.R", "installVersion.R", "installOldDeps.R"))
+if (mode == "main") {
+  # runs of record only from committed scripts in a git checkout, so that RUNINFO.txt names them
+  if (gitDescribe() == "unknown" || length(suppressWarnings(system(
+      paste("git status --porcelain --", paste(scripts, collapse = " ")), intern = TRUE))))
+    stop("mode main runs only from a git checkout with committed scripts (", mb, ")")
+  # a resumed run uses the scripts of its first start (copies in the cache)
+  first <- sort(list.files(cacheDir, "^run-.*\\.R$"))[1]
+  if (!is.na(first)) {
+    copies <- file.path(cacheDir, sub("\\.R$", sub("^run", "", first), basename(scripts)))
+    if (!all(file.exists(copies)) || any(tools::md5sum(copies) != tools::md5sum(scripts)))
+      stop("the scripts differ from those of the first start of the run in ", cacheDir, "; delete the cache folder")
+  }
+}
 dir.create(cacheDir, showWarnings = FALSE, recursive = TRUE)
-message(nrow(tasks), " simulations to run on ", nCores, " cores")
+message(nrow(tasks), " simulations to run on ", nCores, " cores in ", cacheDir)
 # record the run and keep copies of the scripts in the cache (archived by archive.R)
 stamp <- format(Sys.time(), "%Y%m%d-%H%M")
-for (f in file.path("PhyloSim", "data-raw", "model-behavior", c("design.R", "indicators.R", "adapters.R", "run.R", "simulate.R")))
-  file.copy(f, file.path(cacheDir, sub("\\.R$", paste0("-", stamp, ".R"), basename(f))))
-cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libraries %s, indicators with EcoPhyloSim %s\n",
-            format(Sys.time()), mode, version, nrow(tasks), nCores, lib,
-            packageVersion("EcoPhyloSim")),
-    sprintf("simulated package: %s, commit %s (INSTALLINFO.txt)\n", package, commit),
-    sprintf("scripts commit: %s (git describe at the start)\n",
-            gitDescribe()),
+for (f in scripts) file.copy(f, file.path(cacheDir, sub("\\.R$", paste0("-", stamp, ".R"), basename(f))))
+simScript <- file.path(cacheDir, paste0("simulate-", stamp, ".R")) # the copy, not the checkout
+cat(sprintf("%s: run %s, version %s, %d simulations on %d cores, simulation libraries %s\n",
+            format(Sys.time()), mode, version, nrow(tasks), nCores, lib),
+    sprintf("simulated package: %s, commit %s (INSTALLINFO.txt)\n", paste(pkg, collapse = " "), commit),
+    sprintf("indicators: EcoPhyloSim %s, commit %s\n", packageVersion("EcoPhyloSim"), indicators),
+    sprintf("scripts commit: %s (git describe at the start)\n", gitDescribe()),
+    sprintf("archive: %s\n", archiveName),
     file = file.path(cacheDir, "RUNINFO.txt"), append = TRUE, sep = "")
 # provenance: command, R, platform, and the packages of all libraries used
-libs <- c(strsplit(lib, .Platform$path.sep)[[1]], .libPaths())
-installInfo <- file.path(libs, "INSTALLINFO.txt")
-writeLines(c(paste("command: Rscript PhyloSim/data-raw/model-behavior/run.R", paste(commandArgs(trailingOnly = TRUE), collapse = " ")),
+libs <- unique(c(strsplit(lib, .Platform$path.sep)[[1]], .libPaths()))
+info <- file.path(libs, "INSTALLINFO.txt")
+writeLines(c(paste("command: Rscript", file.path(mb, "run.R"), paste(args, collapse = " ")),
              paste("platform:", R.version$platform, "-", paste(Sys.info()[c("sysname", "release")], collapse = " ")),
              "", "Session of the indicators:", capture.output(sessionInfo()), "",
              "Installations of the libraries used (INSTALLINFO.txt of installVersion.R):",
-             unlist(lapply(installInfo[file.exists(installInfo)], readLines)), "",
+             unlist(lapply(info[file.exists(info)], readLines)), "",
              "Packages in the libraries (searched in this order by the simulations):",
              capture.output(print(installed.packages(libs)[, c("Package", "Version", "LibPath")],
                                   quote = FALSE, row.names = FALSE))),
            file.path(cacheDir, paste0("SESSION-", stamp, ".txt")))
 cl <- parallel::makeCluster(nCores)
-parallel::clusterExport(cl, c("sources", "version", "lib", "package"))
+parallel::clusterExport(cl, c("sources", "version", "lib", "package", "simScript", "indicators"))
 parallel::clusterEvalQ(cl, { library(EcoPhyloSim); for (f in sources) source(f) })
 # longest tasks first, for better load balancing (rough cost: cells x dispersal
 # kernel size x competition neighborhood size)
@@ -159,3 +172,11 @@ tasks <- tasks[order(-tasks$generations * tasks$x * tasks$y * kernel * neighborh
 # chunk.size = 1: each worker takes the next single task
 invisible(parallel::parLapplyLB(cl, split(tasks, seq_len(nrow(tasks))), runTask, chunk.size = 1))
 parallel::stopCluster(cl)
+
+# archive a complete run of mode main without failed simulations (archive.R as at the start)
+if (mode == "main" && !length(blocks) && !length(part)) {
+  failed <- sum(vapply(allTasks$file, function(f) !file.exists(f) || !is.null(readRDS(f)$error), logical(1)))
+  if (failed) message(failed, " simulations failed; rerun run.R to retry them, or archive the run as it is with\n",
+                      "  Rscript ", file.path(mb, "archive.R"), " ", cacheDir) else
+    system2(Rscript, shQuote(c(file.path(mb, "archive.R"), cacheDir)))
+}

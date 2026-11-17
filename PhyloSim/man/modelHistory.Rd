@@ -29,8 +29,9 @@ that alter results: \code{date}, \code{kind} (release or change), release
 per seed change, but no change of their distributions was detected; B: patterns change; S: parameters renamed or redefined;
 S+B: both), the \code{change}, its effect on the \code{outputs} and the
 \code{evidence}.}
-\item{info}{the runs used, the version of the scripts and
-of R.}
+\item{info}{the runs used, the commit of the EcoPhyloSim that computed the
+indicators of all runs (\code{indicators}; missing for the runs made with the
+earlier script), the version of the scripts and of R.}
 }
 }
 \source{

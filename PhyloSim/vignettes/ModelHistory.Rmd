@@ -90,8 +90,9 @@ with the same design (one or two parameters varied around a reference setting,
 where both runs have them), and indicators of diversity, spatial structure,
 traits and phylogeny are compared between releases. Single changes between
 releases are tested one by one to attribute the differences to them. Use it to
-check whether results obtained with an earlier release still hold, and to
-understand why they may differ. The main vignette ("The EcoPhyloSim R Package",
+understand how changes of the processes in the model changed its outputs, and to
+check whether the patterns documented here changed between releases; to check a
+setting of your own, rerun it with both releases (see the last section). The main vignette ("The EcoPhyloSim R Package",
 `vignette("PhyloSimManual", package = "EcoPhyloSim")`) describes the current model.
 
 **Status.** Runs of the design so far: `r paste(runs, collapse = ", ")` (version
@@ -164,7 +165,7 @@ key <- list(
 indicators <- c(richness = "Richness", conspecificNeighbors = "Conspecific neighbors",
                 corTraitEnv = "Cor(trait, environment)", sdCompetitionTrait = "SD competition trait",
                 colless = "Colless index", gamma = "Gamma statistic",
-                meanSpeciesAge = "Mean species age", cndd = "CNDD (mortality)")
+                shannon = "Shannon index", cndd = "CNDD (mortality)")
 stat <- function(d, k, i) {
   d <- d[d$indicator == i, ]
   for (p in names(k)) if (p %in% names(d)) d <- d[d[[p]] == k[[p]], ]
@@ -210,18 +211,27 @@ that differ with 30 replicates and tests whether their distributions differ.
 Measured differences are settings where the replicate means of two consecutive
 runs differ significantly (Welch test from mean, sd and number of replicates,
 false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
-runtime and the share of failed simulations not tested); d is the difference (newer minus older) in units of the
-pooled standard deviation. With 30 replicates per run, a single test detects a
-difference of d = `r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a
-probability of 80%; smaller changes, and changes of the variance or shape of a
-distribution, can remain undetected, so "no difference" does not prove that a
-pattern is unchanged.
+runtime, the share of failed simulations and the species age not tested, as the
+age is estimated from the species IDs, whose numbering and pruning differ between
+versions); d is the difference (newer minus older) in units of the
+pooled standard deviation, with an approximate 95% confidence interval, so that
+the size of a difference can be judged (the table lists the largest first). With
+30 replicates per run, a significant difference has |d| > 0.5, and a single test
+detects d =
+`r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a probability of 80%,
+but as a pair of runs is compared in about a thousand tests, a difference needs to
+be larger to be found reliably (d =
+`r round(power.t.test(n = 30, power = 0.8, sig.level = 0.05 / 1000)$delta, 2)` at
+the Bonferroni level; the false discovery rate lies in between). Smaller changes,
+and changes of the variance or shape of a distribution, can remain undetected, so
+"no difference" does not prove that a pattern is unchanged. The share of failed
+simulations per setting is compared with Fisher's exact test, and comparisons in
+which a run has fewer than 20 replicates with a value (failed simulations,
+undefined indicators) are counted, as their means may refer to a different subset
+of replicates.
 
 ```{r detail, results = "asis"}
 compareRuns <- function(o, w) {
-  # runtime is machine-dependent, failed has no variance
-  o <- o[!o$indicator %in% c("runtime", "failed"), ]
-  w <- w[!w$indicator %in% c("runtime", "failed"), ]
   # a parameter of only one run: keep only its most frequent value there (the default)
   p <- params[vapply(params, function(x) any(!is.na(o[[x]])) && any(!is.na(w[[x]])), logical(1))]
   for (x in setdiff(params, p)) {
@@ -231,15 +241,27 @@ compareRuns <- function(o, w) {
   k <- function(d) do.call(paste, c(lapply(d[c(p, "indicator")], as.character), sep = "|"))
   m <- merge(cbind(key = k(o), o), cbind(key = k(w), w[c("mean", "sd", "n")]), by = "key",
              suffixes = c(".old", ".new"))
+  # share of failed simulations (mean of `failed` over all simulations of a setting)
+  f <- m[m$indicator == "failed", ]
+  f$p.adj <- p.adjust(unlist(Map(function(a, n1, b, n2) fisher.test(matrix(c(a, n1 - a, b, n2 - b), 2))$p.value,
+                                 round(f$mean.old * f$n.old), f$n.old, round(f$mean.new * f$n.new), f$n.new)), "BH")
+  # runtime is machine-dependent; the species age is estimated from the species IDs,
+  # whose numbering and pruning differ between versions
+  m <- m[!m$indicator %in% c("failed", "runtime", "meanSpeciesAge", "corAgeAbundance"), ]
   se2 <- m$sd.old^2 / m$n.old + m$sd.new^2 / m$n.new
   df <- se2^2 / ((m$sd.old^2 / m$n.old)^2 / (m$n.old - 1) + (m$sd.new^2 / m$n.new)^2 / (m$n.new - 1))
   m$p.adj <- p.adjust(2 * pt(-abs(m$mean.new - m$mean.old) / sqrt(se2), df), "BH")
   m$d <- (m$mean.new - m$mean.old) / sqrt((m$sd.old^2 + m$sd.new^2) / 2)
-  sig <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
-  cat(nrow(sig), " of ", sum(!is.na(m$p.adj)), " comparisons significant.\n\n", sep = "")
-  shown <- unique(c("block", p[vapply(sig[p], function(x) length(unique(x)) > 1, logical(1))]))
-  if ("generations" %in% shown) sig$generations <- format(sig$generations, scientific = FALSE, big.mark = ",")
-  if (nrow(sig)) print(knitr::kable(sig[c(shown, "indicator", "mean.old", "mean.new", "d", "p.adj")],
+  se.d <- sqrt((m$n.old + m$n.new) / (m$n.old * m$n.new) + m$d^2 / (2 * (m$n.old + m$n.new)))
+  m$"95% CI of d" <- sprintf("%.2f to %.2f", m$d - 1.96 * se.d, m$d + 1.96 * se.d)
+  rel <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
+  rel <- rel[order(-abs(rel$d)), ]
+  cat(nrow(rel), " of ", sum(!is.na(m$p.adj)), " comparisons differ significantly; ", sum(m$n.old < 20 | m$n.new < 20),
+      " rest on fewer than 20 replicates in a run. The share of failed simulations differs in ",
+      sum(f$p.adj < 0.05, na.rm = TRUE), " of ", nrow(f), " settings.\n\n", sep = "")
+  shown <- unique(c("block", p[vapply(rel[p], function(x) length(unique(x)) > 1, logical(1))]))
+  if ("generations" %in% shown) rel$generations <- format(rel$generations, scientific = FALSE, big.mark = ",")
+  if (nrow(rel)) print(knitr::kable(rel[c(shown, "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
                                     digits = 3, row.names = FALSE))
 }
 for (v in rev(rel$version)) {
@@ -298,33 +320,34 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
 | Cor(trait, environment) | correlation of the environmental trait and the environment over all cells |
 | SD competition trait, SD neutral trait | standard deviation of the traits over all cells (neutral trait: runs made with `run.R`) |
 | Colless index, gamma statistic, tree height | of the phylogeny of the extant species (Colless index normalized against the Yule model; tree height: runs made with `run.R`) |
-| Mean species age, cor(age, abundance) | age of a species from its ID (IDs are counted up at each speciation); Spearman correlation with abundance |
+| Mean species age, cor(age, abundance) | age of a species from its ID (IDs are counted up at each speciation); Spearman correlation with abundance; not compared between versions, whose numbering of species and pruning of the phylogeny differ |
 | CNDD (mortality) | logistic regression of death on the number of conspecifics within radius 2 over the last five generations, with a species effect |
 | MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities (runs made with `run.R`); such p-values depend on the plot size and the null model |
 | Runtime | of the core simulation, in seconds (machine-dependent, not tested) |
 
 # Reproducing the data
 
-The simulations are run with the scripts in the folder `data-raw/model-behavior` of the
-package repository (<https://github.com/TheoreticalEcology/EcoPhyloSim>), which
-also documents every step (`data-raw/model-behavior/README.md`). In short, from the
-repository root:
+The simulations are run with the scripts in the folder
+`PhyloSim/data-raw/model-behavior` of the package repository
+(<https://github.com/TheoreticalEcology/EcoPhyloSim>); its `README.md` describes
+every step. Each simulation has its own seed, which depends only on the block,
+the parameters that differ from the reference setting and the replicate, so
+results do not depend on the number of cores; since #175, they no longer depend
+on the random number library of the compiler. All releases are evaluated with the
+same installation of EcoPhyloSim for the indicators. Each run records the command,
+the platform and the versions of all packages; the archives of the release runs,
+with the results per replicate, are attached to the GitHub releases from release
+0.3.2 on.
 
-```{bash, echo = TRUE, eval = FALSE}
-# install a release into its own library and run the design with it (12 cores)
-Rscript PhyloSim/data-raw/model-behavior/installVersion.R v0.3.1 ../lib-0.3.1
-Rscript PhyloSim/data-raw/model-behavior/run.R main 12 0.3.1 ../cache-0.3.1 lib=../lib-0.3.1
-# per-replicate archive, summary per setting, and the data set modelHistory
-Rscript PhyloSim/data-raw/model-behavior/archive.R ../cache-0.3.1 ../EcoPhyloSim-runs 0.3.1 <commit>
-Rscript PhyloSim/data-raw/model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1_<commit>
-Rscript PhyloSim/data-raw/model-behavior/makeData.R
-```
+## Rerunning a setting with an earlier release
 
-Releases 0.2 and 0.3 also need archived dependencies (see the README). In runs
-made with `run.R`, each simulation has its own seed, which depends only on the
-mode, the block, the parameters that differ from the reference setting and the
-replicate, so results do not depend on the number of cores. Since #175, results
-for a given seed no longer depend on the random number library of the compiler.
-Runs made with `run.R` record the command, the platform and the versions of all
-packages; the archives of the release runs with the results per replicate are to
-be attached to the GitHub releases. Single changes are attributed with `attribution.R`.
+To check a result of your own, run its setting with both releases and compare
+the outputs. Releases from 0.3.1 on can be installed directly, e.g.
+`remotes::install_github("TheoreticalEcology/EcoPhyloSim@v0.3.1", subdir = "PhyloSim")`;
+install them into a separate library (argument `lib` of `install.packages()` or
+`remotes::install_github()`), so that the current version stays installed.
+Releases 0.2 and 0.3 (package name PhyloSim) need build fixes and archived
+dependencies; the script `installVersion.R` of the folder above installs any
+release or commit with them. Note the changes of type S above: the same call can
+mean a different model in another release (e.g. `density` became `negativeDD`,
+and the combination of fitness terms changed in #172).

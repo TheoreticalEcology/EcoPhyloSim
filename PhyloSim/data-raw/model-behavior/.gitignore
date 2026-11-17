@@ -1,0 +1,7 @@
+# archives, caches and libraries of the runs (see README.md); kept in the main checkout,
+# not committed (release archives are attached to the GitHub releases)
+archives/
+cache/
+lib/
+# summaries of development runs (version x.y.z.9000); only release runs are committed
+runs/*.9000_*.csv

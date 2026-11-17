@@ -48,23 +48,16 @@ censusStats <- function(sim, i) {
 }
 
 # conspecific density dependence of mortality over the last consecutive
-# generations: logistic regression of death on the number of conspecifics
-# within radius 2, with a species effect (pooled), and per species with at
-# least 50 observations
+# generations: coefficient of the number of conspecifics within radius 2 in a
+# logistic regression of death, with a species effect
 cndd <- function(sim, last) {
   sub <- sim
   sub$Output <- sim$Output[last]
   sub$Model$runs <- sim$Model$runs[last]
   d <- EcoPhyloSim::getMortalityData(sub, radius = 2)
   d <- d[d$interval == 1, ]
-  pooled <- if (length(unique(d$species)) < 2) NA else
+  if (length(unique(d$species)) < 2) NA else
     tryCatch(coef(glm(died ~ con + factor(species), binomial, data = d))[["con"]], error = function(e) NA)
-  bySpecies <- do.call(rbind, lapply(split(d, d$species), function(s) {
-    if (nrow(s) < 50 || length(unique(s$con)) < 2) return(NULL)
-    data.frame(abundance = nrow(s) / length(unique(d$census)), slope = tryCatch(
-      coef(glm(died ~ con, binomial, data = s))[["con"]], error = function(e) NA))
-  }))
-  list(pooled = pooled, bySpecies = bySpecies)
 }
 
 # all indicators of one simulation: time series at the censuses and, at the
@@ -73,12 +66,10 @@ cndd <- function(sim, last) {
 # communities drawn from the whole grid; small: clustered, large: overdispersed)
 behavior <- function(sim, censuses) {
   last <- length(sim$Output)
-  mort <- cndd(sim, last - 5:0)
   final <- sim$Output[[last]]
   list(census = do.call(rbind, lapply(which(sim$Model$runs %in% censuses), censusStats, sim = sim)),
        decay = distanceDecay(final$specMat),
-       cndd = mort$pooled,
-       cnddSpecies = mort$bySpecies,
+       cndd = cndd(sim, last - 5:0),
        mpdLocal = tryCatch(mean(EcoPhyloSim::nullModel(sim, which.result = last, localPlotSize = 10,
                                                        numberOfPlots = 20, repetitions = 99), na.rm = TRUE),
                            error = function(e) NA),

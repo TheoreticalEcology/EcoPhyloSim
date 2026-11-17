@@ -1,99 +1,170 @@
 # Model behavior across versions
 
-Scripts that document how the biological behavior of EcoPhyloSim changes between
-versions (issues #180, #181). Each version runs the same simulation design; the
-indicators are computed with the current package (in the runs of 0.3.1 and #172,
-made with the earlier script, with the simulated version). The runs give the data
-set `packageBehavior` (chapter "Emerging patterns" of the main vignette, from the
-run of the current version) and the data set `modelHistory` (vignette "Model
-history", from the runs of all versions). The `packageBehavior` of release 0.3.1
-was still made with the earlier script `PhyloSim/data-raw/packageBehavior.R`
-(see tag v0.3.1), which these scripts replace.
-
-The per-replicate archives are not tracked in git (they are too large; `runs/`
-keeps one summary per run), but everything needed to regenerate them is: the
-scripts, the design, the commits of the simulated versions, and in each run and
-archive the exact command, platform and package versions. The runs of 0.3.1
-(852c61e) and of #172 (2331720) were still made with the earlier script; copies of
-it are in their archives. The data sets in `PhyloSim/data/` are committed only at
-releases. `makeData.R packageBehavior <archive>` builds `packageBehavior` in a
-new format (all censuses in `main`, no `pilot` and no CNDD coefficients of single
-species); the chapter "Emerging patterns"
-is adapted to it with the next run of the current version (#180), so until then
-build only `modelHistory`.
+Scripts that document how the behavior of EcoPhyloSim changes between versions
+(#180, #181). Every version runs the same simulation design (`design.R`), and the
+indicators of all runs are computed with one fixed installation of EcoPhyloSim
+(`indicatorCommit` in `design.R`). The runs give two data sets of the package:
+`packageBehavior` (chapter "Emerging patterns" of the main vignette, from the run
+of the current version) and `modelHistory` (vignette "Model history", from the
+runs of all versions, with the changes in `changes.csv`). Run all commands from
+the repository root; after editing a script, check it with a run of mode `test`
+(a few minutes, see below).
 
 ## Files
 
-- `design.R`: blocks of settings, replicates, run lengths, censuses and seeds.
-  Parameter names are those of release 0.3.1 (e.g. `density`), and the current
-  names for parameters added later.
+- `design.R`: blocks of settings, replicates, run lengths, censuses, seeds and
+  `indicatorCommit`. Parameter names are those of release 0.3.1 (e.g. `density`),
+  and the current names for parameters added later.
 - `indicators.R`: all indicators of one simulation (`behavior()`).
 - `adapters.R`: the model versions (`versions`: package name, supported
-  parameters, renamed arguments) and `adapt()`, which maps a task to the
-  arguments of `createCompletePar()` of a version.
-- `installVersion.R`, `installOldDeps.R`: install the package of any commit or
-  tag into its own library, and the archived dependencies of the old versions.
-- `run.R`, `simulate.R`: run the design with one installed version, each
-  simulation in its own R process.
-- `archive.R`: turns the cache of a run into the archive (tables, raw outputs and
-  README).
-- `addRun.R`: writes the summary of an archive (mean, sd and n per setting and
-  indicator at the last census, and the share of failed simulations) to `runs/`.
+  parameters, renamed arguments, archived dependencies) and `adapt()`, which maps
+  a task to the arguments of `createCompletePar()` of a version.
+- `run.R`, `simulate.R`: run the design with one commit, each simulation in its
+  own R process; `run.R` installs the commit and the indicators if needed and
+  archives a complete run.
+- `archive.R`: turns the cache of a run into its archive and writes its summary
+  to `runs/`.
 - `makeData.R`: builds `modelHistory` from `runs/` and `changes.csv`, and, if
   asked for, `packageBehavior` from the archive of the current version.
-- `changes.csv`: releases and the changes of the model code that change results,
-  with their effects, the evidence and the settings of the attribution runs.
+- `attribution.R`: tests single changes against their parent commit.
+- `installVersion.R`, `installOldDeps.R`: install the package of a commit or tag
+  into its own library, and the archived dependencies of the old versions (called
+  by `run.R`).
+- `common.R`: helpers of the scripts.
 - `pPD.R`: the example data sets `pPD.pvalues` and `pPD.positions` of
-  `plotPhylogeneticDispersion()` (one run per scenario, rerun at each release;
-  `attr(pPD.pvalues, "provenance")` records date, commit, package and R version).
-- `attribution.R`: tests single changes against their parent commit (stages 1
-  and 2, see below).
+  `plotPhylogeneticDispersion()` (one run per scenario; the attribute
+  `provenance` of `pPD.pvalues` records the run).
+- `changes.csv`: releases and the changes of the model code that change results
+  (type N: results per seed change, but no change of their distributions was
+  detected; B: patterns change; S: parameters renamed or redefined; S+B: both),
+  with their effects, the evidence and the settings for `attribution.R`.
+- `runs/<version>_<commit>.csv`: summary of the run of a version (mean, sd and n
+  per setting and indicator at the last census, runtime, share of failed
+  simulations); only runs of releases are committed (summaries of development
+  versions, `*.9000_*.csv`, are ignored by git).
 
-## Workflow (from the repository root)
+Requirements: git in the PATH, a compiler for R packages (Rtools on Windows), and
+in the default library the packages that the old and the current versions import
+(e.g. `Rcpp`, `ape`, `picante`, `treestats`). The scripts install the model from
+the committed state of a commit (`git archive`), so uncommitted changes of the
+model code are not simulated.
 
-    Rscript PhyloSim/data-raw/model-behavior/installVersion.R HEAD ../lib-current
-    Rscript PhyloSim/data-raw/model-behavior/run.R main 12 current ../cache-current lib=../lib-current
-    Rscript PhyloSim/data-raw/model-behavior/archive.R ../cache-current ../EcoPhyloSim-runs 0.3.1.9000 <commit>
-    Rscript PhyloSim/data-raw/model-behavior/addRun.R ../EcoPhyloSim-runs/0.3.1.9000_<commit>
+## Folders not in git
+
+`archives/`, `cache/` and `lib/` are ignored by git (`.gitignore`). The scripts
+always use those of the main checkout of the repository, also when they run in a
+git worktree, which can be removed together with its files. `git clean -x`
+deletes them.
+
+- `archives/<version>_<commit>/`: the archive of a run: per-replicate tables,
+  copies of the scripts, provenance, and raw outputs (`raw/`: all maps of the
+  last six censuses and the last phylogeny of each simulation, enough to
+  recompute the indicators at the end). Release archives are attached to the
+  GitHub release without `raw/`: `tar -czf <archive>.tar.gz --exclude=raw <archive>`
+  (about 10 MB); development and attribution runs stay local.
+- `cache/<mode>_<version>_<commit>/`: the cache of a run of `run.R`; can be
+  deleted once archived.
+- `lib/<commit>/`, `lib/olddeps/`: libraries of `installVersion.R` and
+  `installOldDeps.R`.
+
+Archives in the main checkout of the maintainer's machine:
+
+| Archive | Content |
+|---|---|
+| `0.3.1_852c61e` | run of the pre-release commit of 0.3.1 (not the tag) with the earlier script; 3010 simulations; not published |
+| `0.3.1.9000_2331720` | run of #172 with the earlier script; 3010 simulations; not published |
+| `legacy/` | runs of the earlier script `packageBehavior.R` (with the cache of 852c61e and a partial pilot of a92899d) and their earlier index |
+
+## Running a version
+
+    Rscript PhyloSim/data-raw/model-behavior/run.R main 12 current HEAD
+    Rscript PhyloSim/data-raw/model-behavior/run.R main 12 0.3.1 v0.3.1
     Rscript PhyloSim/data-raw/model-behavior/makeData.R
-    # only once the chapter "Emerging patterns" is adapted to the new format (#180):
-    Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior ../EcoPhyloSim-runs/0.3.1.9000_<commit>
-    # at each release, the example data of plotPhylogeneticDispersion():
-    Rscript PhyloSim/data-raw/model-behavior/pPD.R 12
 
-- Modes (`design.R`): `main` (30 replicates, the runs of record; its censuses
-  also give the time to equilibrium) and `test` (2 replicates, 300 generations,
-  a quick check of the scripts and stage 1).
-- `run.R` takes the simulated commit and package name from `INSTALLINFO.txt` of
-  the library (written by `installVersion.R`). The current EcoPhyloSim computes
-  the indicators: install it in the default library, or, to record its commit,
-  with `installVersion.R` into a library put first in `R_LIBS`; `SESSION-*.txt`
-  then contains its `INSTALLINFO.txt`.
-- A `main` run of the earlier, smaller design took about 20 hours on 10 cores of a
-  Windows PC (2026, mostly the density blocks); the current design takes longer.
-  Results do not depend on the number of cores, as each simulation has its own seed.
-- Use a new cache folder per version and design (run.R stops if a cached
-  simulation was run with other parameters, generations or seeds, e.g. in caches
-  of earlier script versions). Interrupted runs resume; failed simulations are
-  run again.
-- Do not edit the scripts while a run is going: Rscript reads a script while it
-  runs. For long runs, use a separate git checkout.
-- `run.R` runs mode `main` only from a git checkout with committed scripts, so
-  that `RUNINFO.txt` names their commit.
-- The archive name must start with a version number; `<commit>` must match the
-  simulated commit in `RUNINFO.txt`. Existing archives are not overwritten (delete
-  the folder of a failed attempt).
-- Only the archives of release runs (at the release tag) are attached to the
-  GitHub release, without the raw outputs (`raw/`: species maps and phylogenies
-  of all simulations, trait maps of the first replicates), which stay local:
-  `tar -czf <archive>.tar.gz --exclude=raw <archive>`. Development and
-  attribution runs stay local.
+`run.R <mode> <cores> <version> <commit or tag>` runs the design with a commit;
+`<version>` is a name in `versions` of `adapters.R` (the release, or `current`).
+It installs the commit and `indicatorCommit` into `lib/` if they are missing and
+runs into `cache/<mode>_<version>_<commit>/`. Interrupted runs resume, and failed
+simulations are run again. A complete run of mode `main` without failed
+simulations is archived as `archives/<version>_<commit>/` (development
+versions: the package version, e.g. `0.3.1.9000`), and its summary is written
+to `runs/`. Otherwise (e.g. v0.2, where some simulations always crash, see below)
+archive it with `Rscript PhyloSim/data-raw/model-behavior/archive.R <cache folder>`,
+which keeps failed simulations as such; `archive.R <cache folder> partial` also
+archives runs of some blocks. Runs of mode `test` are archived as
+`test-<version>_<commit>`.
 
-## Older versions and single commits
+- Modes (`design.R`): `main` (30 replicates, the runs of record) and `test`
+  (2 replicates, 300 generations; a check of the scripts, e.g.
+  `run.R test 4 current HEAD gridShape fission`). Blocks after the commit restrict
+  the run to these blocks, `part=i/n` to every n-th simulation.
+- Mode `main` runs only with committed scripts, so that `RUNINFO.txt` names
+  their commit, and a resumed run only with the scripts of its first start.
+  Commit before a run; do not edit the scripts during a run.
+- A run of mode `main` takes days (about 20 hours on 10 cores for the earlier,
+  smaller design). Results do not depend on the number of cores, as each
+  simulation has its own seed.
+- `MB_MIN_FREE_GB` (default 16): free memory in GB that `run.R` waits for
+  before each simulation (Windows only).
+- `makeData.R` accepts one run per version in `runs/`, all with `indicatorCommit`;
+  `makeData.R packageBehavior <archive>` also builds `packageBehavior`.
 
-    Rscript PhyloSim/data-raw/model-behavior/installOldDeps.R ../lib-olddeps
-    Rscript PhyloSim/data-raw/model-behavior/installVersion.R v0.3 ../lib-v0.3 ../lib-olddeps
-    Rscript PhyloSim/data-raw/model-behavior/run.R main 12 0.3 ../cache-v0.3 "lib=../lib-v0.3;../lib-olddeps"
+## Release
+
+1. Freeze the model code of the release (all changes in `changes.csv`, see below,
+   with their attribution) and set the release version in `PhyloSim/DESCRIPTION`,
+   after which the archive is named (e.g. `0.3.2_<commit>`); commit. The run is
+   made with this commit; the tag follows in step 5, on a commit with the same
+   model code.
+2. Run the design with this commit (`run.R main <cores> current HEAD`), and
+   `pPD.R` (`Rscript PhyloSim/data-raw/model-behavior/pPD.R 12`).
+3. Delete the summaries of development runs from `runs/`, and run
+   `makeData.R packageBehavior <archive>`.
+4. Update the notes per release in `PhyloSim/vignettes/ModelHistory.Rmd` and the
+   description of the runs in the chapter "Emerging patterns".
+5. Commit `runs/` and the data sets, tag the release, add the release to
+   `versions` in `adapters.R` (a copy of `current`) and to `changes.csv`, and
+   attach the archive to the GitHub release (in `archives/`:
+   `tar -czf <archive>.tar.gz --exclude=raw <archive>`).
+
+A new `indicatorCommit` (e.g. a changed `nullModel()` or `sac()`) means new runs
+of all versions; the raw outputs in the archives allow recomputing the
+indicators at the end without new simulations, but no script does this yet.
+
+## When a pull request changes the model
+
+A change that alters simulation results or the meaning of arguments gets a row in
+`changes.csv` in its pull request: `kind` change, `version` the next release,
+`reference` the issue, `type` (N, B, S or S+B), the `change` and its expected
+effect on the `outputs`; new or renamed arguments are added to `design.R` and
+`adapters.R` (see Extending). After the merge, a maintainer fills in `date` and
+`commit` (the commit on `master`), and for the attribution `parent` (its parent
+commit), `adapter` and `parentAdapter` (the names in `versions` of `adapters.R`
+that run both, usually `current`) and, after stage 1, `stage2` (the blocks that
+differ); before the release, the maintainer runs the attribution below and fills
+in `evidence`.
+
+## Attribution of single changes
+
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R run 1 6
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R compare 1
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R run 2 6
+    Rscript PhyloSim/data-raw/model-behavior/attribution.R compare 2
+
+For each change in `changes.csv` with a `parent`, stage 1 runs mode `test` for
+the change and its parent with the same seeds and reports per block how many
+simulations have no result (failed or unsupported) and in how many the census
+indicators of the communities, species ages, tree statistics and the Colless
+index differ. Stage 2 runs mode `main` for the blocks in `stage2` (if the change
+itself crashes, `stage2Commit` gives another commit to compare with the parent)
+and compares the last census with paired t-tests over the replicates (same seeds;
+false discovery rate per change). Stage 2 can show a change of the
+distributions, but not prove that there is none. `compare` writes
+`cache/attribution-stage<stage>.csv`; enter the results in the column `evidence`
+of `changes.csv`. Commits after the run can be added to the command to run only
+these changes.
+
+## Older versions
 
 - `installVersion.R` applies build fixes only: v0.2 and v0.3 lack
   `src/RcppExports.cpp` (#102), which is generated with `Rcpp::compileAttributes()`;
@@ -102,46 +173,12 @@ build only `modelHistory`.
   archived on CRAN; `installOldDeps.R` installs `kulife` 0.1-14, `apTreeshape`
   1.5-0 with `cubature`, and `PhyloMeasures` 2.1. Their other dependencies (e.g.
   `ape`, `picante`, `quantreg`) must be in the default library.
-- Separate the libraries with `;` on Windows and `:` otherwise.
-- The version name (`0.3` above) selects the adapter in `adapters.R`.
-
-## Attribution of changes
-
-The columns `parent`, `adapter`, `parentAdapter`, `stage2` and `stage2Commit` of
-`changes.csv` give, for each change that is tested, its parent commit, the
-adapters of both, the blocks for stage 2 and, if stage 2 compares another commit
-with the parent (e.g. when the change itself crashes), that commit.
-
-    Rscript PhyloSim/data-raw/model-behavior/attribution.R run 1 6 ../attribution
-    Rscript PhyloSim/data-raw/model-behavior/attribution.R compare 1 ../attribution
-    Rscript PhyloSim/data-raw/model-behavior/attribution.R run 2 6 ../attribution
-    Rscript PhyloSim/data-raw/model-behavior/attribution.R compare 2 ../attribution
-
-Stage 1 runs mode `test` for each change and its parent with the same seeds and
-reports per block how many simulations have no result (failed or unsupported) and
-in how many the census indicators of the communities, species ages, tree
-statistics and the Colless index differ. Stage 2 runs mode `main` for the blocks
-in `stage2` and compares the last census with Welch tests (false discovery rate
-per change). With 30 replicates, only differences of about 0.7 standard
-deviations or more are detected reliably, so stage 2 can show a change of the
-distributions but not prove that there is none. Enter the results in the column
-`evidence` of `changes.csv`.
-
-## Provenance
-
-Each run records in its cache folder, and `archive.R` copies to the archive:
-
-- `RUNINFO.txt`: start, mode, version, number of simulations and cores, libraries,
-  simulated package and commit, and commit of the scripts (`git describe --dirty`);
-- `SESSION-<start>.txt`: the command, the platform, the R session of the
-  indicators, `INSTALLINFO.txt` of the libraries used, and all packages with
-  their versions in these libraries;
-- copies of the scripts at the start of the run.
-
-Since #175 (R's random number generator), results for a given seed no longer
-depend on the random number library of the compiler; for older versions they may
-depend on platform and compiler. The archives are kept in `EcoPhyloSim-runs` next
-to the repository.
+- The DESCRIPTION of v0.2 gives the version number 0.3; the archive name comes
+  from the version in `adapters.R`.
+- v0.2 stops when only one species is left, as it cannot read a phylogeny with a
+  single tip; `simulate.R` then sets the phylogeny to 0, as v0.3 does. v0.2 also
+  crashes without a message (exit status 5) in some simulations with `specRate` 8
+  (seen with grids of 20 and 50 cells); these count as failed.
 
 ## Extending
 
@@ -149,23 +186,43 @@ to the repository.
   if varied, to a block of `design`; add it to `params` of the versions that
   support it in `adapters.R`. Seeds of existing settings do not change, as they
   depend only on the mode, the block, the parameters that differ from `base` and
-  the replicate. Older archives get the
-  default in `addRun.R`.
+  the replicate.
 - Renamed argument: keep the design name and add it to `rename` of the version.
-- New indicator: add it to `censusStats()` or `behavior()` in `indicators.R`
-  and, to show it in the key figure, to `indicators` in
-  `PhyloSim/vignettes/ModelHistory.Rmd`. Older versions need a new run to get it.
+- New indicator: add it to `censusStats()` (at each census) or `behavior()` (at
+  the end; a single value also goes into the census table, as `mpdLocal` and
+  `cndd` in `archive.R`) in `indicators.R`, and, to show it in the key figure, to
+  `indicators` in `PhyloSim/vignettes/ModelHistory.Rmd`. Earlier runs need a new
+  run to get it.
 - New block: add it to `design`.
-- New release:
-  1. Before the model changes: copy `current` in `versions` to the version number.
-  2. In `changes.csv`, fill date and commit of the release, add its changes and,
-     for the changes to test, `parent`, `adapter`, `parentAdapter` and `stage2`;
-     run `attribution.R` and enter the results in `evidence`.
-  3. Install the release tag with `installVersion.R`, run the design, archive it
-     as `<release>_<commit>`, run `addRun.R`, delete the summaries of
-     development runs of that release from `runs/`, and run `makeData.R`
-     (with `packageBehavior <archive>` to rebuild `packageBehavior`).
-  4. Update the notes per release in `PhyloSim/vignettes/ModelHistory.Rmd` and
-     the description of the runs in the chapter "Emerging patterns".
-  5. Commit `runs/` and the data sets, and attach the archive to the GitHub release
-     (without `raw/`, see Workflow).
+
+## Provenance
+
+Each run records in its cache, and `archive.R` copies to the archive:
+
+- `RUNINFO.txt`: start, mode, version, number of simulations and cores, the
+  simulated package and commit, the installation of the indicators, the commit
+  of the scripts (`git describe --dirty`) and the archive name;
+- `SESSION-<start>.txt`: the command, the platform, the R session of the
+  indicators, `INSTALLINFO.txt` of the libraries used, and all packages with
+  their versions in these libraries;
+- copies of the scripts at the start of the run.
+
+Since #175 (R's random number generator), results for a given seed no longer
+depend on the random number library of the compiler; for older versions they may
+depend on platform and compiler.
+
+## Transition (until the runs of #180)
+
+The runs in `runs/` and in the archives above were made with the earlier script
+`PhyloSim/data-raw/packageBehavior.R` (see tag v0.3.1), whose indicators were
+computed with the simulated version; `makeData.R` therefore does not accept them
+next to runs of `run.R`, and they are replaced by new runs of all versions. The
+data sets in `PhyloSim/data/` are committed only at releases; the chapter
+"Emerging patterns" is adapted to the new format of `packageBehavior` (all
+censuses in `main`, no `pilot` and `cnddSpecies`, generations per block, CNDD in
+the census) with the next run of the current version. Texts to update then: the
+data documentation of `packageBehavior` and `modelHistory`
+(`PhyloSim/R/data-documentation.R`), the indicator table of
+`PhyloSim/vignettes/ModelHistory.Rmd` ("runs made with `run.R`"), and this
+section. The evidence of #172 in `changes.csv` was counted with an earlier
+version of the comparison in the vignette.
