@@ -26,6 +26,7 @@
 * `calculateSummaryStatistics()` and `runSimulation(calculateSummaries = TRUE)` no longer fail on grids with fewer than 15 cells in x or y; the statistics from plots are NA on such grids (#157).
 * `runPhylosimAnalysis()`: a failed simulation gives NA at its position instead of replacing the results of its whole chunk by a single NA, so that `chunkwiseCleanup()` removes only that simulation (#158).
 * `runSimulationBatch()`, `runPhylosimAnalysis()`, `chunkwiseCalculateSummaries()`, `chunkwiseCleanup()`, `rejectionSample()` and `rejectionSamplePhylosimAnalysis()`: the parallel workers load EcoPhyloSim from the library paths of the session; before, they could load another installed version from their default library (#190).
+* `chunkwiseCleanup()` gives a message with the number of removed simulations; before, it removed them silently, e.g. all simulations on grids with fewer than 15 cells in x or y (#191).
 
 ## Documentation
 
