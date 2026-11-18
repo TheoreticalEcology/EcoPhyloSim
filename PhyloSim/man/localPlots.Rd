@@ -10,7 +10,7 @@ localPlots(simu, which.result = NULL, size, n, community = FALSE,
 \arguments{
 \item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least a species matrix ($specMat)}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.}
 
 \item{size}{A single value (or a vector) determining the edge length(s) of the generated subplots. Must not exceed the shorter side of the grid.}
 
@@ -39,7 +39,7 @@ nGenerations <- 300
 
 par <- createCompletePar(x = xSize,
                          y = ySize,
-                         runs = nGenerations)
+                         generations = nGenerations)
 
 sim <- runSimulation(par = par)
 

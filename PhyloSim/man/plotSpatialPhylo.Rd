@@ -14,7 +14,7 @@ plotSpatialPhylo(simu, plot = "both", plotTraits = T,
 
 \item{plotTraits}{logical, defines if the traits should be plotted}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \description{
 Plots the phylogeny tree, the spatial abundance of the evolved species and their traits.
@@ -69,7 +69,7 @@ simu <- simu.neutral.global
 #Here, two simulation runs are stored in simu (one with 500 timesteps, one with 1000)
   par <- createCompletePar(
      x = 50, y = 50, dispersal = 1,
-     runs = c(500,1000), negativeDD = 1,
+     generations = c(500,1000), negativeDD = 1,
      environment = 0.5, specRate = 1)
 simu <- runSimulation(par)
 

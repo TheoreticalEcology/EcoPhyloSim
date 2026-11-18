@@ -8,7 +8,7 @@ test_that("richness of the neutral model matches the Ewens sampling formula", {
   specRate <- 2
   J <- 20 * 20
   richness <- sapply(1:20, function(seed) {
-    specRich(quietSimulation(x = 20, y = 20, dispersal = "global", specRate = specRate, runs = 1000, seed = seed))
+    specRich(quietSimulation(x = 20, y = 20, dispersal = "global", specRate = specRate, generations = 1000, seed = seed))
   })
   expected <- sum(specRate / (specRate + 0:(J - 1)))
   se <- sd(richness) / sqrt(length(richness))

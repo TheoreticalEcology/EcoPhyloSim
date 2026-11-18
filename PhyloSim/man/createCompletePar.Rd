@@ -4,8 +4,8 @@
 \alias{createCompletePar}
 \title{Parameter Generator}
 \usage{
-createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
-  specRate = 1, negativeDD = 0, environment = 0,
+createCompletePar(x = 50, y = 50, dispersal = "global",
+  generations = 100, specRate = 1, negativeDD = 0, environment = 0,
   nicheWidth = 0.03659906, fitnessActsOn = "mortality",
   fitnessBaseMortalityRatio = 10, negativeDDCut = 1, seed = NULL,
   type = "base", fission = 0, redQueen = 0, redQueenStrength = 0,
@@ -14,7 +14,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
   prunePhylogeny = TRUE, negativeDDKernel = "absolute",
   negativeDDWidth = 0.1, negativeDDResponse = "linear", positiveDD = 0,
   positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1,
-  density, densityCut)
+  density, densityCut, runs)
 }
 \arguments{
 \item{x}{Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
@@ -23,7 +23,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y). Only multiples of 0.5 have an effect (see the vignette).}
 
-\item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.}
+\item{generations}{Integer or vector of Integers, number of generations or sequence of generations the model runs over (formerly \code{runs}; see Details); values must not decrease.}
 
 \item{specRate}{Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution); must not exceed x * y}
 
@@ -71,7 +71,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{positiveDDCut, positiveDDKernel, positiveDDWidth}{Radius, similarity measure (default "species") and Gaussian width for positive density dependence, as \code{negativeDDCut}, \code{negativeDDKernel} and \code{negativeDDWidth}.}
 
-\item{density, densityCut}{Deprecated names of \code{negativeDD} and \code{negativeDDCut}.}
+\item{density, densityCut, runs}{Deprecated names of \code{negativeDD}, \code{negativeDDCut} and \code{generations}.}
 }
 \value{
 A List with parameters
@@ -82,11 +82,11 @@ Function to create a list of parameters for biogeographical simulations with \co
 \details{
 Fitness: environment and density dependence give fitness terms between 0 and 1, \code{w_env = environment * exp(-0.5 * ((E - t) / nicheWidth)^2) + 1 - environment} and the terms of negative and positive density dependence (see \code{negativeDD} and \code{positiveDD}). If several act on mortality, their relative death rates multiply (proportional hazards, i.e. their effects add up on the logarithmic scale of the death rate): an individual dies at a rate proportional to the product of \code{1 + (m - 1) * (1 - w)} over these terms, with \code{m = fitnessBaseMortalityRatio}. As the number of deaths per generation is fixed (\code{x * y}), only relative rates matter, and a term that is equal for all individuals has no effect. For reproduction and recruitment, the terms multiply directly. The Red Queen bonus multiplies fitness by \code{1 + redQueenStrength * exp(-redQueen * age)} (age of the species in generations); with several mechanisms on mortality, it divides the death rate by this factor.
 
-If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
+If generations is a sequence of generations, intermediate results are saved. E.g. when generations is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
 }
 \examples{
 ## Define a parameter set
-par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
+par <- createCompletePar(x = 50, y = 50, dispersal = "global", generations = c(500,1000),
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Run the model

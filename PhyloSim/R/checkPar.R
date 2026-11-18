@@ -3,8 +3,9 @@
 # also checked before they reach the C++ code (#118).
 checkPar <- function(par) {
   # parameter lists created before negative and positive density dependence were separated
-  for (old in c("density", "densityCut")) {
-    new <- sub("density", "negativeDD", old)
+  # and before runs was renamed to generations (#92)
+  for (old in names(renamedParams)) {
+    new <- renamedParams[[old]]
     if (is.null(par[[new]])) par[[new]] <- par[[old]]
     else if (!is.null(par[[old]])) warning("'", old, "' is ignored, as '", new, "' is also given.", call. = FALSE)
     par[[old]] <- NULL
@@ -15,8 +16,8 @@ checkPar <- function(par) {
   coll <- checkmate::makeAssertCollection()
   checkmate::assert_count(par[["x"]], positive = TRUE, .var.name = "x", add = coll)
   checkmate::assert_count(par[["y"]], positive = TRUE, .var.name = "y", add = coll)
-  checkmate::assert_integerish(par[["runs"]], lower = 0, any.missing = FALSE, min.len = 1,
-                               sorted = TRUE, .var.name = "runs", add = coll)
+  checkmate::assert_integerish(par[["generations"]], lower = 0, any.missing = FALSE, min.len = 1,
+                               sorted = TRUE, .var.name = "generations", add = coll)
   d <- par[["dispersal"]]
   if (!(identical(d, "global") || (checkmate::test_number(d, finite = TRUE) && (d == 0 || d >= 0.5)))) {
     coll$push("Variable 'dispersal': Must be 'global', 0 or a number >= 0.5.")
@@ -131,6 +132,12 @@ checkPar <- function(par) {
   }
   invisible(par)
 }
+
+# Old and new names of renamed parameters
+renamedParams <- c(density = "negativeDD", densityCut = "negativeDDCut", runs = "generations")
+
+# Recorded generations of a simulation; objects created before #92 have runs instead
+modelGenerations <- function(model) if (is.null(model$generations)) model$runs else model$generations
 
 # Value of a renamed argument: the old one, with a deprecation warning, if it was given
 renamedArg <- function(new, old, newMissing, oldMissing, newName, oldName) {

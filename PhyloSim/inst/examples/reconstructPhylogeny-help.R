@@ -1,5 +1,5 @@
 # Run a simulation
-par <- createCompletePar(x = 50, y = 50, dispersal = "global" , runs = 500,
+par <- createCompletePar(x = 50, y = 50, dispersal = "global" , generations = 500,
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 simu <- runSimulation(par)

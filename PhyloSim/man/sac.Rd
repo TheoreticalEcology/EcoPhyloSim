@@ -10,7 +10,7 @@ sac(simu, which.result = NULL, size = NULL, rep = 50, plot = T,
 \arguments{
 \item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
 
-\item{which.result}{Integer or integer vector, determines which results should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. With several results, e.g. \code{c(18, 19, 20)}, or "all", these results are shown in one plot (see 'Details').}
+\item{which.result}{Integer or integer vector, determines which results should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. With several results, e.g. \code{c(18, 19, 20)}, or "all", these results are shown in one plot (see 'Details').}
 
 \item{size}{a single value or a vector determining the edge length of the subplots. If not provided, up to 10 logarithmically spaced plot sizes between 2 and the shorter side of the grid will be used.}
 

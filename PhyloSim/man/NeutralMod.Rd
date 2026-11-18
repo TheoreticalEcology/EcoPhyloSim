@@ -4,9 +4,10 @@
 \alias{NeutralMod}
 \title{Neutral model in R}
 \usage{
-NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
+NeutralMod(x = 50, y = 50, dispersal = "global", generations = 100,
   specRate = 1, negativeDD = 0, negativeDDCut = 1, seed = NULL,
-  verbose = TRUE, positiveDD = 0, positiveDDCut = 1, density, densityCut)
+  verbose = TRUE, positiveDD = 0, positiveDDCut = 1, density, densityCut,
+  runs)
 }
 \arguments{
 \item{x}{Integer, dimension of the landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
@@ -15,7 +16,7 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{dispersal}{\code{"global"}, or a function with one argument \code{n} that returns \code{n} non-negative dispersal distances in cells (see Details)}
 
-\item{runs}{Integer or increasing vector of integers, number of generations. If a vector, the species matrix is also saved at the intermediate generations, as in \code{\link{createCompletePar}}.}
+\item{generations}{Integer or increasing vector of integers, number of generations (formerly \code{runs}). If a vector, the species matrix is also saved at the intermediate generations, as in \code{\link{createCompletePar}}.}
 
 \item{specRate}{Numeric, mean number of speciation events per generation (at most \code{x * y})}
 
@@ -29,7 +30,7 @@ NeutralMod(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{positiveDD, positiveDDCut}{Experimental. Strength (between 0 and 1) and radius of conspecific positive density dependence, as \code{negativeDD} and \code{negativeDDCut}.}
 
-\item{density, densityCut}{Deprecated names of \code{negativeDD} and \code{negativeDDCut}.}
+\item{density, densityCut, runs}{Deprecated names of \code{negativeDD}, \code{negativeDDCut} and \code{generations}.}
 }
 \value{
 An object of class \code{PhyloSim}, see \code{\link{runSimulation}}. Each element of \code{Output} contains only \code{specMat}, a matrix of species IDs with \code{y} rows and \code{x} columns.
@@ -46,13 +47,13 @@ The model is slow and only suitable for small landscapes. The output contains th
 }
 \examples{
 ## Neutral model with global dispersal
-simu <- NeutralMod(x = 20, y = 20, runs = 100, specRate = 2, seed = 1)
+simu <- NeutralMod(x = 20, y = 20, generations = 100, specRate = 2, seed = 1)
 image(simu$Output[[1]]$specMat)
 specRich(simu)
 
 ## Local dispersal with exponential distances (mean 2 cells), saving
 ## generations 50 and 100, and conspecific negative density dependence
-simu <- NeutralMod(x = 20, y = 20, runs = c(50, 100), specRate = 2, seed = 1,
+simu <- NeutralMod(x = 20, y = 20, generations = c(50, 100), specRate = 2, seed = 1,
                    dispersal = function(n) stats::rexp(n, rate = 1/2),
                    negativeDD = 0.5, negativeDDCut = 2)
 rac(simu, which.result = "all")

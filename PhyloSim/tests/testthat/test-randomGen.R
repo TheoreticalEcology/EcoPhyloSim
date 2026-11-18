@@ -15,9 +15,9 @@ test_that("runSimulation() leaves the random number state and kind of the R sess
   RNGkind("L'Ecuyer-CMRG")
   set.seed(2)
   state <- .Random.seed
-  a <- quietSimulation(x = 10, y = 10, runs = 20, seed = 1)
+  a <- quietSimulation(x = 10, y = 10, generations = 20, seed = 1)
   expect_identical(.Random.seed, state)
   RNGkind("Mersenne-Twister")
-  b <- quietSimulation(x = 10, y = 10, runs = 20, seed = 1)
+  b <- quietSimulation(x = 10, y = 10, generations = 20, seed = 1)
   expect_identical(a$Output[[1]]$specMat, b$Output[[1]]$specMat) # independent of RNGkind()
 })

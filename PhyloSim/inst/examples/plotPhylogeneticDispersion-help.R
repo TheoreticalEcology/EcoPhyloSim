@@ -23,7 +23,7 @@ scenarios <- paste(modes, " dens=", negativeDD, " env=", environment, sep = "")
 pars <- list()
 for (i in 1:length(scenarios)){
   pars[[i]] = createCompletePar(
-    x = 20, y = 20, runs = 1000,
+    x = 20, y = 20, generations = 1000,
     scenario = scenarios[i], dispersal = dispersal[i],
     specRate = 2, negativeDD = negativeDD[i],
     environment = environment[i],

@@ -27,19 +27,20 @@ plot.PhyloSim <- function(x, ...){
 
 summary.PhyloSim <- function(object, ...){
   
-  if(length(object$Model$runs)==1){
-    runsarg<-object$Model$runs
+  gens <- modelGenerations(object$Model)
+  if(length(gens)==1){
+    runsarg<-gens
   } else{
     runsarg<- "c("
-    for(i in 1:(length(object$Model$runs)-1)){
-      runsarg<- paste(runsarg,object$Model$runs[[i]],",")
+    for(i in 1:(length(gens)-1)){
+      runsarg<- paste(runsarg,gens[[i]],",")
     }
-    runsarg<- paste(runsarg, object$Model$runs[[length(object$Model$runs)]], ")" )
+    runsarg<- paste(runsarg, gens[[length(gens)]], ")" )
   }
   
   cat("Summary for class PhyloSim",  "\n")
   cat("# Call: runSimulation(x = ", object$Model$x, ", y = ", object$Model$y, ", dispersal = '", 
-      object$Model$dispersal,"'", ", runs =", runsarg,"\n", ", negativeDD = ", c(object$Model$negativeDD, object$Model$density)[1], 
+      object$Model$dispersal,"'", ", generations =", runsarg,"\n", ", negativeDD = ", c(object$Model$negativeDD, object$Model$density)[1], 
       ", environment = ", object$Model$environment, ", specRate = ",object$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
   cat("Number of Species in Metacommunity: ", specRich(object), "\n", sep="")
@@ -59,19 +60,20 @@ summary.PhyloSim <- function(object, ...){
 
 print.PhyloSim <- function(x, ...){
   
-  if(length(x$Model$runs)==1){
-    runsarg<-x$Model$runs
+  gens <- modelGenerations(x$Model)
+  if(length(gens)==1){
+    runsarg<-gens
   } else{
     runsarg<- "c("
-    for(i in 1:(length(x$Model$runs)-1)){
-      runsarg<- paste(runsarg,x$Model$runs[[i]],",")
+    for(i in 1:(length(gens)-1)){
+      runsarg<- paste(runsarg,gens[[i]],",")
     }
-    runsarg<- paste(runsarg, x$Model$runs[[length(x$Model$runs)]], ")" )
+    runsarg<- paste(runsarg, gens[[length(gens)]], ")" )
   }
   
   cat("Summary for class PhyloSim",  "\n")
   cat("# Call: runSimulation(x = ", x$Model$x, ", y = ", x$Model$y, ", dispersal = '", 
-      x$Model$dispersal,"'", ", runs =", runsarg, ", negativeDD = ", c(x$Model$negativeDD, x$Model$density)[1], 
+      x$Model$dispersal,"'", ", generations =", runsarg, ", negativeDD = ", c(x$Model$negativeDD, x$Model$density)[1], 
       ", environment = ", x$Model$environment, ", specRate = ",x$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
   cat("Time elapsed: ", x$Model$runtime,"seconds", "\n", sep="")

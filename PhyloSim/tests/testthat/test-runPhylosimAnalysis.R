@@ -12,9 +12,9 @@ test_that("runPhylosimAnalysis saves only the summaries with summariesOnly = TRU
   run <- function(...) capture.output(runPhylosimAnalysis(variableParams = list(specRate = function() 2),
                                                           nRuns = 2, outDir = dir, summariesOnly = TRUE,
                                                           nCores = 1, chunkSize = 1, ...))
-  expect_error(run(fixedParams = list(x = 20, y = 20, runs = 100)), "calculateSummaries")
+  expect_error(run(fixedParams = list(x = 20, y = 20, generations = 100)), "calculateSummaries")
   skip_on_cran() # starts a cluster for each chunk
-  run(fixedParams = list(x = 20, y = 20, runs = 100, calculateSummaries = TRUE)) # 2 chunks of 1 run, #130
+  run(fixedParams = list(x = 20, y = 20, generations = 100, calculateSummaries = TRUE)) # 2 chunks of 1 run, #130
   expect_setequal(list.files(dir), c("paramOverview.txt", "param_1-1", "param_2-2", "summary_1-1", "summary_2-2"))
   summaries <- get(load(file.path(dir, "summary_2-2")))
   expect_length(summaries, 1)
@@ -22,7 +22,7 @@ test_that("runPhylosimAnalysis saves only the summaries with summariesOnly = TRU
 })
 
 test_that("runSimulationBatch(onError = \"NA\") keeps the other simulations if one fails (#158)", {
-  p <- createCompletePar(x = 10, y = 10, runs = 10, seed = 1)
+  p <- createCompletePar(x = 10, y = 10, generations = 10, seed = 1)
   bad <- p
   bad$x <- 0
   run <- function(...) {
@@ -54,7 +54,7 @@ test_that("runPhylosimAnalysis and chunkwiseCleanup drop only the failed simulat
   })
   i <- 0
   capture.output(runPhylosimAnalysis(variableParams = list(specRate = function() i <<- i + 1),
-                                     fixedParams = list(x = 20, y = 20, runs = 100, calculateSummaries = TRUE),
+                                     fixedParams = list(x = 20, y = 20, generations = 100, calculateSummaries = TRUE),
                                      nRuns = 4, outDir = dir, summariesOnly = TRUE, nCores = 1, chunkSize = 3))
   expect_length(get(load(file.path(dir, "summary_1-3"))), 3)
   skip_on_cran() # starts a cluster
@@ -91,4 +91,10 @@ test_that("cluster workers load EcoPhyloSim from the first library of the sessio
   on.exit(parallel::stopCluster(cl), add = TRUE, after = FALSE)
   workerPath <- parallel::clusterEvalQ(cl, getNamespaceInfo(loadNamespace("EcoPhyloSim"), "path"))[[1]]
   expect_equal(normalizePath(workerPath), normalizePath(file.path(lib, "EcoPhyloSim")))
+})
+
+test_that("old parameter names replace the defaults of the new ones (#92)", {
+  d <- getDefaultParams(formals(createCompletePar), list(runs = 5, density = 0.5))
+  expect_false(any(c("generations", "negativeDD") %in% names(d)))
+  expect_true("negativeDDCut" %in% names(d))
 })

@@ -9,14 +9,14 @@ conspecificShare <- function(m) {
 }
 
 test_that("environment and density dependence together are no longer neutral (#144)", {
-  simu <- quietSimulation(x = 30, y = 30, dispersal = 1, runs = 500, specRate = 2,
+  simu <- quietSimulation(x = 30, y = 30, dispersal = 1, generations = 500, specRate = 2,
                           environment = 0.5, negativeDD = 0.5, seed = 1)
   out <- simu$Output[[1]]
   expect_gt(cor(c(out$traitMat), c(out$envMat)), 0.5)
 })
 
 test_that("a density response function equal to the linear one gives identical results", {
-  run <- function(...) quietSimulation(x = 20, y = 20, dispersal = 1, runs = 100, specRate = 2,
+  run <- function(...) quietSimulation(x = 20, y = 20, dispersal = 1, generations = 100, specRate = 2,
                                        negativeDD = 0.5, negativeDDKernel = "species", seed = 1, ...)
   linear <- run()$Output[[1]]$specMat
   expect_identical(run(negativeDDResponse = function(S) 1 - 0.5 * S)$Output[[1]]$specMat, linear)
@@ -25,7 +25,7 @@ test_that("a density response function equal to the linear one gives identical r
 
 test_that("the species kernel gives conspecific density dependence in mortality", {
   slope <- function(density) {
-    simu <- quietSimulation(x = 30, y = 30, dispersal = 1, runs = 300:305, specRate = 2,
+    simu <- quietSimulation(x = 30, y = 30, dispersal = 1, generations = 300:305, specRate = 2,
                             negativeDD = density, negativeDDKernel = "species", seed = 1)
     coef(glm(died ~ con, binomial(link = "cloglog"), data = getMortalityData(simu)))[2]
   }
@@ -34,33 +34,33 @@ test_that("the species kernel gives conspecific density dependence in mortality"
 })
 
 test_that("density dependence on recruitment reduces conspecific neighbors, also with global dispersal", {
-  share <- function(...) conspecificShare(quietSimulation(x = 30, y = 30, runs = 300, specRate = 2,
+  share <- function(...) conspecificShare(quietSimulation(x = 30, y = 30, generations = 300, specRate = 2,
                                                           seed = 1, ...)$Output[[1]]$specMat)
   expect_lt(share(dispersal = 1, negativeDD = 1, negativeDDKernel = "species", fitnessActsOn = "recruitment"),
             share(dispersal = 1) - 0.2)
-  simu <- quietSimulation(x = 20, y = 20, dispersal = "global", runs = 100, specRate = 2, negativeDD = 1,
+  simu <- quietSimulation(x = 20, y = 20, dispersal = "global", generations = 100, specRate = 2, negativeDD = 1,
                           negativeDDKernel = "species", fitnessActsOn = "recruitment", seed = 1)
   expect_s3_class(simu, "PhyloSim")
 })
 
 test_that("environment on recruitment filters traits, and all stages can be combined", {
-  out <- quietSimulation(x = 20, y = 20, dispersal = 1, runs = 150, specRate = 2, environment = 1,
+  out <- quietSimulation(x = 20, y = 20, dispersal = 1, generations = 150, specRate = 2, environment = 1,
                          fitnessActsOn = "recruitment", seed = 1)$Output[[1]]
   expect_gt(cor(c(out$traitMat), c(out$envMat)), 0.5)
-  simu <- quietSimulation(x = 20, y = 20, dispersal = 1, runs = 100, specRate = 2, environment = 1,
+  simu <- quietSimulation(x = 20, y = 20, dispersal = 1, generations = 100, specRate = 2, environment = 1,
                           negativeDD = 1, negativeDDKernel = "gaussian", negativeDDWidth = 0.05,
                           fitnessActsOn = c("mortality", "reproduction", "recruitment"), seed = 1)
   expect_s3_class(simu, "PhyloSim")
 })
 
 test_that("positive density dependence increases conspecific neighbors, on mortality and recruitment", {
-  share <- function(...) conspecificShare(quietSimulation(x = 30, y = 30, dispersal = 1, runs = 300,
+  share <- function(...) conspecificShare(quietSimulation(x = 30, y = 30, dispersal = 1, generations = 300,
                                                           specRate = 2, seed = 1, ...)$Output[[1]]$specMat)
   neutral <- share()
   expect_gt(share(positiveDD = 1), neutral + 0.1)
   expect_gt(share(positiveDD = 1, fitnessActsOn = "recruitment"), neutral + 0.1)
   # negative and positive density dependence with different radii and kernels act together
-  simu <- quietSimulation(x = 20, y = 20, dispersal = 1, runs = 100, specRate = 2, environment = 1,
+  simu <- quietSimulation(x = 20, y = 20, dispersal = 1, generations = 100, specRate = 2, environment = 1,
                           negativeDD = 1, negativeDDCut = 3, negativeDDKernel = "species",
                           positiveDD = 0.5, positiveDDKernel = "gaussian", positiveDDWidth = 0.05, seed = 1)
   expect_s3_class(simu, "PhyloSim")
@@ -69,7 +69,7 @@ test_that("positive density dependence increases conspecific neighbors, on morta
 test_that("positive density dependence equals the corresponding negativeDDResponse", {
   # same fitness term, 1 - 0.5 * (1 - S), once as positiveDD and once as a response function
   for (f in list("mortality", "both", "recruitment")) {
-    run <- function(...) quietSimulation(x = 20, y = 20, dispersal = 1, runs = 100, specRate = 2, seed = 1,
+    run <- function(...) quietSimulation(x = 20, y = 20, dispersal = 1, generations = 100, specRate = 2, seed = 1,
                                          fitnessActsOn = f, ...)$Output[[1]]$specMat
     expect_identical(run(positiveDD = 0.5),
                      run(negativeDD = 1, negativeDDKernel = "species", negativeDDResponse = function(S) 1 - 0.5 * (1 - S)))

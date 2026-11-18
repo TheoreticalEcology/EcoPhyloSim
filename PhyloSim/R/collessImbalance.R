@@ -1,7 +1,7 @@
 #' @title Colless' imbalance
 #' @description Calculates the Colless' imbalance for a Phylogeny.
 #' @param simu An object of type "PhyloSim"
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @param useApTreeshape Deprecated and ignored. The Colless index is now computed internally; the (archived) apTreeshape package is no longer required. Kept only for backward compatibility. Note that \code{useApTreeshape = FALSE} previously returned the normalized index \code{2 * sum / ((n - 1) * (n - 2))}; this normalization is no longer available.
 #' @param norm Normalization: Either NULL (raw Colless index), "yule" or "pda".
 #' @param dropFossils Logical, if TRUE (default), extinct lineages are removed with \code{ape::drop.fossil} before the index is computed.

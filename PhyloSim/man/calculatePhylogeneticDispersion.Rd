@@ -19,7 +19,7 @@ calculatePhylogeneticDispersion(simu, plotlengths = 10, plots = 200,
 
 \item{type}{String, determines which null model should be created. Possible inputs are "PhylMeta" (default), "PhylSample", "PhylPool", "SamplePool" (see details).}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose one or several results (e.g. which.result = c(1, 2)), or use all results with which.result = "all".}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. You can choose one or several results (e.g. which.result = c(1, 2)), or use all results with which.result = "all".}
 
 \item{reduce}{Logical, currently not used by this function (reserved for a future implementation; has no effect on the output).}
 
@@ -32,14 +32,14 @@ A list with pValues for each plot in the observed metacommunity; plots with a si
 Generates null models for a list of PhyloSim objects as created by \code{\link{runSimulationBatch}} and compares the observed results against them.
 }
 \details{
-In the type argument "PhylMeta" is equivalent to \code{\link{nullModel}} with abundance = FALSE, "PhylSample" is equivalent to the same function with abundance = TRUE, whereas the two other options use \code{\link[picante]{ses.mpd}}. "PhylPool" uses the argument null.model = "phylogeny.pool", "SamplePool" is setting null.model to "sample.pool". \cr\cr For more information see \code{\link{nullModel}}. \cr\cr If you choose which.result = NULL (default), the length of the output corresponds to the length of the 'runs' argument in your parameter definition. Otherwise the list has length max(which.result); elements of results not requested are NULL. \cr\cr The structure of the output is organized as follows: with \code{output[[t]]} you will get the results for result (time step) 't'. With \code{output[[t]][[n]]} you will get the results for scenario 'n' at 't'. \code{output[[t]][[n]]} is a list that contains one vector with p values for each element in the plotlengths argument.
+In the type argument "PhylMeta" is equivalent to \code{\link{nullModel}} with abundance = FALSE, "PhylSample" is equivalent to the same function with abundance = TRUE, whereas the two other options use \code{\link[picante]{ses.mpd}}. "PhylPool" uses the argument null.model = "phylogeny.pool", "SamplePool" is setting null.model to "sample.pool". \cr\cr For more information see \code{\link{nullModel}}. \cr\cr If you choose which.result = NULL (default), the length of the output corresponds to the length of the 'generations' argument in your parameter definition. Otherwise the list has length max(which.result); elements of results not requested are NULL. \cr\cr The structure of the output is organized as follows: with \code{output[[t]]} you will get the results for result (time step) 't'. With \code{output[[t]][[n]]} you will get the results for scenario 'n' at 't'. \code{output[[t]][[n]]} is a list that contains one vector with p values for each element in the plotlengths argument.
 }
 \examples{
 
 ## Create a set of parameters
-par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 0, environment = 0.5, specRate = 1)
-par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Merge the parameter sets.

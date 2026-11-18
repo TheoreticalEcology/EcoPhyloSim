@@ -11,7 +11,7 @@ calculateSummaryStatistics(simulation, strict = FALSE, which.result = NULL)
 
 \item{strict}{Logical. If TRUE, the output of the function is NA if at least one summary statistic could not be calculated. Default is FALSE.}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \value{
 A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
@@ -41,7 +41,7 @@ The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge
 }
 \examples{
 
-simu <- runSimulation(createCompletePar(x=50, y=50, runs=1000, specRate=2))
+simu <- runSimulation(createCompletePar(x=50, y=50, generations=1000, specRate=2))
 \donttest{
 summStat <- calculateSummaryStatistics(simu)
 }

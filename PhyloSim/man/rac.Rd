@@ -4,16 +4,18 @@
 \alias{rac}
 \title{Rank Abundance Curve}
 \usage{
-rac(simu, which.result = NULL, plot = "line", title = "RAC")
+rac(simu, which.result = NULL, type = "line", title = "RAC", plot)
 }
 \arguments{
 \item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
 
-\item{which.result}{Integer or integer vector, determines which results should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. With several results, e.g. \code{c(18, 19, 20)}, or "all", these results are shown in one plot (see 'Details').}
+\item{which.result}{Integer or integer vector, determines which results should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. With several results, e.g. \code{c(18, 19, 20)}, or "all", these results are shown in one plot (see 'Details').}
 
-\item{plot}{determining whether to plot the RAC as "line"(default) or "bar" (only for a single result).}
+\item{type}{determining whether to plot the RAC as "line" (default) or "bar" (only for a single result), or FALSE for no plot (formerly \code{plot}).}
 
 \item{title}{String, determining the title of the plot.}
+
+\item{plot}{Deprecated name of \code{type}.}
 }
 \value{
 A dataframe containing the ranked abundances, sorted by ascending rank. If which.result = "all" or several results, only the plot is drawn and NULL is returned.
@@ -36,21 +38,21 @@ data(simu.envcom.local)
 #Plot RAC curve for neutral model and global dispersal
 
 rac(simu = simu.neutral.global)
-rac(simu = simu.neutral.global, plot ="bar")
+rac(simu = simu.neutral.global, type = "bar")
 
 
 
 #Plot RAC curve for neutral model and local dispersal
 
 rac(simu = simu.neutral.local)
-rac(simu = simu.neutral.local, plot ="bar")
+rac(simu = simu.neutral.local, type = "bar")
 
 
 
 #Plot RAC curve for environment and competition model and local dispersal
 
 rac(simu = simu.envcom.local)
-rac(simu = simu.envcom.local, plot ="bar")
+rac(simu = simu.envcom.local, type = "bar")
 
 
 }

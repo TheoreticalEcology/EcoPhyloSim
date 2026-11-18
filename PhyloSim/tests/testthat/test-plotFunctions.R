@@ -1,4 +1,4 @@
-simu <- quietSimulation(x = 20, y = 20, dispersal = 1, runs = 200, specRate = 2, seed = 1)
+simu <- quietSimulation(x = 20, y = 20, dispersal = 1, generations = 200, specRate = 2, seed = 1)
 
 test_that("plotTraitDistribution() does not change the random number stream", {
   pdf(NULL)

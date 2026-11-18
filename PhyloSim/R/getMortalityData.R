@@ -8,7 +8,7 @@
 #'
 #' @param simu simulation result of class \code{PhyloSim} from \code{\link{runSimulation}},
 #'   or a list of them, e.g., from \code{\link{runSimulationBatch}}. At least two
-#'   generations must be recorded (see \code{runs} in \code{\link{createCompletePar}}).
+#'   generations must be recorded (see \code{generations} in \code{\link{createCompletePar}}).
 #' @param radius radius of the neighborhood, a non-negative integer. If \code{NULL},
 #'   the \code{negativeDDCut} of the simulation is used; for positive density
 #'   dependence, set \code{radius} to its \code{positiveDDCut}.
@@ -21,7 +21,7 @@
 #'   next recorded generation. This is detected by a change of \code{traitMat}, as
 #'   the traits change at every birth. On average, a cell is replaced about once
 #'   per generation, so the recorded generations should be consecutive, e.g.,
-#'   \code{runs = 1000:1010} after a burn-in.
+#'   \code{generations = 1000:1010} after a burn-in.
 #'
 #'   With the default \code{negativeDDKernel = "absolute"} (see
 #'   \code{\link{createCompletePar}}), density dependence acts through the
@@ -66,7 +66,7 @@ getMortalityData <- function(simu, radius = NULL) {
     return(out)
   }
   out <- simu$Output
-  if (length(out) < 2) stop("at least two recorded generations are needed, e.g. runs = c(1000, 1001)")
+  if (length(out) < 2) stop("at least two recorded generations are needed, e.g. generations = c(1000, 1001)")
   if (is.null(radius)) radius <- c(simu$Model$negativeDDCut, simu$Model$densityCut)[1]
   ny <- nrow(out[[1]]$specMat); nx <- ncol(out[[1]]$specMat)
   off <- getCircularOffsets(radius)
@@ -75,10 +75,11 @@ getMortalityData <- function(simu, radius = NULL) {
   nb <- vapply(seq_len(nrow(off)), function(k) (row - 1L + off$dy[k]) %% ny + 1L + ((col - 1L + off$dx[k]) %% nx) * ny, integer(length(row)))
   id <- seq_along(row)
   tabs <- vector("list", length(out) - 1)
+  gens <- modelGenerations(simu$Model)
   for (i in seq_along(tabs)) {
     o <- out[[i]]
     died <- c(out[[i + 1]]$traitMat != o$traitMat)
-    tabs[[i]] <- data.frame(census = simu$Model$runs[i], interval = simu$Model$runs[i + 1] - simu$Model$runs[i],
+    tabs[[i]] <- data.frame(census = gens[i], interval = gens[i + 1] - gens[i],
                             id = id, x = col, y = row, species = c(o$specMat),
                             con = as.integer(rowSums(matrix(o$specMat[nb] == c(o$specMat), nrow = length(row)))),
                             compTrait = c(o$compMat), envTrait = c(o$traitMat), env = c(o$envMat), died = died)

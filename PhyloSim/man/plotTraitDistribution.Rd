@@ -11,7 +11,7 @@ plotTraitDistribution(simu, type = "hist", which.result = NULL)
 
 \item{type}{defines whether the histograms should be plotted standalone or with the trait ~ Environment relationship and the spatial distribution. The latter is done by type = "all". Default is "hist"}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 }
 \description{
 Plots trait-histograms, trait ~ Environment relationship and the spatial distribution of the different traits

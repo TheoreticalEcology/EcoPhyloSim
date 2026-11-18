@@ -1,7 +1,7 @@
 #' @title Create Subplots
 #' @description Generates subplots from a metacommunity, simulating field conditions
 #' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least a species matrix ($specMat)
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default, the last result is used.
 #' @param size A single value (or a vector) determining the edge length(s) of the generated subplots. Must not exceed the shorter side of the grid.
 #' @param n The number of subplots to be generated for each element of size
 #' @param community Logical, determining whether to generate a community table or not. default is FALSE

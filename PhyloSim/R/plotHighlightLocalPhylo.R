@@ -1,7 +1,7 @@
 #' @title Phylogenetic clades
 #' @description Visualizes the phylogenetic clades of a local community within a metacommunity. 
 #' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the phylogeny ($phylogeny) and species matrix ($specMat). The species matrix is used as metacommunity
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @param size edge length of the local plots.
 #' @param n The number of local communities. For each community a new plot is created.
 #' @param subplot if no simu object is given, a community table of a local community can be given here

@@ -1,18 +1,18 @@
 smallPar <- function(...) {
-  do.call(createCompletePar, utils::modifyList(list(x = 10, y = 10, runs = 2, seed = 1), list(...)))
+  do.call(createCompletePar, utils::modifyList(list(x = 10, y = 10, generations = 2, seed = 1), list(...)))
 }
 
 test_that("valid settings pass", {
   expect_silent(smallPar())
   expect_silent(smallPar(airmat = matrix(0.5, 10, 10), dispersal = 1, negativeDD = 1,
-                         environment = 0.5, runs = c(1, 1, 2)))
+                         environment = 0.5, generations = c(1, 1, 2)))
   expect_silent(createCompletePar(x = 20, y = 30, airmat = matrix(0.5, 30, 20)))
 })
 
 test_that("createCompletePar() rejects invalid single parameters", {
   expect_error(smallPar(x = 0), "'x'")
-  expect_error(smallPar(runs = c(5, 2, 10)), "runs")
-  expect_error(smallPar(runs = -1), "runs")
+  expect_error(smallPar(generations = c(5, 2, 10)), "generations")
+  expect_error(smallPar(generations = -1), "generations")
   expect_error(smallPar(dispersal = 0.3), "dispersal")
   expect_error(smallPar(dispersal = "local"), "dispersal")
   expect_error(smallPar(specRate = -1), "specRate")
@@ -98,6 +98,22 @@ test_that("positive density dependence is checked, and old argument names still 
   expect_silent(smallPar(negativeDD = 0.5, negativeDDCut = 2, positiveDD = 0.5))
   expect_warning(p <- smallPar(density = 0.5, densityCut = 2), "deprecated")
   expect_equal(p, smallPar(negativeDD = 0.5, negativeDDCut = 2))
+  expect_warning(p <- createCompletePar(x = 10, y = 10, runs = 2, seed = 1), "deprecated")
+  expect_equal(p, smallPar())
+  expect_error(createCompletePar(runs = 2, generations = 2), "deprecated")
+})
+
+test_that("parameter lists and simulations with the old name runs still work (#92)", {
+  p <- smallPar(generations = c(2, 3))
+  old <- p
+  names(old)[names(old) == "generations"] <- "runs"
+  capture.output(new <- runSimulation(p), simu <- runSimulation(old))
+  expect_named(simu$Output, c("gen2", "gen3"))
+  expect_identical(simu$Output, new$Output)
+  simu$Model$runs <- simu$Model$generations
+  simu$Model$generations <- NULL
+  expect_output(print(simu), "generations =c\\( 2 , 3 \\)")
+  expect_equal(unique(getMortalityData(simu)$census), 2)
 })
 
 test_that("runSimulation() checks parameter lists changed after createCompletePar()", {
@@ -109,8 +125,8 @@ test_that("runSimulation() checks parameter lists changed after createCompletePa
     expect_error(runSimulation(p2), "airmat")
   }
   p2 <- p; p2$x <- 0;               expect_error(runSimulation(p2), "'x'")
-  p2 <- p; p2$runs <- c(5, 2);      expect_error(runSimulation(p2), "runs")
-  p2 <- p; p2$runs <- numeric(0);   expect_error(runSimulation(p2), "runs")
+  p2 <- p; p2$generations <- c(5, 2);      expect_error(runSimulation(p2), "generations")
+  p2 <- p; p2$generations <- numeric(0);   expect_error(runSimulation(p2), "generations")
   p2 <- p; p2$fitnessBaseMortalityRatio <- 0; expect_error(runSimulation(p2), "fitnessBaseMortalityRatio")
   p2 <- p; p2$negativeDD <- 2;      expect_error(runSimulation(p2), "negativeDD")
 })

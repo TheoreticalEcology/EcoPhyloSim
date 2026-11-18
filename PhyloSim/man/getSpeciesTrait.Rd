@@ -26,7 +26,7 @@ The function extracts the environmental, competition or neutral trait of the spe
 }
 \examples{
 ## Define a parameter set
-par <- createCompletePar(x = 50, y = 50, runs = c(500,1000),
+par <- createCompletePar(x = 50, y = 50, generations = c(500,1000),
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Run the model

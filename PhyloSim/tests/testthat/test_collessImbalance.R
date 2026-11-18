@@ -15,7 +15,7 @@ test_that("internal Colless index gives known values", {
 })
 
 test_that("collessImbalance() uses only extant species by default", {
-  simu <- runSimulation(createCompletePar(x = 20, y = 20, runs = 1000, seed = 1,
+  simu <- runSimulation(createCompletePar(x = 20, y = 20, generations = 1000, seed = 1,
                                           prunePhylogeny = FALSE))
   phylo <- simu$Output[[1]]$phylogeny
   expect_gt(ape::Ntip(phylo), ape::Ntip(ape::drop.fossil(phylo)))

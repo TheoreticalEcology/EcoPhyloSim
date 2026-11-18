@@ -17,12 +17,13 @@
 * `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, as in `runSimulation()` with `fitnessActsOn = "recruitment"`: with global dispersal, after `min(1000, x * y - 1)` rejections the parent is drawn directly with fitness-weighted probabilities; with a dispersal function, the 1000th recruit is accepted. Before, the 10th recruit was accepted without a test. This changes results with `negativeDD > 0` (#165).
 * The C++ simulation uses R's random number generator, which `runSimulation()` sets from `seed` and restores afterwards, so that results for a given seed no longer depend on the compiler's random number library (but differ from earlier versions); this also seeds the summary statistics and replaces their separate seed handling from 0.3.1 (#135). `callModel()` has no `seed` argument any more, and `createCompletePar()` draws a missing `seed` from a larger range (#14).
 * `citation("EcoPhyloSim")` is generated from DESCRIPTION instead of the removed `inst/CITATION` file, so that it gives the CRAN URL and DOI after a CRAN release (#30).
+* `runs` in `createCompletePar()` and `NeutralMod()` was renamed to `generations` (also in the parameter list and in `simu$Model`), `rac(plot = )` to `rac(type = )`, and the class "PhylosimList" and `createPhylosimList()` to "PhyloSimList" and `createPhyloSimList()`; the old names still work with a deprecation warning, and old parameter lists and simulation objects keep working. The elements of `simu$Output` are named after their generation, e.g. `simu$Output$gen1000` (#92, #199).
 
 ## Bug fixes
 
 * `nullModel()` with `fun = "mpd"` and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"` give p = NA instead of p = 0 for plots with a single species (#186).
 * `nullModel(fun = "pd")` works for phylogenies with a polytomy at the root, which failed because `picante::pd()` treated them as unrooted (#176).
-* `extractParams()` returns one row per parameter set also if a parameter has several values (e.g. `runs` or `fitnessActsOn`); such values are combined into one string.
+* `extractParams()` returns one row per parameter set also if a parameter has several values (e.g. `generations` or `fitnessActsOn`); such values are combined into one string.
 * `calculateSummaryStatistics()` and `runSimulation(calculateSummaries = TRUE)` no longer fail on grids with fewer than 15 cells in x or y; the statistics from plots are NA on such grids (#157).
 * `runPhylosimAnalysis()`: a failed simulation gives NA at its position instead of replacing the results of its whole chunk by a single NA, so that `chunkwiseCleanup()` removes only that simulation (#158).
 * `runSimulationBatch()`, `runPhylosimAnalysis()`, `chunkwiseCalculateSummaries()`, `chunkwiseCleanup()`, `rejectionSample()` and `rejectionSamplePhylosimAnalysis()`: the parallel workers load EcoPhyloSim from the library paths of the session; before, they could load another installed version from their default library (#190).
@@ -31,7 +32,7 @@
 ## Documentation
 
 * The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #144).
-* New help page `?PhylosimList` for the class returned by `runSimulationBatch()` and `createPhylosimList()`; the help of `rac()` and `sac()` says that `which.result` accepts several results (#92).
+* New help page `?PhyloSimList` for the class returned by `runSimulationBatch()` and `createPhyloSimList()`; the help of `rac()` and `sac()` says that `which.result` accepts several results (#92).
 
 # EcoPhyloSim 0.3.1
 

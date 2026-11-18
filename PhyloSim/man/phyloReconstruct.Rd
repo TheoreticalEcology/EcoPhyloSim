@@ -9,7 +9,7 @@ phyloReconstruct(simu, which.result = NULL, ...)
 \arguments{
 \item{simu}{An object of class PhyloSim}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
 \item{...}{Additional arguments to be passed to function \code{\link{hclust}}}
 }
@@ -21,7 +21,7 @@ reconstructs a phylogeny from a neutral trait matrix as returned by \code{\link{
 }
 \examples{
 # Run a simulation
-par <- createCompletePar(x = 50, y = 50, dispersal = "global" , runs = 500,
+par <- createCompletePar(x = 50, y = 50, dispersal = "global" , generations = 500,
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 simu <- runSimulation(par)

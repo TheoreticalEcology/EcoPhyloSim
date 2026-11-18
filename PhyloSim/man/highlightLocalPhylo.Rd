@@ -10,7 +10,7 @@ highlightLocalPhylo(simu, which.result = NULL, size, n, subplot = NULL,
 \arguments{
 \item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the phylogeny ($phylogeny) and species matrix ($specMat). The species matrix is used as metacommunity}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
 \item{size}{edge length of the local plots.}
 

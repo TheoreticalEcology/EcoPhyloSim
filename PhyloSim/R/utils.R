@@ -6,7 +6,7 @@
 #' @author Tankred Ott
 #' @examples 
 #' ## Define a parameter set
-#' par <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500,1000),
+#' par <- createCompletePar(x = 50, y = 50, dispersal = "global", generations = c(500,1000),
 #'         negativeDD = 1, environment = 0.5, specRate = 1)
 #'
 #' ## Run the model
@@ -38,7 +38,7 @@ getSpecies <- function (sim) {
 #' @author Tankred Ott
 #' @examples 
 #' ## Define a parameter set
-#' par <- createCompletePar(x = 50, y = 50, runs = c(500,1000),
+#' par <- createCompletePar(x = 50, y = 50, generations = c(500,1000),
 #'         negativeDD = 1, environment = 0.5, specRate = 1)
 #'
 #' ## Run the model
@@ -80,7 +80,7 @@ getSpeciesTrait <- function (sim, speciesID, trait="neutral", whichRun = 1) {
 #' @author Tankred Ott
 #' @examples 
 #' ## Define a parameter set
-#' par <- createCompletePar(x = 50, y = 50, runs = c(500,1000),
+#' par <- createCompletePar(x = 50, y = 50, generations = c(500,1000),
 #'         negativeDD = 1, environment = 0.5, specRate = 1)
 #'
 #' ## Run the model

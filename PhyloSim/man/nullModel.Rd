@@ -10,7 +10,7 @@ nullModel(simu, which.result = NULL, abundance = FALSE, localPlotSize,
 \arguments{
 \item{simu}{an object of class "PhyloSim" as created by \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
+\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.}
 
 \item{abundance}{Logical, determining whether the null model should be based on the abundance distribution of the sample plots. Default is FALSE.}
 
@@ -33,7 +33,7 @@ Generates a null model and compares the observed results against it.
 ### Usage with runSimulation
 ## Define a parameter set
 par <- createCompletePar(x = 50, y = 50, dispersal = 0,
-                         runs = c(500,1000), negativeDD = 1,
+                         generations = c(500,1000), negativeDD = 1,
                          environment = 0.5, specRate = 1)
 
 ## Run Model
@@ -44,9 +44,9 @@ nullModel(simu, abundance= FALSE, localPlotSize = 10, numberOfPlots = 10, repeti
 
 ## Usage with runSimulationBatch
 ## Define two (or multiple) parameter sets
-par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 1, environment = 0.5, specRate = 1)
-par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 0, environment = 0.5, specRate = 1)
 
 ## Merge the parameter sets. It is important to note that the function

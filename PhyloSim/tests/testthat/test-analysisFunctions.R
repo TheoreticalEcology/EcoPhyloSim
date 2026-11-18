@@ -18,7 +18,9 @@ test_that("rac ranks species by abundance", {
   expect_equal(out$Abundance, c(7, 3, 1, 1))
   expect_equal(as.character(out$Species[1:2]), c("1", "2"))
   expect_equal(rac(fake, which.result = 1)$Abundance, 12)
-  expect_error(rac(fake, which.result = "all", plot = "bar"), "not possible")
+  expect_error(rac(fake, which.result = "all", type = "bar"), "not possible")
+  expect_warning(old <- rac(fake, plot = "bar"), "deprecated")
+  expect_equal(old, rac(fake, type = "bar"))
 })
 
 test_that("sac counts every cell as a new species if all cells differ", {

@@ -3,7 +3,7 @@
 #' @param simu Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the spatial species matrix ($specMat) and the phylogeny ($phylogeny)   
 #' @param plot defines what to plot. "spatial" plots the spatial abundance, "phylogeny" the phylogeny tree. "both" plots both of them side by side 
 #' @param plotTraits logical, defines if the traits should be plotted 
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @details The tip labels of the phylogeny tree are colored according to the spatial abundance plot.
 #' @example /inst/examples/plotSpatialPhylo-help.R
 #' @import ape

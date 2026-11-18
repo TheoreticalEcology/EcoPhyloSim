@@ -1,5 +1,5 @@
 test_that("localPlots returns the requested number of plots", {
-  simu <- runSimulation(createCompletePar(x = 30, y = 30, runs = 100, seed = 1))
+  simu <- runSimulation(createCompletePar(x = 30, y = 30, generations = 100, seed = 1))
   
   for (n in c(1, 2)) {
     out <- localPlots(simu, size = 5, n = n, community = TRUE)
@@ -18,7 +18,7 @@ test_that("localPlots returns the requested number of plots", {
 
 
 test_that("localPlots works without a community table", {
-  simu <- runSimulation(createCompletePar(x = 30, y = 30, runs = 100, seed = 1))
+  simu <- runSimulation(createCompletePar(x = 30, y = 30, generations = 100, seed = 1))
   
   out <- localPlots(simu, size = 5, n = 1, community = FALSE)
   expect_length(out$subPlots, 1)
@@ -26,7 +26,7 @@ test_that("localPlots works without a community table", {
 })
 
 test_that("localPlots rejects invalid n", {
-  simu <- runSimulation(createCompletePar(x = 30, y = 30, runs = 100, seed = 1))
+  simu <- runSimulation(createCompletePar(x = 30, y = 30, generations = 100, seed = 1))
   
   expect_error(localPlots(simu, size = 5, n = 0), "Assertion on 'n' failed")
   expect_error(localPlots(simu, size = 5, n = 1.5), "Assertion on 'n' failed")

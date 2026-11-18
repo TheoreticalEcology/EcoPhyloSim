@@ -5,7 +5,7 @@ nGenerations <- 300
 
 par <- createCompletePar(x = xSize,
                          y = ySize,
-                         runs = nGenerations)
+                         generations = nGenerations)
 
 sim <- runSimulation(par = par)
 

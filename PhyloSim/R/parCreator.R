@@ -3,7 +3,7 @@
 #' @param x  Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)
 #' @param y  Integer, Dimension of the model landscape in y-direction
 #' @param dispersal Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y). Only multiples of 0.5 have an effect (see the vignette).
-#' @param runs  Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.
+#' @param generations Integer or vector of Integers, number of generations or sequence of generations the model runs over (formerly \code{runs}; see Details); values must not decrease.
 #' @param specRate Numeric, speciation rate: mean number of speciation events per generation (the realized number is drawn from a Poisson distribution); must not exceed x * y
 #' @param negativeDD Numeric between 0 and 1, strength of negative density dependence (formerly \code{density}); 0 (default) switches it off. Its fitness term is \code{1 - negativeDD * S}, where \code{S} is the similarity to the neighbors within \code{negativeDDCut} (see \code{negativeDDKernel}); with the "species" kernel, each of the \code{k} neighbors that is conspecific contributes \code{negativeDD / k}. With a function or values as \code{negativeDDResponse}, \code{negativeDD > 0} only switches it on.
 #' @param environment Numeric, determining whether or how strong the environment influences the model.  By default (environment=0) there is no influence of the environment. The higher the value of the parameter, the stronger is the influence of the environment. Environment value must be between 0 and 1.
@@ -26,22 +26,23 @@
 #' @param negativeDDResponse Experimental. "linear" (default) for the fitness term \code{1 - negativeDD * S}, or a function of the similarity \code{S} between 0 and 1 that returns the fitness term (between 0 and 1), e.g. \code{function(S) exp(-a * k * S)} with \code{negativeDDKernel = "species"} and \code{k} neighbors (see \code{negativeDDCut}), which multiplies the probability of establishment (\code{fitnessActsOn = "recruitment"}) or the number of offspring ("reproduction") by \code{exp(-a)} per conspecific neighbor. A function is stored as its values at equally spaced \code{S} from 0 to 1: at each number of conspecifics with \code{negativeDDKernel = "species"}, otherwise at 1001 values. Such a vector of at least 2 values can also be given directly; between its values, the term is interpolated linearly. The values are not recomputed if \code{negativeDDCut} or \code{negativeDDKernel} is changed in the list afterwards.
 #' @param positiveDD Experimental. Numeric between 0 and 1, strength of positive density dependence (e.g. facilitation by mutualists): individuals with dissimilar neighbors within \code{positiveDDCut} are disadvantaged, with the fitness term \code{1 - positiveDD * (1 - S)}. As the grid is always full, this is the same as an advantage of individuals with similar neighbors. By default (0) there is none. Positive density dependence is destabilizing: on its own and with otherwise default settings, already \code{positiveDD = 0.1} left two or three species after 1000 generations (neutral: about eight), and with \code{dispersal = 1} and \code{specRate = 2}, \code{positiveDD = 0.02} led to the dominance of one species (mean Shannon index 0.09 over 5 runs after 5000 generations; neutral: 2.1), so it is meant to be combined with negative density dependence at another radius or specificity. With the "species" kernel and \code{fission = 0}, a new species starts as a single individual without conspecific neighbors and therefore gets the full penalty \code{positiveDD}.
 #' @param positiveDDCut,positiveDDKernel,positiveDDWidth Radius, similarity measure (default "species") and Gaussian width for positive density dependence, as \code{negativeDDCut}, \code{negativeDDKernel} and \code{negativeDDWidth}.
-#' @param density,densityCut Deprecated names of \code{negativeDD} and \code{negativeDDCut}.
+#' @param density,densityCut,runs Deprecated names of \code{negativeDD}, \code{negativeDDCut} and \code{generations}.
 #' @param prunePhylogeny Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small; the phylogeny then contains only the extant species (see \code{\link{runSimulation}}). If FALSE, all species are kept.
 #' @details Fitness: environment and density dependence give fitness terms between 0 and 1, \code{w_env = environment * exp(-0.5 * ((E - t) / nicheWidth)^2) + 1 - environment} and the terms of negative and positive density dependence (see \code{negativeDD} and \code{positiveDD}). If several act on mortality, their relative death rates multiply (proportional hazards, i.e. their effects add up on the logarithmic scale of the death rate): an individual dies at a rate proportional to the product of \code{1 + (m - 1) * (1 - w)} over these terms, with \code{m = fitnessBaseMortalityRatio}. As the number of deaths per generation is fixed (\code{x * y}), only relative rates matter, and a term that is equal for all individuals has no effect. For reproduction and recruitment, the terms multiply directly. The Red Queen bonus multiplies fitness by \code{1 + redQueenStrength * exp(-redQueen * age)} (age of the species in generations); with several mechanisms on mortality, it divides the death rate by this factor.
 #'
-#' If runs is a sequence of generations, intermediate results are saved. E.g. when runs is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
+#' If generations is a sequence of generations, intermediate results are saved. E.g. when generations is c(500, 600, 700), the simulation runs 700 generations in total, and the intermediate results at generations 500 and 600 are saved additionally. The intermediate and end results are saved in the output of \code{runSimulation}.
 #' @return A List with parameters
 #' @seealso \code{\link{getMortalityData}} for analyses of density dependence in mortality
 #' @example /inst/examples/parCreator-help.R
 #' @export
 
-createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, specRate = 1.0, negativeDD = 0, environment = 0, nicheWidth = 0.03659906, fitnessActsOn = "mortality" , fitnessBaseMortalityRatio = 10, negativeDDCut = 1, seed=NULL,  type = "base", fission = 0, redQueen = 0, redQueenStrength = 0, protracted = 0, airmat = 1, scenario = NULL, calculateSummaries = FALSE, convertToBinaryTree = TRUE, prunePhylogeny = TRUE, negativeDDKernel = "absolute", negativeDDWidth = 0.1, negativeDDResponse = "linear", positiveDD = 0, positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1, density, densityCut){
+createCompletePar <- function(x = 50, y = 50, dispersal = "global", generations = 100, specRate = 1.0, negativeDD = 0, environment = 0, nicheWidth = 0.03659906, fitnessActsOn = "mortality" , fitnessBaseMortalityRatio = 10, negativeDDCut = 1, seed=NULL,  type = "base", fission = 0, redQueen = 0, redQueenStrength = 0, protracted = 0, airmat = 1, scenario = NULL, calculateSummaries = FALSE, convertToBinaryTree = TRUE, prunePhylogeny = TRUE, negativeDDKernel = "absolute", negativeDDWidth = 0.1, negativeDDResponse = "linear", positiveDD = 0, positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1, density, densityCut, runs){
 
   # old names, before negative and positive density dependence were separated
   negativeDD <- renamedArg(negativeDD, density, missing(negativeDD), missing(density), "negativeDD", "density")
   negativeDDCut <- renamedArg(negativeDDCut, densityCut, missing(negativeDDCut), missing(densityCut),
                               "negativeDDCut", "densityCut")
+  generations <- renamedArg(generations, runs, missing(generations), missing(runs), "generations", "runs")
     
   soilmat <- 1 # Needs to be defined here as long as it is not
                # implemented in the model
@@ -59,7 +60,7 @@ createCompletePar <- function(x = 50, y = 50, dispersal = "global", runs = 100, 
   
   if (is.null(seed)) seed <- sample.int(.Machine$integer.max, 1)
   
-  par = list(x=x,y=y,dispersal = dispersal, runs = runs, specRate = specRate, 
+  par = list(x=x,y=y,dispersal = dispersal, generations = generations, specRate = specRate, 
              negativeDD = negativeDD, environment = environment, nicheWidth = nicheWidth, fitnessActsOn=fitnessActsOn,
              fitnessBaseMortalityRatio=fitnessBaseMortalityRatio, negativeDDCut = negativeDDCut, 
              seed = seed, type = type, scenario = scenario, fission = fission, 

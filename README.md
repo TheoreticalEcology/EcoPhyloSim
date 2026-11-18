@@ -24,7 +24,7 @@ development version:
     library(EcoPhyloSim)
 
     # Define a parameter set
-    par <- createCompletePar(x = 50, y = 50, dispersal = 1 , runs = 1000)
+    par <- createCompletePar(x = 50, y = 50, dispersal = 1 , generations = 1000)
 
     # Run the model
     simu <- runSimulation(par)

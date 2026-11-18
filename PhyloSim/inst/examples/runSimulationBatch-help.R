@@ -1,7 +1,7 @@
 ## Define two parameter sets
-par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 0, environment = 0.5, specRate = 1)
-par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Merge the parameter sets. It is important to note that the function

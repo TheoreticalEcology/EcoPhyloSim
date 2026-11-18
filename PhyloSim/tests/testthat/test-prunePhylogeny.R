@@ -1,7 +1,7 @@
 test_that("the full phylogeny has at least as many tips as the pruned one", {
-  full   <- runSimulation(createCompletePar(x = 20, y = 20, runs = 1000, seed = 1,
+  full   <- runSimulation(createCompletePar(x = 20, y = 20, generations = 1000, seed = 1,
                                             prunePhylogeny = FALSE))
-  pruned <- runSimulation(createCompletePar(x = 20, y = 20, runs = 1000, seed = 1,
+  pruned <- runSimulation(createCompletePar(x = 20, y = 20, generations = 1000, seed = 1,
                                             prunePhylogeny = TRUE))
   expect_gte(ape::Ntip(full$Output[[1]]$phylogeny),
              ape::Ntip(pruned$Output[[1]]$phylogeny))
@@ -12,7 +12,7 @@ test_that("the full phylogeny has at least as many tips as the pruned one", {
 test_that("phylogenies are complete for several runs and early time points", {
   for (prune in c(TRUE, FALSE)) {
     simu <- runSimulation(createCompletePar(x = 20, y = 20, specRate = 2, seed = 1,
-                                            runs = c(3, 1000), prunePhylogeny = prune))
+                                            generations = c(3, 1000), prunePhylogeny = prune))
     for (out in simu$Output) expect_s3_class(out$phylogeny, "phylo")
   }
 })
@@ -20,7 +20,7 @@ test_that("phylogenies are complete for several runs and early time points", {
 test_that("pruning removes extinct lineages and leaves the community unchanged (#140, #147)", {
   runs <- c(1000, 3000)
   sims <- lapply(c(TRUE, FALSE), function(prune)
-    runSimulation(createCompletePar(x = 20, y = 20, specRate = 8, runs = runs, seed = 1,
+    runSimulation(createCompletePar(x = 20, y = 20, specRate = 8, generations = runs, seed = 1,
                                     convertToBinaryTree = FALSE, prunePhylogeny = prune)))
   for (i in seq_along(runs)) {
     pruned <- sims[[1]]$Output[[i]]
@@ -45,7 +45,7 @@ test_that("pruning removes extinct lineages and leaves the community unchanged (
 test_that("species that died out in the last generation are removed by drop.fossil() (#147)", {
   for (seed in 1:10) for (prune in c(TRUE, FALSE)) {
     # suppressWarnings: some runs end with a single species (phylogeny set to 0)
-    o <- suppressWarnings(quietSimulation(x = 3, y = 3, specRate = 1, runs = 2000, seed = seed,
+    o <- suppressWarnings(quietSimulation(x = 3, y = 3, specRate = 1, generations = 2000, seed = seed,
                          convertToBinaryTree = FALSE, prunePhylogeny = prune))$Output[[1]]
     extant <- paste0("s", unique(c(o$specMat)))
     if (length(extant) < 2) next
@@ -56,7 +56,7 @@ test_that("species that died out in the last generation are removed by drop.foss
 
 test_that("the pruned phylogeny does not depend on the number of censuses (#140)", {
   last <- function(runs) {
-    simu <- runSimulation(createCompletePar(x = 20, y = 20, specRate = 8, runs = runs, seed = 1))
+    simu <- runSimulation(createCompletePar(x = 20, y = 20, specRate = 8, generations = runs, seed = 1))
     simu$Output[[length(runs)]]
   }
   one <- last(5000)
@@ -76,7 +76,7 @@ test_that(".dropFossil() gives the same trees as ape::drop.fossil() (#168)", {
     expect_equal(EcoPhyloSim:::.dropFossil(phy), ape::drop.fossil(phy))
   }
   # simulated tree with extinct species
-  phy <- quietSimulation(x = 20, y = 20, specRate = 8, runs = 1000, seed = 1,
+  phy <- quietSimulation(x = 20, y = 20, specRate = 8, generations = 1000, seed = 1,
                          convertToBinaryTree = FALSE, prunePhylogeny = FALSE)$Output[[1]]$phylogeny
   expect_lt(ape::Ntip(EcoPhyloSim:::.dropFossil(phy)), ape::Ntip(phy))
   expect_equal(EcoPhyloSim:::.dropFossil(phy), ape::drop.fossil(phy))

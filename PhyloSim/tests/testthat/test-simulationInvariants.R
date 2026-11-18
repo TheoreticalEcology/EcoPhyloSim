@@ -1,23 +1,23 @@
 # Properties of small simulations; exact values are tested in test-reproducibility.R.
 
 test_that("output has one result per recorded generation and grids with y rows and x columns", {
-  simu <- quietSimulation(x = 30, y = 20, runs = c(50, 100), seed = 1)
+  simu <- quietSimulation(x = 30, y = 20, generations = c(50, 100), seed = 1)
   expect_s3_class(simu, "PhyloSim")
   expect_length(simu$Output, 2)
   for (out in simu$Output) {
     for (mat in out[c("specMat", "traitMat", "envMat", "compMat")]) expect_equal(dim(mat), c(20, 30))
   }
-  expect_equal(sum(rac(simu, plot = FALSE)$Abundance), 30 * 20)
+  expect_equal(sum(rac(simu, type = FALSE)$Abundance), 30 * 20)
 })
 
 test_that("the seed controls the species matrix", {
-  run <- function(seed) quietSimulation(x = 20, y = 20, runs = 200, specRate = 2, seed = seed)$Output[[1]]$specMat
+  run <- function(seed) quietSimulation(x = 20, y = 20, generations = 200, specRate = 2, seed = seed)$Output[[1]]$specMat
   expect_identical(run(1), run(1))
   expect_false(identical(run(1), run(2)))
 })
 
 test_that("the seed alone controls the phylogeny (#135)", {
-  run <- function() quietSimulation(x = 20, y = 20, runs = 300, specRate = 10, seed = 1)$Output[[1]]$phylogeny # with polytomies
+  run <- function() quietSimulation(x = 20, y = 20, generations = 300, specRate = 10, seed = 1)$Output[[1]]$phylogeny # with polytomies
   expect_equal(run(), run())
 })
 
@@ -25,7 +25,7 @@ test_that("extant species end at the present and no branch length is negative (#
   # on small grids, global dispersal used to draw the dying individual as its own parent
   for (args in list(list(), list(environment = 0.5), list(dispersal = 0.5))) {
     for (seed in 1:20) {
-      par <- c(list(x = 3, y = 3, specRate = 1, runs = 2000, seed = seed, convertToBinaryTree = FALSE), args)
+      par <- c(list(x = 3, y = 3, specRate = 1, generations = 2000, seed = seed, convertToBinaryTree = FALSE), args)
       out <- suppressWarnings(do.call(quietSimulation, par))$Output[[1]] # warning for results with only one species (#153)
       if (!inherits(out$phylogeny, "phylo")) next # a single species gives no tree
       expect_true(all(out$phylogeny$edge.length >= 0))
@@ -36,7 +36,7 @@ test_that("extant species end at the present and no branch length is negative (#
 
 test_that("environmental filtering correlates traits with the environment, less so with weaker filtering or a very narrow niche", {
   corTraitEnv <- function(environment = 1, ...) {
-    out <- quietSimulation(x = 30, y = 30, runs = 1000, environment = environment, dispersal = 1, seed = 1, ...)$Output[[1]]
+    out <- quietSimulation(x = 30, y = 30, generations = 1000, environment = environment, dispersal = 1, seed = 1, ...)$Output[[1]]
     cor(c(out$traitMat), c(out$envMat))
   }
   r <- corTraitEnv()

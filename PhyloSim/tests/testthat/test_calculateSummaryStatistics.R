@@ -1,6 +1,6 @@
 test_that("calculateSummaryStatistics returns all statistics", {
   set.seed(1)
-  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = 200, seed = 1, negativeDD = 0.5, environment = 0.5)
+  simu <- quietSimulation(x = 20, y = 20, specRate = 2, generations = 200, seed = 1, negativeDD = 0.5, environment = 0.5)
   summStat <- calculateSummaryStatistics(simu, strict = FALSE)
   expect_length(summStat, 14)
   expect_false(anyNA(unlist(summStat)))
@@ -8,7 +8,7 @@ test_that("calculateSummaryStatistics returns all statistics", {
 })
 
 test_that("calculateSummaryStatistics uses the last result if runs has several values", {
-  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = c(100, 200), seed = 1)
+  simu <- quietSimulation(x = 20, y = 20, specRate = 2, generations = c(100, 200), seed = 1)
   expect_equal(calculateSummaryStatistics(simu, strict = FALSE)$gammaDiversity, specRich(simu))
   expect_error(calculateSummaryStatistics(simu, which.result = 3), "which.result")
 })
@@ -45,7 +45,7 @@ test_that("clarkEvans() returns NA if no species has a finite index (#126)", {
 
 test_that("the gamma statistic resolves polytomies (#169)", {
   skip_on_cran() # calculateSummaryStatistics(), slow
-  simu <- quietSimulation(x = 30, y = 30, specRate = 20, runs = 200, seed = 1,
+  simu <- quietSimulation(x = 30, y = 30, specRate = 20, generations = 200, seed = 1,
                           convertToBinaryTree = FALSE)
   phy <- simu$Output[[1]]$phylogeny
   expect_false(ape::is.binary(phy))
@@ -57,7 +57,7 @@ test_that("the gamma statistic resolves polytomies (#169)", {
 test_that("calculateSummaryStatistics gives NA for the plot statistics on grids with fewer than 15 cells in x or y (#157)", {
   plotStats <- c("sacAuc", "alphaDiversity", "betaDiversity", "dispersion", "varPart_1", "varPart_2")
   for (d in list(c(12, 12), c(30, 12))) {
-    simu <- quietSimulation(x = d[1], y = d[2], specRate = 2, runs = 100, seed = 1)
+    simu <- quietSimulation(x = d[1], y = d[2], specRate = 2, generations = 100, seed = 1)
     expect_message(summStat <- calculateSummaryStatistics(simu), "fewer than 15 cells")
     expect_true(all(is.na(unlist(summStat[plotStats]))))
     expect_equal(summStat$gammaDiversity, specRich(simu))
@@ -65,7 +65,7 @@ test_that("calculateSummaryStatistics gives NA for the plot statistics on grids 
     expect_identical(suppressMessages(calculateSummaryStatistics(simu, strict = TRUE)), NA)
   }
   # the simulation is kept
-  expect_message(simu <- quietSimulation(x = 10, y = 10, specRate = 2, runs = 100, seed = 1, calculateSummaries = TRUE),
+  expect_message(simu <- quietSimulation(x = 10, y = 10, specRate = 2, generations = 100, seed = 1, calculateSummaries = TRUE),
                  "fewer than 15 cells")
   expect_equal(simu$Output[[1]]$summaries$gammaDiversity, specRich(simu))
 })

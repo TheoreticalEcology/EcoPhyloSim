@@ -13,7 +13,7 @@
 #' variableParams <- list(environment=function()return(runif(1)),
 #'                        specRate=function()return(runif(1, 1, 10)))
 #' fixedParams <- list(x=30, y=30,
-#'                     runs=1000,
+#'                     generations=1000,
 #'                     negativeDDCut=1,
 #'                     calculateSummaries=TRUE)
 #' 
@@ -331,7 +331,9 @@ validatePriors <- function(variableParams) {
 # expects a lists of parameter names and the corresponding values
 # return a list of parameters and corresponding values that stay at the default value
 getDefaultParams <- function (allParams, nonDefaultParams) {
-  replacedIndices <- is.element(names(allParams), names(nonDefaultParams))
+  given <- names(nonDefaultParams)
+  given <- c(given, renamedParams[intersect(given, names(renamedParams))]) # an old name replaces the default of the new one (#92)
+  replacedIndices <- is.element(names(allParams), given)
   return(allParams[!replacedIndices])
 }
 

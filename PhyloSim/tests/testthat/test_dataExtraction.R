@@ -1,7 +1,7 @@
 context("getMortalityData")
 
 set.seed(1)
-par <- createCompletePar(x = 20, y = 15, dispersal = 1, runs = c(10, 11, 13), # non-square grid
+par <- createCompletePar(x = 20, y = 15, dispersal = 1, generations = c(10, 11, 13), # non-square grid
                          negativeDD = 1, negativeDDCut = 2, scenario = "test")
 simu <- runSimulation(par)
 
@@ -31,7 +31,7 @@ test_that("getMortalityData counts conspecific neighbors on the torus", {
   expect_equal(unique(dat$census), c(10, 11))
   expect_equal(unique(dat$interval), c(1, 2))
   for (i in 1:2) {
-    expect_equal(dat$con[dat$census == par$runs[i]], bruteCon(simu$Output[[i]]$specMat, 2))
+    expect_equal(dat$con[dat$census == par$generations[i]], bruteCon(simu$Output[[i]]$specMat, 2))
   }
   expect_equal(getMortalityData(simu, radius = 1)$con[1:300], bruteCon(simu$Output[[1]]$specMat, 1))
   expect_true(all(getMortalityData(simu, radius = 0)$con == 0))
@@ -61,7 +61,7 @@ test_that("getMortalityData works with lists and needs two recorded generations"
   expect_equal(names(lst)[1], "run")
   expect_equal(lst$run, rep(c("a", "b"), each = 600))
   expect_equal(unique(getMortalityData(list(simu, simu))$run), 1:2)
-  one <- runSimulation(createCompletePar(x = 10, y = 10, runs = 10))
+  one <- runSimulation(createCompletePar(x = 10, y = 10, generations = 10))
   expect_error(getMortalityData(one), "two recorded generations")
   expect_error(getMortalityData(5), "PhyloSim object")
   expect_error(getMortalityData(list()), "PhyloSim object")

@@ -5,7 +5,7 @@
 #' @param backup Logical, determining whether the results of the individual scenario runs should be saved with saveRDS() as \emph{scenario}.rds in the working directory (advised if the simulation takes a long time, or if the individual scenarios vary greatly in runtime. Default is FALSE)
 #' @param strip NULL or "summaries", determining whether the whole simulation or only the summary statistics should be returned. Summary statistics are only available if \code{calculateSummaries = TRUE} in \code{\link{createCompletePar}}.
 #' @param onError "stop" (default) to stop at the first simulation that fails, or "NA" to return NA for each failed simulation, with the error message as attribute "error" and a warning that lists the failed simulations.
-#' @return An object of class \code{\link{PhylosimList}}, or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhylosimList" may fail.
+#' @return An object of class \code{\link{PhyloSimList}}, or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhyloSimList" may fail.
 #' @details This function uses the \pkg{foreach} and \pkg{doParallel} packages to compute the model scenarios in parallel on several cores. \cr\cr The phylogeny is passed to R in the newick format and parsed to an object of class "phylo" with the function \code{\link[ape]{read.tree}} from the \pkg{ape} package.
 #' @example /inst/examples/runSimulationBatch-help.R
 #' @importFrom foreach foreach %dopar% %do%
@@ -77,7 +77,7 @@ runSimulationBatch <- function(pars, parallel = FALSE, backup = FALSE, strip = N
   }
   
   if(is.null(strip)) {
-    class(out) <- "PhylosimList"
+    class(out) <- "PhyloSimList"
   } else {
     class(out) <- "list"
   }

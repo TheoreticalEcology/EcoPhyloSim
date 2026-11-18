@@ -1,7 +1,7 @@
 #' @title Null Model
 #' @description Generates a null model and compares the observed results against it.
 #' @param simu an object of class "PhyloSim" as created by \code{\link{runSimulation}} or \code{\link{runSimulationBatch}}
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @param abundance Logical, determining whether the null model should be based on the abundance distribution of the sample plots. Default is FALSE.
 #' @param localPlotSize edge length (in grid cells) of the square plots drawn within the metacommunity
 #' @param numberOfPlots number of plots drawn within the metacommunity

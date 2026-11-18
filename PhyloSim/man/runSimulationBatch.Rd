@@ -19,7 +19,7 @@ runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL,
 \item{onError}{"stop" (default) to stop at the first simulation that fails, or "NA" to return NA for each failed simulation, with the error message as attribute "error" and a warning that lists the failed simulations.}
 }
 \value{
-An object of class \code{\link{PhylosimList}}, or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhylosimList" may fail.
+An object of class \code{\link{PhyloSimList}}, or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhyloSimList" may fail.
 }
 \description{
 A model of species community assembly under different assembly mechanisms, using parallel computing to make use of multi core CPUs and clusters in order to reduce computation time. The function is an extension to \link{runSimulation} in order to accelerate the simulation of multiple scenarios.
@@ -29,9 +29,9 @@ This function uses the \pkg{foreach} and \pkg{doParallel} packages to compute th
 }
 \examples{
 ## Define two parameter sets
-par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par1 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 0, environment = 0.5, specRate = 1)
-par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , runs = c(500,1000),
+par2 <- createCompletePar(x = 50, y = 50, dispersal = 0 , generations = c(500,1000),
         negativeDD = 1, environment = 0.5, specRate = 1)
 
 ## Merge the parameter sets. It is important to note that the function

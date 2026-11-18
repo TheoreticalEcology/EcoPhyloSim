@@ -3,7 +3,7 @@
 #' @description Calculates the summary statistics for a simulation of class PhyloSim.
 #' @param simulation Simulation output of the class "PhyloSim"
 #' @param strict Logical. If TRUE, the output of the function is NA if at least one summary statistic could not be calculated. Default is FALSE.
-#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
+#' @param which.result Integer, determines which result should be used. This argument is only useful if your 'generations' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used.
 #' @details Computes the following summary statistics from one result of a simulation run. If calculateSummaries = TRUE in \code{\link{createCompletePar}}, \code{\link{runSimulation}} stores the summary statistics of the last result in `Output[[1]]$summaries`:
 #' \describe{
 #'   \item{racAuc}{Area under the Rank Abundance Curve (see \code{\link{rac}}).}
@@ -61,7 +61,7 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   }
 
   # RAC
-  rac <- rac(simulation, which.result = which.result, plot = F)
+  rac <- rac(simulation, which.result = which.result, type = FALSE)
   summaryStatistics$racAuc <- auc(x = rac$Rank,
                                   y = rac$Abundance)
   

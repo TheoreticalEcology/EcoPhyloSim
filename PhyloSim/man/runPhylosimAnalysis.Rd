@@ -36,7 +36,7 @@ variableParams must be a list of functions. The idea behind this is to draw from
 variableParams <- list(environment=function()return(runif(1)),
                        specRate=function()return(runif(1, 1, 10)))
 fixedParams <- list(x=30, y=30,
-                    runs=1000,
+                    generations=1000,
                     negativeDDCut=1,
                     calculateSummaries=TRUE)
 

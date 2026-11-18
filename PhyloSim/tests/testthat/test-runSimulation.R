@@ -15,14 +15,25 @@ test_that("SimulationBatch is running correctly",{
   parlist<-list(par1,par2)
   simuBatch<-runSimulationBatch(parlist)
 
-  expect_is(simuBatch, "PhylosimList")
+  expect_is(simuBatch, "PhyloSimList")
   expect_is(simuBatch[[1]], "PhyloSim")
   expect_is(simuBatch[[2]], "PhyloSim")
   
 })
 
 test_that("runSimulation warns if only one species is left", {
-  expect_warning(simu <- quietSimulation(x = 10, y = 10, runs = 1, specRate = 0),
+  expect_warning(simu <- quietSimulation(x = 10, y = 10, generations = 1, specRate = 0),
                  "Only one species in the community at generation 1")
   expect_identical(simu$Output[[1]]$phylogeny, 0)
+})
+
+test_that("objects of the old class PhylosimList and createPhylosimList() still work (#92)", {
+  old <- structure(list(simu.neutral.global, simu.neutral.local), class = "PhylosimList")
+  expect_output(print(old), "PhyloSimList")
+  expect_warning(l <- createPhylosimList(list(simu.neutral.global, simu.neutral.local)), "deprecated")
+  expect_s3_class(l, "PhyloSimList")
+  s <- simu.neutral.global
+  s$Model$generations <- s$Model$runs
+  s$Model$runs <- NULL
+  expect_output(print(createPhyloSimList(list(s, s))), "10000")
 })

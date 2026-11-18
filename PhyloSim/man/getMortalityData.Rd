@@ -9,7 +9,7 @@ getMortalityData(simu, radius = NULL)
 \arguments{
 \item{simu}{simulation result of class \code{PhyloSim} from \code{\link{runSimulation}},
 or a list of them, e.g., from \code{\link{runSimulationBatch}}. At least two
-generations must be recorded (see \code{runs} in \code{\link{createCompletePar}}).}
+generations must be recorded (see \code{generations} in \code{\link{createCompletePar}}).}
 
 \item{radius}{radius of the neighborhood, a non-negative integer. If \code{NULL},
 the \code{negativeDDCut} of the simulation is used; for positive density
@@ -46,7 +46,7 @@ An individual counts as dead if its cell was replaced at least once until the
 next recorded generation. This is detected by a change of \code{traitMat}, as
 the traits change at every birth. On average, a cell is replaced about once
 per generation, so the recorded generations should be consecutive, e.g.,
-\code{runs = 1000:1010} after a burn-in.
+\code{generations = 1000:1010} after a burn-in.
 
 With the default \code{negativeDDKernel = "absolute"} (see
 \code{\link{createCompletePar}}), density dependence acts through the
@@ -69,7 +69,7 @@ random effect for \code{id}.
 # Local dispersal and conspecific density dependence, burn-in of 300 generations,
 # then 6 consecutive recorded generations
 par <- createCompletePar(x = 30, y = 30, dispersal = 1, negativeDD = 1, negativeDDCut = 2,
-                         negativeDDKernel = "species", runs = 300:305, seed = 1)
+                         negativeDDKernel = "species", generations = 300:305, seed = 1)
 simu <- runSimulation(par)
 
 dat <- getMortalityData(simu)
