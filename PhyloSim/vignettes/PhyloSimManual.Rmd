@@ -90,19 +90,19 @@ browseVignettes("EcoPhyloSim")
 
 ## Running a simulation
 
-Running the model consists of two consecutive steps. First, a list of parameters
-is generated with `createCompletePar()`:
+Running the model has two steps. First, `createCompletePar()` creates the list
+of parameters:
 
 ```{r createpar}
-pars <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500, 1000),
-                          negativeDD = 1, environment = 0.5, specRate = 1, seed = 42)
+pars <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = c(500, 1000),
+                          environment = 1, specRate = 2, seed = 42)
 ```
 
-In this example, an area of 50 × 50 cells provides the basis for one simulation
-with outputs recorded after 500 and 1,000 generations. The dispersal is set to
-global, meaning each individual could reproduce in every cell of the grid.
-Further, density dependence (`negativeDD`) and environmental filtering
-(`environment`) act on the individuals. All parameters are listed with their
+This creates one simulation on 50 × 50 cells, recorded after 500 and 1,000
+generations. With `dispersal = 1`, the offspring that replaces a dead
+individual comes from a parent near its cell, and environmental filtering
+(`environment`) favors individuals whose environmental trait matches the
+environment of their cell. All parameters are listed with their
 defaults and ranges in `?createCompletePar`; the vignette "EcoPhyloSim model"
 (`vignette("ModelDescription", package = "EcoPhyloSim")`) explains the
 processes they control and lists known limitations (e.g. `dispersal` has an
@@ -146,35 +146,22 @@ in `runs`, here two. Each of them contains:
 str(simu$Output[[1]], max.level = 1)
 ```
 
-Branch lengths of the phylogeny are in generations, with each recorded state
-placed half a generation after the events of its generation (see
-`?runSimulation`).
-
-The `PhyloSim` object serves as the basis of all further analysis. It can
-directly be passed to all other functions. If the `PhyloSim` object contains
-multiple results, they can be accessed by the `which.result` argument in most
-functions. By default, the last result is used.
-
 ## Several simulations
 
-Often, users will want to run several simulations with different or equal
-parameters. For this purpose, the `runSimulationBatch()` function runs a list
-of parameter combinations, optionally in parallel, and returns an object of
+`runSimulationBatch()` runs a list of parameter sets, optionally in parallel, and returns an object of
 class `PhylosimList`, which is essentially a list of `PhyloSim` objects. In the
 following example, two slightly different parameter sets are run one after
 the other; for larger batches, `parallel = 2` runs them on two cores.
 
 ```{r runbatch, results = 'hide'}
-pars1 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                           negativeDD = 1, environment = 0.5, specRate = 1, seed = 1)
-pars2 <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = 1000,
-                           negativeDD = 1, environment = 1, specRate = 1, seed = 2)
+pars1 <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = 1000,
+                           environment = 0.5, specRate = 2, seed = 1)
+pars2 <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = 1000,
+                           environment = 1, specRate = 2, seed = 2)
 simuBatch <- runSimulationBatch(list(pars1, pars2), parallel = FALSE)
 ```
 
-The single simulations can be accessed by indexing, e.g. `simuBatch[[1]]`. An
-overview of the basic classes and functions to run simulations is provided
-below.
+The single simulations can be accessed by indexing, e.g. `simuBatch[[1]]`.
 
 ```{r runfig, echo = FALSE, out.width = "80%", fig.cap = "Functions (boxes) and objects (ellipses) to run simulations. A single PhyloSim object is taken from a PhylosimList by indexing."}
 knitr::include_graphics("runsimulation.svg")
@@ -230,7 +217,7 @@ aggregation (local dispersal) makes small subplots poor in species and the
 curve steep; with global dispersal, subplots are close to random samples of the
 whole grid and the curve flattens early.
 
-```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
+```{r sac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
 sac(simu)
 ```
 
@@ -240,7 +227,7 @@ species dominate, a flat one that abundances are even; the length of the curve
 is the number of species. Density dependence is expected to flatten the curve,
 as it favors rare species.
 
-```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The vignette \"EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
+```{r rac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The vignette \"EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
 rac(simu)
 ```
 
@@ -277,15 +264,9 @@ grid (the metacommunity). *How to read it:* highlighted species that sit in a
 few clades indicate phylogenetic clustering, species spread over the whole tree
 overdispersion; the null models below test this.
 
-```{r highlight-large, fig.width = 6, fig.height = 5.4, fig.cap = "Species of a subplot of 10 × 10 cells (highlighted) in the phylogeny of the metacommunity."}
+```{r highlight-large, fig.width = 6, fig.height = 4.5, fig.cap = "Species of a subplot of 10 × 10 cells (highlighted) in the phylogeny of the metacommunity."}
 highlightLocalPhylo(simu, size = 10, n = 1)
 ```
-
-```{r highlight-small, fig.width = 6, fig.height = 5.4, fig.cap = "Species of a subplot of 5 × 5 cells (highlighted) in the phylogeny of the metacommunity."}
-highlightLocalPhylo(simu, size = 5, n = 1)
-```
-
-The larger subplot contains more species than the smaller one.
 
 ## Summary statistics
 
@@ -336,7 +317,7 @@ str(localPlots(simu, size = 10, n = 2), max.level = 1)
 ```
 
 **Mortality data:** `getMortalityData()` returns, for each individual, the number
-of its conspecific neighbors and whether it died until the next recorded
+of its conspecific neighbors and whether it died before the next recorded
 generation, which allows estimating conspecific negative density dependence
 as in field studies (see Density dependence measured from mortality in
 the vignette "EcoPhyloSim model"). For this, the state
@@ -376,7 +357,7 @@ the subplots and on the null model (which species pool, whether abundances are
 used); compare only values computed with the same settings.
 
 **`calculatePhylogeneticDispersion()`:** this and its associated plot function
-are convenience functions for a rather specialized application: they calculate
+are convenience functions: they calculate
 null models for all runs in a `PhylosimList` object and for different plot
 sizes. Which null model is used is determined by the `type` argument:
 

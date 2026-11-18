@@ -1,5 +1,6 @@
 ---
 title: "Model history: how simulation results changed between releases"
+author: "Florian Hartig"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
@@ -94,6 +95,11 @@ of your own, see
 
 # Releases at a glance
 
+Types of changes: **N** (numeric): results for a given seed change, but no
+change of their distributions was detected; **B** (behavior): patterns change; **S** (semantics):
+parameters are renamed or redefined, so that the same call means a different
+model; **S+B**: both.
+
 ```{r timeline, fig.height = 3, fig.cap = "Releases (diamonds; open: planned) and the changes of the model code that alter simulation results, in their order (not to scale in time)."}
 op <- par(mar = c(0, 0.5, 0, 0.5))
 n <- nrow(ch)
@@ -112,11 +118,6 @@ legend("topright", legend = names(typeCol), pt.bg = typeCol, pch = 21, col = "wh
        horiz = TRUE, bty = "n", cex = 0.8, title = "Type")
 par(op)
 ```
-
-Types of changes: **N** (numeric): results for a given seed change, but no
-change of their distributions was detected; **B** (behavior): patterns change; **S** (semantics):
-parameters are renamed or redefined, so that the same call means a different
-model; **S+B**: both.
 
 ```{r overview}
 count <- function(v) {
@@ -162,9 +163,9 @@ release or commit with them. Note the changes listed above.
 
 # Patterns across releases
 
-The figure shows eight indicators for nine settings (50 × 50 cells,
-`specRate = 2`, other parameters at their defaults unless stated), patterns from
-the vignette "EcoPhyloSim model". `r if (length(runs) > 1)
+The figure shows eight indicators for nine settings of the main patterns in the
+vignette "EcoPhyloSim model" (50 × 50 cells, `specRate = 2`, other parameters at
+their defaults unless stated). `r if (length(runs) > 1)
 "Intervals of two releases that do not overlap indicate a change; the tests in the next section give the significance." else
 paste("So far it shows only the run of", runs, "for reference; the comparison follows with the runs of further releases.")`
 
@@ -254,10 +255,24 @@ compareRuns <- function(o, w) {
   cat(nrow(rel), " of ", sum(!is.na(m$p.adj)), " comparisons differ significantly; ", sum(m$n.old < 20 | m$n.new < 20),
       " rest on fewer than 20 replicates in a run. The share of failed simulations differs in ",
       sum(f$p.adj < 0.05, na.rm = TRUE), " of ", nrow(f), " settings.\n\n", sep = "")
-  shown <- unique(c("block", p[vapply(rel[p], function(x) length(unique(x)) > 1, logical(1))]))
-  if ("generations" %in% shown) rel$generations <- format(rel$generations, scientific = FALSE, big.mark = ",")
-  if (nrow(rel)) print(knitr::kable(rel[c(shown, "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
-                                    digits = 3, row.names = FALSE))
+  # one column for the setting: block and the parameters that differ from the reference setting
+  ref <- m[m$block == "dispersal" & m$dispersal == "1", ][1, ]
+  q <- setdiff(p, c("block", "generations"))
+  rel$setting <- vapply(seq_len(nrow(rel)), function(i) {
+    d <- q[vapply(q, function(x) !identical(as.character(rel[[x]][i]), as.character(ref[[x]])), logical(1))]
+    if (length(d)) paste0(rel$block[i], ": ", paste(d, vapply(d, function(x) as.character(rel[[x]][i]), ""), collapse = ", "))
+    else rel$block[i]
+  }, "")
+  rel$p.adj <- format.pval(rel$p.adj, digits = 2, eps = 0.001)
+  if (nrow(rel)) print(knitr::kable(head(rel, 15)[c("setting", "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
+                                    digits = 3, row.names = FALSE,
+                                    col.names = c("Setting", "Indicator", "Older", "Newer", "d", "95% CI of d", "p (adjusted)")))
+  if (nrow(rel) > 15) cat("
+
+The table shows the 15 largest of the", nrow(rel), "differences;",
+                          "all are in `modelHistory` (see Using the data).
+
+")
 }
 for (v in rev(rel$version)) {
   r <- rel[rel$version == v, ]
@@ -282,18 +297,6 @@ for (v in rev(rel$version)) {
 }
 ```
 
-# Using the data
-
-The results are in the data set `modelHistory` (see `?modelHistory`):
-
-```{r, echo = TRUE, eval = FALSE}
-data(modelHistory)
-s <- modelHistory$summary
-# richness at the last census in the neutral model with global dispersal, per release
-s[s$block == "neutral" & s$x == 50 & s$specRate == 2 & s$indicator == "richness",
-  c("version", "mean", "sd", "n")]
-```
-
 # Methods
 
 ## Comparisons
@@ -302,6 +305,7 @@ Each change is compared with its parent commit in two stages:
 stage 1 runs the whole design briefly (2 replicates, 300 generations) with the
 same seeds and shows whether the results are identical; stage 2 runs the blocks
 that differ with 30 replicates and tests whether their distributions differ.
+
 Measured differences are settings where the replicate means of two consecutive
 runs differ significantly (Welch test from mean, sd and number of replicates,
 false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
@@ -309,14 +313,16 @@ runtime, the share of failed simulations and the species age not tested, as the
 age is estimated from the species IDs, whose numbering and pruning differ between
 versions); d is the difference (newer minus older) in units of the
 pooled standard deviation, with an approximate 95% confidence interval, so that
-the size of a difference can be judged (the tables in Releases in detail list the largest first). With
-30 replicates per run, a significant difference has |d| > 0.5, and a single test
+the size of a difference can be judged (the tables in Releases in detail list up to the 15 largest).
+
+With 30 replicates per run, a significant difference has |d| of at least about
+0.5, and a single test
 detects d =
 `r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a probability of 80%,
-but as a pair of runs is compared in about a thousand tests, a difference needs to
-be larger to be found reliably (d =
+but as a pair of runs is compared in about a thousand tests, a difference needs
+to be larger to be found reliably (d =
 `r round(power.t.test(n = 30, power = 0.8, sig.level = 0.05 / 1000)$delta, 2)` at
-the Bonferroni level; the false discovery rate lies in between). Smaller changes,
+the Bonferroni level for 1,000 tests; the false discovery rate lies in between). Smaller changes,
 and changes of the variance or shape of a distribution, can remain undetected, so
 "no difference" does not prove that a pattern is unchanged. The share of failed
 simulations per setting is compared with Fisher's exact test, and comparisons in
@@ -335,7 +341,7 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
              Varied = paste(vapply(varied, function(p) paste0(p, " (", paste(sort(unique(b[[p]])), collapse = ", "), ")"), ""),
                             collapse = "; "),
              Generations = format(max(b$generations), scientific = FALSE, big.mark = ","))
-})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1, and current names for parameters added later).")
+})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1 (`density` and `densityCut` are now `negativeDD` and `negativeDDCut`), and current names for parameters added later).")
 ```
 
 | Indicator | Definition |
@@ -359,7 +365,20 @@ every step. Each simulation has its own seed, which depends only on the mode (ma
 the parameters that differ from the reference setting and the replicate, so
 results do not depend on the number of cores; since #175, they no longer depend
 on the random number library of the compiler. All releases are evaluated with the
-same installation of EcoPhyloSim for the indicators. Each run records the command,
+same version of EcoPhyloSim, so differences come from the simulations, not
+from the analysis code. Each run records the command,
 the platform and the versions of all packages; the archives of the release runs,
 with the results per replicate, are attached to the GitHub releases from release
 0.3.2 on.
+
+## Using the data
+
+The results are in the data set `modelHistory` (see `?modelHistory`):
+
+```{r, echo = TRUE, eval = FALSE}
+data(modelHistory)
+s <- modelHistory$summary
+# richness at the last census in the neutral model with global dispersal, per release
+s[s$block == "neutral" & s$x == 50 & s$specRate == 2 & s$indicator == "richness",
+  c("version", "mean", "sd", "n")]
+```
