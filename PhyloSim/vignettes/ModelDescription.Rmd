@@ -1140,7 +1140,7 @@ with another process, from a setting with that process. Significance is
 tested with Welch's t-test (false discovery rate of 5% over all cells). The
 sections of the chapter Processes and below show the full responses.
 
-```{r effects, echo = FALSE, fig.width = 7, fig.height = 4.8, fig.cap = "Standardized effects of single parameter changes (rows) on the indicators (columns) at the end of the runs: difference of the replicate means divided by the pooled standard deviation between replicates (blue: decrease, red: increase; colors saturate at ±3); light grey: not significant (false discovery rate 5%); white: not defined."}
+```{r effects, echo = FALSE, fig.width = 7, fig.height = 4.8, fig.cap = "Standardized effects of single parameter changes (rows) on the indicators (columns) at the end of the runs: difference of the replicate means divided by the pooled standard deviation between replicates (▲ increase, ▼ decrease, number: size; light blue: decrease, light orange: increase, saturating at ±3); empty: not significant (false discovery rate 5%); –: not defined."}
 ref <- list("dispersal", dispersal = "1")
 contrasts <- list(
   "dispersal 1 to 3" = list(ref, list("dispersal", dispersal = "3")),
@@ -1184,15 +1184,19 @@ efs[!is.finite(efs)] <- NA
 padj <- matrix(p.adjust(t(sapply(eff, `[`, 2, )), "BH"), nrow(efs))
 op <- par(mar = c(0.5, 16, 6, 5), cex = 0.75)
 cap <- 3
-pal <- hcl.colors(11, "Blue-Red 3")
+# light tints of the figure colors (blue: decrease, orange: increase), at most 55% at |effect| >= cap
+tint <- function(hex, a) rgb(t(1 - a * (1 - col2rgb(hex) / 255)))
 z <- pmax(pmin(efs, cap), -cap)
-cl <- matrix(pal[cut(z, seq(-cap, cap, length.out = 12), include.lowest = TRUE, labels = FALSE)], nrow(efs))
-cl[!is.na(padj) & padj >= 0.05] <- "grey90"
-cl[is.na(efs)] <- "white"
+sig <- !is.na(efs) & !is.na(padj) & padj < 0.05
+cl <- matrix("white", nrow(efs), ncol(efs))
+cl[sig] <- vapply(z[sig], function(v) tint(if (v < 0) "#0072B2" else "#D55E00", 0.55 * abs(v) / cap), "")
 plot(NA, xlim = c(0.5, ncol(efs) + 0.5), ylim = c(nrow(efs) + 0.5, 0.5), axes = FALSE, xlab = "", ylab = "")
-rect(col(efs) - 0.5, row(efs) - 0.5, col(efs) + 0.5, row(efs) + 0.5, col = cl, border = "white")
-txt <- ifelse(is.na(efs) | is.na(padj) | padj >= 0.05, "", formatC(efs, format = "f", digits = 1))
-text(col(efs), row(efs), txt, cex = 0.85, col = ifelse(!is.na(z) & abs(z) > 2, "white", "grey20"))
+rect(col(efs) - 0.5, row(efs) - 0.5, col(efs) + 0.5, row(efs) + 0.5, col = cl, border = "grey85")
+if (any(sig)) {
+  points(col(efs)[sig] - 0.25, row(efs)[sig], pch = ifelse(efs[sig] > 0, 24, 25), bg = "grey20", col = "grey20", cex = 0.9)
+  text(col(efs)[sig] + 0.1, row(efs)[sig], sprintf("%.1f", abs(efs[sig])), cex = 0.85, col = "grey10")
+}
+if (anyNA(efs)) text(col(efs)[is.na(efs)], row(efs)[is.na(efs)], "–", col = "grey50")
 axis(2, at = seq_len(nrow(efs)), labels = rownames(efs), las = 1, tick = FALSE, line = -0.8)
 text(seq_len(ncol(efs)), 0.3, labels[core], srt = 45, adj = 0, xpd = TRUE)
 par(op)
