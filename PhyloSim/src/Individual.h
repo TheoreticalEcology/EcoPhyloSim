@@ -100,7 +100,7 @@ public:
                             double redQueenStrength, double redQueen, double maxRate);
 
 
-    double dispersal(int dispersal_type, double distance);  // 1 for kernel, 2 for nearest neighbor, 3 for global
+    double dispersal(int dispersal_type, double distance);  // 3 for kernel, 2 for nearest neighbor; not used for global dispersal (1)
 };
 
 #endif /* INDIVIDUAL_H_ */

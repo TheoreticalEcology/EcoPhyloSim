@@ -31,6 +31,7 @@
 ## Documentation
 
 * The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #144).
+* New help page `?PhylosimList` for the class returned by `runSimulationBatch()` and `createPhylosimList()`; the help of `rac()` and `sac()` says that `which.result` accepts several results (#92).
 
 # EcoPhyloSim 0.3.1
 

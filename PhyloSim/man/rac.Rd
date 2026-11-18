@@ -9,9 +9,9 @@ rac(simu, which.result = NULL, plot = "line", title = "RAC")
 \arguments{
 \item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs at least the spatial distribution of the species stored in a matrix ($specMat)}
 
-\item{which.result}{Integer, determines which result should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. If you choose "all" all results are shown in one plot (see 'Details').}
+\item{which.result}{Integer or integer vector, determines which results should be used. This argument is only useful if your 'runs' argument in \code{\link{createCompletePar}} contains more than one element. By default (NULL), the last result is used. With several results, e.g. \code{c(18, 19, 20)}, or "all", these results are shown in one plot (see 'Details').}
 
-\item{plot}{determining whether to plot the RAC as "line"(default) or "bar".}
+\item{plot}{determining whether to plot the RAC as "line"(default) or "bar" (only for a single result).}
 
 \item{title}{String, determining the title of the plot.}
 }
@@ -22,7 +22,7 @@ A dataframe containing the ranked abundances, sorted by ascending rank. If which
 Plots the Rank Abundance Curve for a given community.
 }
 \details{
-Each species is given a rank according to their abundance (highest = rank 1). Then the species' abundance is plotted in dependency of their rank. It can be used as an indicator for the amount of equally abundant species a community can support. \cr\cr If which.result = "all" all intermediate results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
+Each species is given a rank according to their abundance (highest = rank 1). Then the species' abundance is plotted in dependency of their rank. It can be used as an indicator for the amount of equally abundant species a community can support. \cr\cr If which.result = "all" or contains several results, these results are shown in one plot. The colors of the lines are plotted as a gradient from blue (first results) to red (end result).
 }
 \examples{
 
