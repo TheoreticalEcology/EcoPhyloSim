@@ -113,7 +113,7 @@
 #'   \code{Phylogeny} (Newick string). \code{\link{runSimulation}} reshapes and renames
 #'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 #'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
-#' @export
+#' @keywords internal
 callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE, densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric( c()), positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L, positiveWidth = 0.1) {
     .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth)
 }
