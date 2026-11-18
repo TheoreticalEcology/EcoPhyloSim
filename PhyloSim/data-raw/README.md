@@ -11,7 +11,7 @@ included in the package that users install (it is excluded in
 | Data set | Content | Created by |
 |---|---|---|
 | `modelHistory` | behavior of all versions of the model and the changes between them (vignette "Model history") | `PhyloSim/data-raw/model-behavior/makeData.R` (not yet in `PhyloSim/data/`, see "Transition" in its README) |
-| `packageBehavior` | patterns that emerge in the current version (chapter "Emerging patterns" of the vignette "EcoPhyloSim model") | `PhyloSim/data-raw/model-behavior/makeData.R` (the current file is still from `PhyloSim/data-raw/packageBehavior.R` of release 0.3.1, see "Transition" in its README) |
+| `packageBehavior` | patterns that emerge in the current version (vignette "EcoPhyloSim model") | `PhyloSim/data-raw/model-behavior/makeData.R` (the current file is still from `PhyloSim/data-raw/packageBehavior.R` of release 0.3.1, see "Transition" in its README) |
 | `pPD.pvalues`, `pPD.positions` | example data of `plotPhylogeneticDispersion()` | `PhyloSim/data-raw/model-behavior/pPD.R` |
 | `simu.envcom.local`, `simu.neutral.local`, `simu.neutral.global` | example simulations | no script in the repository (made with `runSimulation()`, see their help) |
 

@@ -163,8 +163,8 @@ release or commit with them. Note the changes listed above.
 # Patterns across releases
 
 The figure shows eight indicators for nine settings (50 × 50 cells,
-`specRate = 2`, other parameters at their defaults unless stated), the patterns
-of the chapter "Emerging patterns" of the vignette "EcoPhyloSim model". `r if (length(runs) > 1)
+`specRate = 2`, other parameters at their defaults unless stated), patterns from
+the vignette "EcoPhyloSim model". `r if (length(runs) > 1)
 "Intervals of two releases that do not overlap indicate a change; the tests in the next section give the significance." else
 paste("So far it shows only the run of", runs, "for reference; the comparison follows with the runs of further releases.")`
 

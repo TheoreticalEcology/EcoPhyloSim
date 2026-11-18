@@ -186,7 +186,9 @@ This chapter explains the functions that plot and summarize the output of a
 simulation. All of them take a `PhyloSim` object and use its last recorded
 generation unless `which.result` is given, except `getMortalityData()`, which
 uses all recorded generations; some also accept a `PhylosimList`.
-The table gives an overview.
+The table gives an overview; the chapter Community patterns of the vignette
+"EcoPhyloSim model" shows how these patterns respond to the processes of the
+model.
 
 | Function | Shows or returns | Typical question |
 |---|---|---|
@@ -246,8 +248,8 @@ rac(simu)
 individuals. *How to read it:* with environmental filtering, the environmental
 trait follows the environment (points along the diagonal in the top panel); with
 density dependence, the competition traits of neighbors differ, and they can
-move to the ends of the trait range (see Density dependence in the vignette
-"EcoPhyloSim model"). The neutral trait changes only by drift and serves as a
+move to the ends of the trait range (see Negative density dependence in the
+vignette "EcoPhyloSim model"). The neutral trait changes only by drift and serves as a
 reference.
 
 ```{r traitdist, fig.width = 7, fig.height = 6, fig.cap = "Environmental, competition and neutral trait (columns): trait against the environment of the cell (top), spatial distribution (middle) and histograms per species (bottom; colors as in plotSpatialPhylo)."}

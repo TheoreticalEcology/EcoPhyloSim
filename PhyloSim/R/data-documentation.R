@@ -86,31 +86,33 @@ NULL
 
 #' Summaries of simulations on how the model outputs depend on the parameters
 #'
-#' Used in the vignette "EcoPhyloSim model" (chapter "Emerging patterns") to show
+#' Used in the vignette "EcoPhyloSim model" (chapters "Processes" and "Community patterns") to show
 #' how the outputs of the model respond to its parameters and how fast they reach equilibrium.
 #'
 #' @name packageBehavior
-#' @format A list with three entries: \code{pilot} (few replicates, long runs, used
-#' to check the time to equilibrium), \code{main} (more replicates, used for the
-#' responses to the parameters) and \code{info}. \code{pilot} contains
-#' \code{settings} and \code{census}, \code{main} all of the following:
+#' @format A list with two entries, \code{main} and \code{info}. \code{main}
+#' contains:
 #' \describe{
 #'   \item{settings}{data frame with one row per parameter setting: \code{block}
 #'   (group of settings in which one or two parameters are varied), \code{setting}
-#'   (number within the block), the arguments passed to
-#'   \code{\link{createCompletePar}} (only \code{x}, as \code{y} equals \code{x}; \code{dispersal} as
-#'   character) and the number of generations}
+#'   (number within the block), the parameters (names of release 0.3.1, e.g.
+#'   \code{density} and \code{densityCut} for \code{negativeDD} and
+#'   \code{negativeDDCut}, and the current names for parameters added later;
+#'   \code{dispersal} as character) and the number of \code{generations}}
 #'   \item{census}{data frame with the replicate \code{mean}, \code{sd} and number of
 #'   replicates \code{n} (without \code{NA} values, e.g. tree statistics of runs
-#'   with fewer than 3 species) of each indicator per setting and census (\code{generation};
-#'   in \code{main} only the last census):
-#'   species richness, Shannon diversity, share of the 4 neighbors that belong to the
-#'   same species, correlation between environmental trait and environment, sd of the
-#'   competition trait, Colless index (Yule-normalized, \code{\link{collessImbalance}}),
-#'   gamma statistic (\code{\link[ape]{gammaStat}}), mean species age and rank
-#'   correlation between species age and abundance (\code{meanSpeciesAge},
-#'   \code{corAgeAbundance}; the age is estimated from the species ID, which is
-#'   counted up at each speciation)}
+#'   with fewer than 3 species) of each \code{indicator} per setting and census
+#'   (\code{generation}): species richness, Shannon diversity, evenness (Shannon
+#'   diversity / log(richness)), dominance (share of the most abundant species),
+#'   share of the 4 neighbors that belong to the same species, correlation between
+#'   environmental trait and environment, sd of the competition and of the neutral
+#'   trait, Colless index (Yule-normalized, \code{\link{collessImbalance}}), gamma
+#'   statistic (\code{\link[ape]{gammaStat}}) and height of the tree of the extant
+#'   species, mean species age and rank correlation between species age and
+#'   abundance (\code{meanSpeciesAge}, \code{corAgeAbundance}; the age is estimated
+#'   from the species ID, which is counted up at each speciation), and, at the last
+#'   census only, the mean p-value of the phylogenetic dispersion of 20 local plots
+#'   of 10 x 10 cells (\code{mpdLocal}, \code{\link{nullModel}})}
 #'   \item{sac}{data frame with the replicate mean, sd and n of the species richness
 #'   per plot size (\code{size}, in cells) at the last census, from \code{\link{sac}}}
 #'   \item{rac}{data frame with the replicate mean, sd and n of the abundance per rank
@@ -122,29 +124,21 @@ NULL
 #'   the number of conspecifics within radius 2 in a logistic regression of death
 #'   (with one intercept per species) over the last five generations, from
 #'   \code{\link{getMortalityData}}}
-#'   \item{cnddSpecies}{data frame with the \code{slope} of the same regression for
-#'   single species (at least 50 observations) and their \code{abundance}, for each
-#'   replicate (\code{rep})}
+#'   \item{runtime}{data frame with the replicate mean, sd and n of the runtime of
+#'   the core simulation in seconds}
 #'    }
-#' \code{info} contains metadata for reproducibility: the start times, package
-#' commit, checksums of the script versions used and notes on the run
-#' (\code{run}), the package commit used for the simulations (\code{commit}), the
-#' date of combining, package and R versions at combining,
-#' platform, operating system, processor, versions of the loaded packages, the
-#' number of replicates and generations (\code{modes}), and the number of runs,
-#' failed runs and the hours of simulation time (sum of the runtimes of the core
-#' simulations) per mode. The current data were simulated with an earlier version
-#' of the package (see \code{info$run}); in that version, polytomies of the
-#' phylogeny were resolved at random, which changes the Colless index slightly
-#' compared with the current version. The same run is part of
-#' \code{\link{modelHistory}} as the run of 0.3.1 (at the pre-release commit
-#' 852c61e, without #173 and #174).
-#' @source created with the script \code{PhyloSim/data-raw/packageBehavior.R} of the
-#' package repository (\url{https://github.com/TheoreticalEcology/EcoPhyloSim},
-#' tag v0.3.1), which is replaced by the scripts in
-#' \code{PhyloSim/data-raw/model-behavior}; from the next release on, \code{makeData.R} builds the
-#' data set from the archive of the run of the current version, in a new format
-#' (all censuses in \code{main}, no \code{pilot} and no \code{cnddSpecies}).
+#' \code{info} contains metadata for reproducibility: the name of the archive of
+#' the run and the simulated commit (\code{archive}, \code{commit}), the replicates
+#' and generations per block (\code{modes}), the version of the scripts
+#' (\code{scripts}), the provenance of the run (\code{run}, from
+#' \code{RUNINFO.txt} of the archive), and the number of simulations, failed
+#' simulations and hours of simulation time (\code{runs}, \code{errors},
+#' \code{simulationHours}; sum of the runtimes of the core simulations).
+#' @source simulated and built with the scripts in the folder
+#' \code{PhyloSim/data-raw/model-behavior} of the package repository
+#' (\url{https://github.com/TheoreticalEcology/EcoPhyloSim}), from the run of the
+#' current release (archive named in \code{info$archive}); its \code{README.md}
+#' describes how to regenerate the data.
 NULL
 
 

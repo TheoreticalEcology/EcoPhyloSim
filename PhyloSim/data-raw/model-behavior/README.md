@@ -28,8 +28,8 @@ Scripts that document how the behavior of EcoPhyloSim changes between versions
   2. `archive.R` turns the cache into an archive and writes its summary to
      `runs/` (see Running a version).
   3. `makeData.R` builds `modelHistory` (vignette "Model history") from `runs/`
-     and `changes.csv`, and, if asked for, `packageBehavior` (chapter "Emerging
-     patterns" of the vignette "EcoPhyloSim model") from the archive of the
+     and `changes.csv`, and, if asked for, `packageBehavior` (vignette "EcoPhyloSim
+     model") from the archive of the
      current version.
   4. The vignettes only read these data sets; they run none of these simulations.
 
@@ -153,7 +153,7 @@ results of the others in `cache/pPD-partial.rds`.
 3. Delete the summaries of development runs from `runs/` (`makeData.R` reads all
    files there), and run `makeData.R packageBehavior <archive>`.
 4. Update the notes per release in `PhyloSim/vignettes/ModelHistory.Rmd` and the
-   description of the runs in the chapter "Emerging patterns" of
+   description of the runs in the section Simulation design of
    `PhyloSim/vignettes/ModelDescription.Rmd` (for 0.3.2, see
    Transition below).
 5. Commit `runs/` and the data sets, tag the release, add the release to
@@ -251,8 +251,8 @@ only by the maintainer; of these, only the summary `runs/0.3.1_852c61e.csv` and
   notes of 0.3.1 and 0.3.2 in `PhyloSim/vignettes/ModelHistory.Rmd`.
 - With the run of 0.3.2: commit `packageBehavior` in its new format (all
   censuses in `main`, no `pilot` and `cnddSpecies`, generations per block, CNDD
-  and runtime as separate tables; until then, `makeData.R` builds only `modelHistory`) together
-  with the chapter "Emerging patterns" of `PhyloSim/vignettes/ModelDescription.Rmd`
-  and the documentation of `packageBehavior`
-  adapted to it, and update the indicator table of `ModelHistory.Rmd` ("runs made
+  and runtime as separate tables; until then, `makeData.R` builds only `modelHistory`;
+  `PhyloSim/vignettes/ModelDescription.Rmd` and the documentation of
+  `packageBehavior` already expect it), write the results in
+  `ModelDescription.Rmd`, and update the indicator table of `ModelHistory.Rmd` ("runs made
   with `run.R`") and this section.
