@@ -1,7 +1,7 @@
 #' @title PhylosimList creator
 #' @description Creates an object of class "PhylosimList" from a list of "PhyloSim" objects.
 #' @param simu List of objects of type PhyloSim as created by \code{\link{runSimulation}}
-#' @return An object of type PhylosimList
+#' @return An object of class \code{\link{PhylosimList}}
 #' @details The function is used to make functions for objects of type "PhylosimList" usable for objects of class "PhyloSim". The function needs at least two objects to work.  
 #' @example /inst/examples/createPhylosimList-help.R
 #' @export
