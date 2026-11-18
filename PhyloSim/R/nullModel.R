@@ -7,7 +7,7 @@
 #' @param numberOfPlots number of plots drawn within the metacommunity
 #' @param repetitions number of generated null model plots
 #' @param fun String, phylogenetic measure that is used. Possible inputs are "mpd" (\code{\link[picante]{mpd}}) and "pd" (\code{\link[picante]{pd}}). 
-#' @return A numeric vector with pValues for each plot in the observed metacommunity. With fun = "mpd", plots with a single species have no MPD and get NA; null communities with a single species are left out of the null distribution.
+#' @return A numeric vector with pValues for each plot in the observed metacommunity. With fun = "mpd", plots with a single species have no MPD and get NA; null communities with a single species are left out of the null distribution, and if all of them have a single species (e.g. with localPlotSize = 1), all p-values are NA.
 #' @example /inst/examples/nullModel-help.R
  
 #' @export
@@ -47,6 +47,7 @@ nullModel <- function(simu, which.result=NULL, abundance = FALSE, localPlotSize,
    NullDistribution<- picante::pd(samp=t(distribution), tree= phylogeny)$PD
   }
    
+  if (all(is.na(NullDistribution))) return(rep(NA_real_, length(observedMPD))) # fixes #196 (all null communities have a single species)
   CummulativeDensityFunction <- ecdf(NullDistribution) # create cumulative density function from null matrix
   
   

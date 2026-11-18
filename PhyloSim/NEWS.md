@@ -20,7 +20,7 @@
 
 ## Bug fixes
 
-* `nullModel()` with `fun = "mpd"` and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"` give p = NA instead of p = 0 for plots with a single species (#186).
+* `nullModel()` with `fun = "mpd"` and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"` give p = NA instead of p = 0 for plots with a single species (#186), and instead of an error in `ecdf()` if all null communities have a single species, e.g. with a plot size of 1 (#196).
 * `nullModel(fun = "pd")` works for phylogenies with a polytomy at the root, which failed because `picante::pd()` treated them as unrooted (#176).
 * `extractParams()` returns one row per parameter set also if a parameter has several values (e.g. `runs` or `fitnessActsOn`); such values are combined into one string.
 * `calculateSummaryStatistics()` and `runSimulation(calculateSummaries = TRUE)` no longer fail on grids with fewer than 15 cells in x or y; the statistics from plots are NA on such grids (#157).
