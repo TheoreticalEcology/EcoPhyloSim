@@ -16,3 +16,9 @@ p.caption, caption { font-size: 0.88em; color: #555; }
 table { font-size: 0.88em; }
 th { text-align: left; }
 td { vertical-align: top; }
+table tr.even { background-color: transparent; } /* no alternating row colors */
+
+/* ::: {.grouped} around a table whose first cell is empty in the further rows of a
+   group: lines only between groups, stronger than the others */
+.grouped tbody tr + tr > td { border-top: 2px solid #999; }
+.grouped td:first-child:empty, .grouped td:first-child:empty ~ td { border-top-style: hidden; }

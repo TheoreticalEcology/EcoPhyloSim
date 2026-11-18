@@ -308,6 +308,7 @@ generation.
 calculateSummaryStatistics(simu)
 ```
 
+::: {.grouped}
 | Group | Statistic | Meaning |
 |---|---|---|
 | Diversity | `gammaDiversity`, `alphaDiversity`, `betaDiversity` | species in the grid, mean species in subplots, turnover between subplots |
@@ -317,6 +318,7 @@ calculateSummaryStatistics(simu)
 | | `varPart_1`, `varPart_2` | variance of the community composition explained by environment and by competition traits |
 | Phylogeny | `imbalance`, `gammaStatistics` | Colless index and gamma statistic (negative: branching slows down towards the present) |
 | | `meanNodeAge`, `dispersion` | mean branch length; standardized phylogenetic dispersion of subplots (SES of the MPD) |
+:::
 
 The phylogenetic statistics use the tree of the extant species. Several
 statistics use random subplots; call `set.seed()` first for reproducible values
