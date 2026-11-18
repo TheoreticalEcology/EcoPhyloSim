@@ -23,13 +23,14 @@ if (!exists("modelHistory") &&
 ```
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.width = 7, fig.height = 4)
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.width = 7, fig.height = 4, fig.retina = 2)
 if (!exists("modelHistory")) data("modelHistory", package = "EcoPhyloSim")
 s <- modelHistory$summary
 ch <- modelHistory$changes
 ch <- ch[order(is.na(ch$date), ch$date), ] # planned release last
 rel <- ch[ch$kind == "release", ]
 runs <- unique(paste(s$version, s$commit))
+runs <- runs[order(numeric_version(sub(" .*", "", runs)))] # oldest first
 params <- setdiff(names(s), c("version", "commit", "setting", "indicator", "mean", "sd", "n"))
 typeCol <- c(N = "grey55", B = "#D55E00", S = "#0072B2", "S+B" = "#CC79A7")
 # release that a run belongs to: the first release with a version number >= that of the run
@@ -76,28 +77,19 @@ notes <- list("0.3.2" = c(
           val("0.3.1", "speciation", "meanSpeciesAge", redQueen = 0.01))))
 ```
 
-```{css, echo = FALSE}
-table { font-size: 0.85em; }
-.abstract { background: #f4f6f8; border-left: 4px solid #0072B2; padding: 0.6em 1em; }
+```{css, echo = FALSE, file = "ecophylosim.css"}
 ```
 
 <div class="abstract">
-**Abstract.** The model code of EcoPhyloSim has changed between releases, through
-new options, bug fixes and redesigns. This vignette records, for each release,
-which changes of the code alter simulation results and how. Each release is run
-with the same design (one or two parameters varied around a reference setting,
-30 replicates per setting; settings added to the design later are compared only
-where both runs have them), and indicators of diversity, spatial structure,
-traits and phylogeny are compared between releases. Single changes between
-releases are tested one by one to attribute the differences to them. Use it to
-understand how changes of the processes in the model changed its outputs, and to
-check whether the patterns documented here changed between releases; to check a
-setting of your own, rerun it with both releases (see the last section). The vignette "EcoPhyloSim model"
-(`vignette("ModelDescription", package = "EcoPhyloSim")`) describes the current model.
-
-**Status.** Runs of the design so far: `r paste(runs, collapse = ", ")` (version
-and commit). The comparisons between releases fill in as runs of further releases
-are added.
+**Abstract.** This vignette records, for each release of EcoPhyloSim, which
+changes of the model code alter simulation results and how. Every release is
+run with the same design, and differences between releases are attributed to
+single changes (see Methods). Use it before reusing code or results of an
+earlier release, and to check whether the patterns of the vignette
+"EcoPhyloSim model" (`vignette("ModelDescription", package = "EcoPhyloSim")`),
+which describes the current model, changed between releases; to check a setting
+of your own, see
+[Rerunning a setting with an earlier release](#rerunning-a-setting-with-an-earlier-release).
 </div>
 
 # Releases at a glance
@@ -143,9 +135,34 @@ tab <- data.frame(Release = rel$version,
 knitr::kable(tab[nrow(tab):1, ], row.names = FALSE)
 ```
 
+# Upgrading from an earlier release
+
+Changes of type S or S+B mean that the same call gives a different model in
+another release. Check them before reusing code or results of an earlier
+release:
+
+```{r upgrading, results = "asis"}
+u <- ch[ch$kind == "change" & ch$type %in% c("S", "S+B"), ]
+u <- u[rev(seq_len(nrow(u))), ]
+cat(if (!nrow(u)) "None so far." else
+  paste0("- **", u$version, "** (", u$reference, ", type ", u$type, "): ", u$change, collapse = "\n"), "\n")
+```
+
+## Rerunning a setting with an earlier release
+
+To check a result of your own, run its setting with both releases and compare
+the outputs. Releases from 0.3.1 on can be installed directly, e.g.
+`remotes::install_github("TheoreticalEcology/EcoPhyloSim@v0.3.1", subdir = "PhyloSim")`;
+install them into a separate library (argument `lib` of `install.packages()` or
+`remotes::install_github()`), so that the current version stays installed.
+Releases 0.2 and 0.3 (package name PhyloSim) need build fixes and archived
+dependencies; the script `installVersion.R` in `PhyloSim/data-raw/model-behavior` of the
+package repository installs any
+release or commit with them. Note the changes listed above.
+
 # Patterns across releases
 
-The figure shows key indicators for nine key settings (50 × 50 cells,
+The figure shows eight indicators for nine settings (50 × 50 cells,
 `specRate = 2`, other parameters at their defaults unless stated), the patterns
 of the chapter "Emerging patterns" of the vignette "EcoPhyloSim model". `r if (length(runs) > 1)
 "Intervals of two releases that do not overlap indicate a change; the tests in the next section give the significance." else
@@ -177,6 +194,7 @@ stat <- function(d, k, i) {
 ```{r patterns, fig.height = 8, fig.cap = "Replicate means with 95% confidence intervals at the last census (CNDD: over the last five generations), per release."}
 byRun <- split(s, paste(s$version, s$commit))[runs]
 vcol <- setNames(hcl.colors(max(3, length(runs)), "Dark 3")[seq_along(runs)], runs)
+vpch <- setNames(rep(c(16, 17, 15, 18, 1, 2), length.out = length(runs)), runs) # not by color only
 op <- par(mfrow = c(4, 2), mar = c(2.5, 0.5, 1.8, 0.5), oma = c(2, 13, 0, 0), cex = 0.7)
 yy <- rev(seq_along(key))
 for (j in seq_along(indicators)) {
@@ -190,12 +208,12 @@ for (j in seq_along(indicators)) {
   off <- if (length(runs) > 1) seq(0.2, -0.2, length.out = length(runs)) else 0
   for (v in seq_along(m)) {
     segments(m[[v]][, 1] - m[[v]][, 2], yy + off[v], m[[v]][, 1] + m[[v]][, 2], yy + off[v], col = vcol[v])
-    points(m[[v]][, 1], yy + off[v], pch = 19, col = vcol[v])
+    points(m[[v]][, 1], yy + off[v], pch = vpch[v], col = vcol[v])
   }
 }
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot.new()
-legend("bottom", legend = runs, col = vcol, pch = 19, horiz = TRUE, bty = "n")
+legend("bottom", legend = runs, col = vcol, pch = vpch, horiz = TRUE, bty = "n")
 par(op)
 ```
 
@@ -204,31 +222,8 @@ par(op)
 For each release, newest first: the changes of the model code since the previous
 release that change simulation results, with their effect on the outputs and the
 evidence; the differences measured between the runs of the design; and notes on
-the behavior. Each change is compared with its parent commit in two stages:
-stage 1 runs the whole design briefly (2 replicates, 300 generations) with the
-same seeds and shows whether the results are identical; stage 2 runs the blocks
-that differ with 30 replicates and tests whether their distributions differ.
-Measured differences are settings where the replicate means of two consecutive
-runs differ significantly (Welch test from mean, sd and number of replicates,
-false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
-runtime, the share of failed simulations and the species age not tested, as the
-age is estimated from the species IDs, whose numbering and pruning differ between
-versions); d is the difference (newer minus older) in units of the
-pooled standard deviation, with an approximate 95% confidence interval, so that
-the size of a difference can be judged (the table lists the largest first). With
-30 replicates per run, a significant difference has |d| > 0.5, and a single test
-detects d =
-`r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a probability of 80%,
-but as a pair of runs is compared in about a thousand tests, a difference needs to
-be larger to be found reliably (d =
-`r round(power.t.test(n = 30, power = 0.8, sig.level = 0.05 / 1000)$delta, 2)` at
-the Bonferroni level; the false discovery rate lies in between). Smaller changes,
-and changes of the variance or shape of a distribution, can remain undetected, so
-"no difference" does not prove that a pattern is unchanged. The share of failed
-simulations per setting is compared with Fisher's exact test, and comparisons in
-which a run has fewer than 20 replicates with a value (failed simulations,
-undefined indicators) are counted, as their means may refer to a different subset
-of replicates.
+the behavior. How changes and runs are compared is described in Methods at the
+end.
 
 ```{r detail, results = "asis"}
 compareRuns <- function(o, w) {
@@ -299,7 +294,37 @@ s[s$block == "neutral" & s$x == 50 & s$specRate == 2 & s$indicator == "richness"
   c("version", "mean", "sd", "n")]
 ```
 
-# Design and indicators
+# Methods
+
+## Comparisons
+
+Each change is compared with its parent commit in two stages:
+stage 1 runs the whole design briefly (2 replicates, 300 generations) with the
+same seeds and shows whether the results are identical; stage 2 runs the blocks
+that differ with 30 replicates and tests whether their distributions differ.
+Measured differences are settings where the replicate means of two consecutive
+runs differ significantly (Welch test from mean, sd and number of replicates,
+false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
+runtime, the share of failed simulations and the species age not tested, as the
+age is estimated from the species IDs, whose numbering and pruning differ between
+versions); d is the difference (newer minus older) in units of the
+pooled standard deviation, with an approximate 95% confidence interval, so that
+the size of a difference can be judged (the tables in Releases in detail list the largest first). With
+30 replicates per run, a significant difference has |d| > 0.5, and a single test
+detects d =
+`r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a probability of 80%,
+but as a pair of runs is compared in about a thousand tests, a difference needs to
+be larger to be found reliably (d =
+`r round(power.t.test(n = 30, power = 0.8, sig.level = 0.05 / 1000)$delta, 2)` at
+the Bonferroni level; the false discovery rate lies in between). Smaller changes,
+and changes of the variance or shape of a distribution, can remain undetected, so
+"no difference" does not prove that a pattern is unchanged. The share of failed
+simulations per setting is compared with Fisher's exact test, and comparisons in
+which a run has fewer than 20 replicates with a value (failed simulations,
+undefined indicators) are counted, as their means may refer to a different subset
+of replicates.
+
+## Design and indicators
 
 ```{r design}
 d <- unique(s[c("version", "block", "setting", params[params != "block"])])
@@ -325,7 +350,7 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
 | MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities (runs made with `run.R`); such p-values depend on the plot size and the null model |
 | Runtime | of the core simulation, in seconds (machine-dependent, not tested) |
 
-# Reproducing the data
+## Reproducing the data
 
 The simulations are run with the scripts in the folder
 `PhyloSim/data-raw/model-behavior` of the package repository
@@ -338,16 +363,3 @@ same installation of EcoPhyloSim for the indicators. Each run records the comman
 the platform and the versions of all packages; the archives of the release runs,
 with the results per replicate, are attached to the GitHub releases from release
 0.3.2 on.
-
-## Rerunning a setting with an earlier release
-
-To check a result of your own, run its setting with both releases and compare
-the outputs. Releases from 0.3.1 on can be installed directly, e.g.
-`remotes::install_github("TheoreticalEcology/EcoPhyloSim@v0.3.1", subdir = "PhyloSim")`;
-install them into a separate library (argument `lib` of `install.packages()` or
-`remotes::install_github()`), so that the current version stays installed.
-Releases 0.2 and 0.3 (package name PhyloSim) need build fixes and archived
-dependencies; the script `installVersion.R` of the folder above installs any
-release or commit with them. Note the changes of type S above: the same call can
-mean a different model in another release (e.g. `density` became `negativeDD`,
-and the combination of fitness terms changed in #172).

@@ -1,0 +1,18 @@
+/* Style of the EcoPhyloSim vignettes, added to the default style of
+   rmarkdown::html_vignette by a css chunk. Colors: Okabe-Ito, as in the figures. */
+
+/* boxes: ::: {.expectation}, ::: {.result}, ::: {.limitation}, <div class="abstract"> */
+.expectation, .result, .limitation, .abstract {
+  border-left: 4px solid #0072B2;
+  background-color: #f2f6fa;
+  padding: 0.3em 1em;
+  margin: 1em 0;
+}
+.result     { border-color: #009E73; background-color: #f1f8f5; }
+.limitation { border-color: #D55E00; background-color: #fbf3ec; }
+
+/* smaller captions and tables */
+p.caption, caption { font-size: 0.88em; color: #555; }
+table { font-size: 0.88em; }
+th { text-align: left; }
+td { vertical-align: top; }

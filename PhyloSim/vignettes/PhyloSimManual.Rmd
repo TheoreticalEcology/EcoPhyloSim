@@ -25,6 +25,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{css, echo = FALSE, file = "ecophylosim.css"}
+```
+
+<div class="abstract">
 **Abstract.** EcoPhyloSim simulates the joint ecological and evolutionary dynamics
 of a species community in space. Individuals on a grid die and are replaced by
 offspring that disperse locally or globally, inherit and evolve traits, and are
@@ -39,6 +43,7 @@ described in the vignette "EcoPhyloSim model"
 (`vignette("ModelDescription", package = "EcoPhyloSim")`), and how its results
 changed between releases in the vignette "Model history"
 (`vignette("ModelHistory", package = "EcoPhyloSim")`).
+</div>
 
 # Quick start
 
@@ -223,7 +228,7 @@ aggregation (local dispersal) makes small subplots poor in species and the
 curve steep; with global dispersal, subplots are close to random samples of the
 whole grid and the curve flattens early.
 
-```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"The EcoPhyloSim model\")."}
+```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
 sac(simu)
 ```
 
@@ -233,7 +238,7 @@ species dominate, a flat one that abundances are even; the length of the curve
 is the number of species. Density dependence is expected to flatten the curve,
 as it favors rare species.
 
-```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The vignette \"The EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
+```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The vignette \"EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
 rac(simu)
 ```
 

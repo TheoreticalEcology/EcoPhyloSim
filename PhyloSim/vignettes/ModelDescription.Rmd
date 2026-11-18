@@ -26,6 +26,10 @@ knitr::opts_chunk$set(
 library(EcoPhyloSim)
 ```
 
+```{css, echo = FALSE, file = "ecophylosim.css"}
+```
+
+<div class="abstract">
 **Abstract.** EcoPhyloSim simulates the joint ecological and evolutionary dynamics
 of a species community in space. Individuals on a grid die and are replaced by
 offspring that disperse locally or globally, inherit and evolve traits, and are
@@ -39,6 +43,7 @@ shown in the vignette "EcoPhyloSim user guide"
 (`vignette("PhyloSimManual", package = "EcoPhyloSim")`),
 and how the patterns changed between releases in the vignette "Model history"
 (`vignette("ModelHistory", package = "EcoPhyloSim")`).
+</div>
 
 # Model description
 
@@ -366,21 +371,6 @@ expectations that the following sections test.
 | Assembly processes and dispersal | environmental filtering increases, density dependence reduces aggregation; both increase richness; dispersal changes how strongly each shows | @kraft2015, @mouquet2003, @adler2005 |
 | Niche width | richness possibly highest at an intermediate width; best match of traits and environment for narrow niches | @allouche2012 |
 | CNDD from mortality | coefficient close to 0 without and positive with density dependence | @comita2010, @hulsmann2024 |
-
-```{css, echo = FALSE}
-.expectation {
-  background-color: #f2f6fa;
-  border-left: 4px solid #0072B2;
-  padding: 0.4em 1em;
-  margin: 1em 0;
-}
-.limitation {
-  background-color: #fbf3ec;
-  border-left: 4px solid #D55E00;
-  padding: 0.4em 1em;
-  margin: 1em 0;
-}
-```
 
 ```{r patterns-setup, echo = FALSE}
 data("packageBehavior")
