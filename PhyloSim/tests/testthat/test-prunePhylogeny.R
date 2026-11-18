@@ -96,4 +96,5 @@ test_that(".cophenetic() stops instead of crashing R above the size limit of ape
   expect_false(is.na(summStat$alphaDiversity))
   expect_error(nullModel(simu, localPlotSize = 3, numberOfPlots = 2, repetitions = 5), class = "largeTree")
   expect_error(calculatePhylogeneticDispersion(simu, plotlengths = 3, plots = 2, replicates = 5), class = "largeTree")
+  expect_error(calculatePhylogeneticDispersion(simu, plotlengths = 3, plots = 2, replicates = 5, type = "PhylPool"), class = "largeTree")
 })
