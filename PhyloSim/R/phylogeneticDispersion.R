@@ -50,7 +50,7 @@ calculatePhylogeneticDispersion <- function(simu, plotlengths = 10,  plots = 200
       
       phyl <- simu[[k]]$Output[[timeindex]]$phylogeny
       extantPhylo <- .dropFossil(phyl)
-      extantPhyloDis <- cophenetic(extantPhylo)
+      extantPhyloDis <- .cophenetic(extantPhylo)
       
       pval = list()
       for (j in 1:length(plotlengths)){

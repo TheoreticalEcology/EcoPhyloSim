@@ -81,3 +81,19 @@ test_that(".dropFossil() gives the same trees as ape::drop.fossil() (#168)", {
   expect_lt(ape::Ntip(EcoPhyloSim:::.dropFossil(phy)), ape::Ntip(phy))
   expect_equal(EcoPhyloSim:::.dropFossil(phy), ape::drop.fossil(phy))
 })
+
+test_that(".cophenetic() stops instead of crashing R above the size limit of ape::dist.nodes() (#168)", {
+  phy <- ape::rcoal(20)
+  expect_identical(EcoPhyloSim:::.cophenetic(phy), stats::cophenetic(phy))
+  expect_error(EcoPhyloSim:::.cophenetic(phy, limit = 38^2), class = "largeTree") # 20 tips + 19 nodes
+  expect_identical(EcoPhyloSim:::.cophenetic(phy, limit = 39^2), stats::cophenetic(phy))
+  # the callers, with the limit lowered below the size of their trees
+  cophen <- EcoPhyloSim:::.cophenetic
+  local_mocked_bindings(.cophenetic = function(phy) cophen(phy, limit = 0), .package = "EcoPhyloSim")
+  simu <- quietSimulation(x = 20, y = 20, specRate = 2, runs = 100, seed = 1)
+  expect_message(summStat <- calculateSummaryStatistics(simu), "So dispersion is NA")
+  expect_true(is.na(summStat$dispersion))
+  expect_false(is.na(summStat$alphaDiversity))
+  expect_error(nullModel(simu, localPlotSize = 3, numberOfPlots = 2, repetitions = 5), class = "largeTree")
+  expect_error(calculatePhylogeneticDispersion(simu, plotlengths = 3, plots = 2, replicates = 5), class = "largeTree")
+})
