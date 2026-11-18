@@ -45,3 +45,10 @@ test_that("nullModel gives NA, not p = 0, for plots with a single species (#186)
   p <- nullModel(simu.neutral.global, localPlotSize = 2, numberOfPlots = 100, repetitions = 100)
   expect_equal(is.na(p), unname(single))
 })
+
+test_that("nullModel gives NA p-values if all null communities have a single species (#196)", {
+  for (abundance in c(FALSE, TRUE))
+    expect_equal(nullModel(simu.neutral.global, abundance = abundance, localPlotSize = 1, numberOfPlots = 5, repetitions = 20), rep(NA_real_, 5))
+  p <- calculatePhylogeneticDispersion(simu.neutral.global, plotlengths = 1, plots = 5, replicates = 20)
+  expect_equal(p[[1]][[1]][["1"]], rep(NA_real_, 5))
+})

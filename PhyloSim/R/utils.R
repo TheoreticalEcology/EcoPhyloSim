@@ -130,6 +130,17 @@ getSpeciesIndices <- function (sim, speciesID, whichRun=1) {
   ape::drop.tip(phy, which(x < max(x) - tol))
 }
 
+# Internal helper: cophenetic() of a tree; ape::dist.nodes() stores (Ntip + Nnode)^2 in a C
+# long, which overflows on platforms with a 32-bit long (Windows) above 2^31 - 1 and crashes
+# R, so it stops with an error of class "largeTree" instead (fixes #168)
+.cophenetic <- function(phy, limit = if (.Machine$sizeof.long < 8) .Machine$integer.max else Inf) {
+  if ((ape::Ntip(phy) + phy$Nnode)^2 > limit)
+    stop(errorCondition(paste0("Phylogenetic distances are not available for trees of this size (more than ",
+                               "23170 species in a binary tree) on this platform, because ape::dist.nodes() would crash R."),
+                        class = "largeTree", call = NULL))
+  stats::cophenetic(phy)
+}
+
 # Internal helper: gamma statistic of the extant species; ape::gammaStat() needs a
 # binary tree, so polytomies are resolved deterministically (fixes #169)
 .gammaStat <- function(phy) {

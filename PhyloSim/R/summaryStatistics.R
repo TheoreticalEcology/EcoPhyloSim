@@ -21,7 +21,7 @@
 #'   \item{nb8}{Index of local species clustering among neighboring grid cells.}
 #'   \item{envSorting}{Share of the variance of the environment across all cells that is explained by species identity, 1 - sum((e - e_s)^2) / sum((e - mean(e))^2), where e is the environment of a cell and e_s the mean environment of the cells occupied by its species. 0 if all species occupy the same mix of environments, 1 if each species occupies a single environmental value; NA if the environment is constant. Without environmental sorting, the expected value is about (S - 1) / (N - 1) for S species in N cells, so it increases with the number of species; with local dispersal, spatial clustering alone gives values above 0.}
 #' }
-#' The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter). These six statistics use square plots of fixed size, independent of the grid size (plot sizes 1 to 15 cells for sacAuc, 20 random plots of 10 x 10 cells for the others); on grids with fewer than 15 cells in x or y, they are NA, with a message.
+#' The phylogenetic statistics (imbalance, dispersion, gammaStatistics, meanNodeAge) use only the extant species; for imbalance and gammaStatistics, polytomies are resolved with \code{ape::multi2di(random = FALSE)}. sacAuc, alphaDiversity, betaDiversity, dispersion, varPart_1 and varPart_2 use random numbers; use \code{set.seed()} for reproducible results (\code{\link{runSimulation}} sets R's seed from the \code{seed} parameter). These six statistics use square plots of fixed size, independent of the grid size (plot sizes 1 to 15 cells for sacAuc, 20 random plots of 10 x 10 cells for the others); on grids with fewer than 15 cells in x or y, they are NA, with a message. On Windows, dispersion is NA, with a message, for trees with more than 23170 extant species (in a binary tree), where the phylogenetic distances cannot be computed.
 #' @return A list containing the summary statistics, or NA if strict = TRUE and at least one statistic could not be calculated. If the simulation contains only one species, a list of NA is returned.
 #' @example /inst/examples/summaryStatistics-help.R
 #' @export
@@ -120,9 +120,10 @@ calculateSummaryStatistics <- function(simulation, strict=FALSE, which.result=NU
   # Previously used PhyloMeasures::mpd.query (archived from CRAN); now uses
   # picante::ses.mpd, which is maintained and already a dependency.
   # The species pool is the extant species, also with prunePhylogeny = FALSE (#168).
-  if (plotStats) {
-    sesMpd <- picante::ses.mpd(plots$communityTable,
-                               stats::cophenetic(extant),
+  dis <- if (plotStats) tryCatch(.cophenetic(extant), largeTree = function(e) {
+    message(conditionMessage(e), " So dispersion is NA."); NULL })
+  if (!is.null(dis)) {
+    sesMpd <- picante::ses.mpd(plots$communityTable, dis,
                                null.model = "taxa.labels", runs = 999)
     summaryStatistics$dispersion <- mean(sesMpd$mpd.obs.z, na.rm = TRUE)
   }
