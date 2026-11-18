@@ -11,7 +11,7 @@ included in the package that users install (it is excluded in
 | Data set | Content | Created by |
 |---|---|---|
 | `modelHistory` | behavior of all versions of the model and the changes between them (vignette "Model history") | `PhyloSim/data-raw/model-behavior/makeData.R` (not yet in `PhyloSim/data/`, see "Transition" in its README) |
-| `packageBehavior` | patterns that emerge in the current version (chapter "Emerging patterns" of the main vignette) | `PhyloSim/data-raw/model-behavior/makeData.R` (the current file is from `PhyloSim/data-raw/packageBehavior.R` of release 0.3.1, see its help) |
+| `packageBehavior` | patterns that emerge in the current version (chapter "Emerging patterns" of the main vignette) | `PhyloSim/data-raw/model-behavior/makeData.R` (the current file is still from `PhyloSim/data-raw/packageBehavior.R` of release 0.3.1, see "Transition" in its README) |
 | `pPD.pvalues`, `pPD.positions` | example data of `plotPhylogeneticDispersion()` | `PhyloSim/data-raw/model-behavior/pPD.R` |
 | `simu.envcom.local`, `simu.neutral.local`, `simu.neutral.global` | example simulations | no script in the repository (made with `runSimulation()`, see their help) |
 
@@ -20,7 +20,10 @@ included in the package that users install (it is excluded in
 - [`model-behavior/`](model-behavior/README.md): simulations that document how
   the model behaves and how its behavior changes between versions, and the
   table of model changes (`changes.csv`) that pull requests changing results or
-  the meaning of arguments must update.
+  the meaning of arguments must update; its `runs/` holds the committed
+  summaries of the release runs.
+- `cache/` (ignored by git) is left over from the earlier script
+  `packageBehavior.R`.
 
 ## Adding a data set
 
