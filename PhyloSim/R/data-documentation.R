@@ -86,8 +86,8 @@ NULL
 
 #' Summaries of simulations on how the model outputs depend on the parameters
 #'
-#' Used in the vignette (chapter "Emerging patterns") to show how the outputs of
-#' the model respond to its parameters and how fast they reach equilibrium.
+#' Used in the vignette "EcoPhyloSim model" (chapter "Emerging patterns") to show
+#' how the outputs of the model respond to its parameters and how fast they reach equilibrium.
 #'
 #' @name packageBehavior
 #' @format A list with three entries: \code{pilot} (few replicates, long runs, used
@@ -170,7 +170,7 @@ NULL
 #'   \code{runtime} of the core simulation in seconds, the share of failed
 #'   simulations (\code{failed}); runs made with
 #'   \code{PhyloSim/data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
-#'   sdNeutralTrait and mpdLocal (see the vignette). The run of 0.3.1 is the run of
+#'   sdNeutralTrait and mpdLocal (see the vignette "Model history"). The run of 0.3.1 is the run of
 #'   \code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
 #'   #173 and #174).}
 #'   \item{changes}{data frame of the releases and the changes of the model code

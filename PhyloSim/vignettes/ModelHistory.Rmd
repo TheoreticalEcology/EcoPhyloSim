@@ -92,8 +92,8 @@ traits and phylogeny are compared between releases. Single changes between
 releases are tested one by one to attribute the differences to them. Use it to
 understand how changes of the processes in the model changed its outputs, and to
 check whether the patterns documented here changed between releases; to check a
-setting of your own, rerun it with both releases (see the last section). The main vignette ("The EcoPhyloSim R Package",
-`vignette("PhyloSimManual", package = "EcoPhyloSim")`) describes the current model.
+setting of your own, rerun it with both releases (see the last section). The vignette "EcoPhyloSim model"
+(`vignette("ModelDescription", package = "EcoPhyloSim")`) describes the current model.
 
 **Status.** Runs of the design so far: `r paste(runs, collapse = ", ")` (version
 and commit). The comparisons between releases fill in as runs of further releases
@@ -147,7 +147,7 @@ knitr::kable(tab[nrow(tab):1, ], row.names = FALSE)
 
 The figure shows key indicators for nine key settings (50 × 50 cells,
 `specRate = 2`, other parameters at their defaults unless stated), the patterns
-of the chapter "Emerging patterns" of the package vignette. `r if (length(runs) > 1)
+of the chapter "Emerging patterns" of the vignette "EcoPhyloSim model". `r if (length(runs) > 1)
 "Intervals of two releases that do not overlap indicate a change; the tests in the next section give the significance." else
 paste("So far it shows only the run of", runs, "for reference; the comparison follows with the runs of further releases.")`
 

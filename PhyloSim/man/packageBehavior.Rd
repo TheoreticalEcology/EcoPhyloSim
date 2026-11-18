@@ -63,6 +63,6 @@ data set from the archive of the run of the current version, in a new format
 (all censuses in \code{main}, no \code{pilot} and no \code{cnddSpecies}).
 }
 \description{
-Used in the vignette (chapter "Emerging patterns") to show how the outputs of
-the model respond to its parameters and how fast they reach equilibrium.
+Used in the vignette "EcoPhyloSim model" (chapter "Emerging patterns") to show
+how the outputs of the model respond to its parameters and how fast they reach equilibrium.
 }

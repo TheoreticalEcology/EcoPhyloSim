@@ -1,5 +1,5 @@
 ---
-title: "The EcoPhyloSim R Package"
+title: "EcoPhyloSim user guide"
 author: "Florian Hartig, Paul Bauche, Bingxue Wu"
 date: "`r Sys.Date()`"
 output:
@@ -10,7 +10,7 @@ output:
 bibliography: Vignette_bib.bib
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{The EcoPhyloSim R Package}
+  %\VignetteIndexEntry{EcoPhyloSim user guide}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -33,9 +33,12 @@ species arise by speciation. The simulation records the spatial distribution of
 the species, their traits and their phylogeny, and the package provides
 functions to plot and summarize these outputs, such as species–area curves,
 rank–abundance curves and measures of phylogenetic structure. This vignette
-describes the model, shows how to run it and analyze its output, and documents
-how the main patterns produced by the model respond to its parameters, compared
-with expectations from theory and earlier studies.
+shows how to run the model, analyze its output and fit it to data. The
+processes of the model, its equations and the patterns it produces are
+described in the vignette "EcoPhyloSim model"
+(`vignette("ModelDescription", package = "EcoPhyloSim")`), and how its results
+changed between releases in the vignette "Model history"
+(`vignette("ModelHistory", package = "EcoPhyloSim")`).
 
 # Quick start
 
@@ -61,282 +64,6 @@ To cite the package, use the citation information provided with the package:
 ```{r citation}
 citation("EcoPhyloSim")
 ```
-
-# Model description
-
-The model is an individual-based, spatially explicit simulation of a species
-community. The figure gives an overview of one generation; the sections below
-describe the state variables, the ecological processes and the speciation
-mechanisms. The symbols refer to the arguments of `createCompletePar()`; the
-tables give their default values and the ranges that `createCompletePar()` and
-`runSimulation()` check (see also `?createCompletePar`).
-
-```{r schema, echo = FALSE, fig.width = 6.5, fig.height = 4.2, fig.cap = "One generation of the model. Deaths and replacements are repeated until x · y individuals have died; then new species arise, and the state is recorded at the generations given in runs."}
-op <- par(mar = c(0, 0, 0, 0))
-plot(NULL, xlim = c(-0.5, 10), ylim = c(0.3, 7), axes = FALSE, xlab = "", ylab = "")
-box3 <- function(x, y, label, w = 4.2, h = 0.75, col = "#e8f0f7") {
-  rect(x - w / 2, y - h / 2, x + w / 2, y + h / 2, col = col, border = "#0072B2")
-  text(x, y, label, cex = 0.75)
-}
-ys <- c(6.3, 5.1, 3.9, 2.7, 1.5)
-box3(2.6, ys[1], "Draw a random cell")
-box3(2.6, ys[2], "Does the individual die?\nprobability from its fitness (relative death rate)")
-box3(2.6, ys[3], "Choose a parent\nglobal or dispersal kernel (and fitness)")
-box3(2.6, ys[4], "Offspring inherits species and traits;\ntraits evolve")
-box3(2.6, ys[5], "Update the similarities\nof the neighbors")
-box3(7.6, 3.9, "Speciation:\nPoisson(specRate) new species", col = "#fbeee6")
-box3(7.6, 2.7, "Record the state\n(generations in runs)", col = "#fbeee6")
-arrows(2.6, ys[-5] - 0.38, 2.6, ys[-1] + 0.38, length = 0.07)
-# survives: draw the next cell
-segments(0.5, ys[2], 0.2, ys[2]); segments(0.2, ys[2], 0.2, ys[1])
-arrows(0.2, ys[1], 0.5, ys[1], length = 0.07)
-text(0.2, mean(ys[1:2]), "survives", srt = 90, cex = 0.65, pos = 2, offset = 0.3)
-# repeat until x * y individuals have died, then speciation
-segments(4.7, ys[5], 5.1, ys[5]); segments(5.1, ys[5], 5.1, ys[1])
-arrows(5.1, ys[1], 4.7, ys[1], length = 0.07)
-text(5.15, 5.4, "repeat until\nx · y deaths", cex = 0.65, pos = 4)
-arrows(5.1, 3.9, 5.5, 3.9, length = 0.07)
-arrows(7.6, 3.52, 7.6, 3.08, length = 0.07)
-# next generation
-segments(7.6, 2.32, 7.6, 0.6); segments(7.6, 0.6, 9.85, 0.6); segments(9.85, 0.6, 9.85, 6.85)
-segments(9.85, 6.85, 2.6, 6.85); arrows(2.6, 6.85, 2.6, 6.68, length = 0.07)
-text(9.85, 3.6, "next generation", srt = 90, cex = 0.65, pos = 2, offset = 0.15)
-par(op)
-```
-
-## State variables
-
-**The grid:** the simulation runs on a spatially discrete grid. Each cell is
-occupied by one individual at any time. Each cell has an environmental value
-(see Environment below). To avoid boundary effects, the boundaries of the grid
-are wrapped (torus).
-
-**Individuals:** each individual has three traits in $[0, 1]$: an
-environmental trait, a competition trait and a neutral trait. Their dynamics
-are described in the section on ecological processes.
-
-**Species and phylogeny:** each individual belongs to a species. Species
-properties are described by the mean of the respective traits of all
-individuals of the species. The species traits serve as an attractor in the
-individual trait evolution process. Further, each species contains information
-about its parent species and the species that emerged from it, which gives rise
-to the overall phylogeny.
-
-**Initial state:** at the start, all individuals belong to one species and all
-their traits are 0.5.
-
-| Argument | Meaning | Default | Range |
-|---|---|---|---|
-| `x`, `y` | grid dimensions (cells) | 50, 50 | integers $\ge 1$, $x \cdot y \ge 2$ |
-| `airmat` | environment of the cells (see Environment below) | 1 (default gradient) | single value or matrix with $y$ rows and $x$ columns, values in $[0, 1]$ |
-
-## Ecological processes
-
-The simulation runs over a defined number of generations. In each generation,
-individuals die and are replaced by offspring with slightly changed traits
-(steps 1--3 below), until $x \cdot y$ individuals have died; then new species
-arise (next section), and the state of the community is recorded if the
-generation is one of those given in `runs`.
-
-**1. Mortality and replacement.** Cells are drawn at random (with replacement)
-until $J = x \cdot y$ individuals have died, so some individuals die several
-times per generation and others not at all. If fitness does not act on
-mortality, every draw kills. If it does (`fitnessActsOn` is `"mortality"` or
-`"both"`, or a combination with `"mortality"`, and `environment`, `negativeDD`, `positiveDD`, `redQueen` or
-`redQueenStrength` is > 0), a drawn individual $i$ dies with a probability
-proportional to its relative death rate
-
-$$ r_i = \prod_j \left(1 + (m - 1)(1 - w_{ij})\right), $$
-
-where the product runs over the mechanisms that are switched on (environment,
-negative and positive density dependence), $w_{ij} \in [0, 1]$ is the fitness
-term of mechanism $j$ (step 3) and $m$ = `fitnessBaseMortalityRatio`. Through
-each mechanism, an individual with $w_{ij} = 0$ thus dies $m$ times as often
-as one with $w_{ij} = 1$, and the rates of several mechanisms multiply
-(proportional hazards). As the number of deaths per generation is fixed, only
-relative rates matter: a term that is equal for all individuals has no effect,
-and with $m = 1$ the model is neutral if fitness acts only on mortality. With a
-single mechanism (or only the Red Queen), the model uses the rule that every
-$m$-th draw kills regardless of fitness and all other draws kill with
-probability $1 - w_i$; without the Red Queen, this gives the same ratios of
-death rates.
-
-The dead individual is replaced by the offspring of a parent. With global
-dispersal, the parent is drawn uniformly from all other cells; the dead
-individual is never its own parent. With local dispersal, it is drawn from the
-cells within the radius $R$ (excluding the cell itself), with weights
-
-$$ K(d) = \exp\left(-\frac{d}{\delta}\right), $$
-
-where $d$ is the Euclidean distance, $R = \lfloor 2 \cdot \texttt{dispersal}
-\rfloor$ and $\delta = R / 2$; only multiples of 0.5 of `dispersal` therefore
-have an effect. The neighborhood is a discretized circle: all cells with
-$|\Delta x| \le R$ and $|\Delta y| \le \lfloor\sqrt{R^2 - \Delta x^2}\rfloor$.
-
-Fitness can also act on the replacement:
-
-- **Reproduction** (`"reproduction"`): the dispersal weights of the potential
-  parents are multiplied by their fitness in their own cells. With global
-  dispersal, this is possible only without environment, density dependence
-  and Red Queen.
-- **Recruitment** (`"recruitment"`): the offspring of a drawn parent is
-  established only with a probability given by its fitness in the free cell,
-  evaluated with the traits of the parent and the neighbors of that cell;
-  otherwise another parent is drawn. After as many rejections as there are
-  possible parents (at most 1000), the parent is drawn directly with
-  probabilities proportional to dispersal weight times fitness. The parents
-  within dispersal range thus compete in a weighted lottery for the cell, so
-  recruitment has no effect if they all have the same fitness there.
-
-The stages can be combined, e.g. `fitnessActsOn = c("mortality",
-"recruitment")`; `"both"` is short for mortality and reproduction. The fitness
-terms then act at each of these stages.
-
-| Argument | Meaning | Default | Range |
-|---|---|---|---|
-| `fitnessActsOn` | stages on which fitness acts | `"mortality"` | `"mortality"`, `"reproduction"`, `"recruitment"`, a combination of them, or `"both"`; reproduction with global dispersal only if `environment`, `negativeDD`, `positiveDD`, `redQueen` and `redQueenStrength` are 0; not `"recruitment"` alone with `redQueen` or `redQueenStrength` > 0 |
-| `fitnessBaseMortalityRatio` | ratio $m$ of the death rates at fitness terms 0 and 1, for each mechanism acting on mortality | 10 | integer $\ge 1$; 1: no selection through mortality |
-| `dispersal` | `"global"` (or 0), or the dispersal distance | `"global"` | `"global"`, 0 or $\ge 0.5$ with $2R + 1 \le \min(x, y)$; only multiples of 0.5 have an effect |
-
-**2. Trait evolution.** The offspring inherits the species and the three traits
-(environmental, competition and neutral trait) of its parent. Each trait then
-changes by a small random step and is attracted towards the mean trait of its
-species:
-
-$$ t' = (1 - \alpha)\cdot t_{\mathrm{p}} + \alpha \cdot \bar t + r, $$
-
-where $t'$ is the offspring's trait value, $t_{\mathrm{p}}$ the parent's,
-$\bar t$ is the mean trait value of the species, $\alpha = 0.2$ is a fixed
-attraction weight, and $r$ is drawn uniformly from $[-0.01, 0.01]$. Values outside $[0, 1]$ are reflected at the boundary.
-
-**3. Fitness.** Each mechanism that is switched on gives a fitness term between
-0 and 1. Environmental filtering, with $e$ = `environment`:
-
-$$ w_{E,i} = e \cdot \exp\left(-\frac{(E_i - t_i)^2}{2\sigma^2}\right) + 1 - e, $$
-
-where $E_i$ is the environment of the cell, $t_i$ is the environmental trait
-of the individual and $\sigma$ = `nicheWidth` is the width of the niche.
-Negative and positive density dependence, with $c$ = `negativeDD` and $p$ =
-`positiveDD`:
-
-$$ w_{N,i} = 1 - c \cdot S_i, \qquad w_{P,i} = 1 - p \cdot (1 - S^{P}_i), $$
-
-where $S_i$ and $S^{P}_i$ are the similarities of the individual to its
-neighbors within the radius `negativeDDCut` or `positiveDDCut`. The
-neighborhood is the discretized circle of the dispersal kernel without the
-focal cell (4, 12 and 28 neighbors for radius 1, 2 and 3). The similarity is
-the mean over the $n$ neighbors $j$ of
-
-- `"absolute"` (default for negative density dependence): $1 - |a_i - a_j|$,
-  where $a$ is the competition trait;
-- `"gaussian"`: $\exp\left(-\frac{1}{2}\left(\frac{a_i - a_j}{\omega}\right)^2\right)$,
-  with $\omega$ = `negativeDDWidth` or `positiveDDWidth`;
-- `"species"` (default for positive density dependence): 1 if $j$ belongs to
-  the same species, 0 otherwise, i.e. the share of conspecific neighbors.
-
-The similarities are updated whenever an individual in the neighborhood is
-replaced. Negative density dependence thus penalizes individuals that are
-similar to their neighbors, positive density dependence those that are
-dissimilar. On reproduction and recruitment, the terms of several mechanisms
-multiply; on mortality, they combine through the death rates (step 1). The
-Red Queen bonus (next section) multiplies fitness.
-
-Some consequences of these definitions:
-
-- All individuals start as one species with the same traits (0.5), so density
-  dependence acts only after the competition traits have diverged or new
-  species have arisen (see Known limitations).
-- Strengths are not directly comparable between kernels, as the distributions
-  of the similarity differ.
-- Positive density dependence is destabilizing and quickly leads to the
-  dominance of a few species; it is meant to be combined with negative density
-  dependence at another radius or with another kernel. With the same kernel,
-  radius (and width of a Gaussian kernel), the two partly offset each other,
-  which gives a message.
-
-| Argument | Meaning | Default | Range |
-|---|---|---|---|
-| `environment` | weight $e$ of the environmental fitness term | 0 | $[0, 1]$ |
-| `nicheWidth` | width $\sigma$ (standard deviation) of the environmental niche | 0.0366 | $> 0$; a message outside $[0.003, 3]$ (if `environment` > 0) |
-| `negativeDD` | strength $c$ of negative density dependence (formerly `density`) | 0 | $[0, 1]$ |
-| `negativeDDCut` | radius of its neighborhood (formerly `densityCut`) | 1 | integer $\ge 1$, $\le \min(x, y)$; $2 \cdot$ `negativeDDCut` $+ 1 \le \min(x, y)$ if `negativeDD` > 0 |
-| `negativeDDKernel` | similarity measure | `"absolute"` | `"absolute"`, `"gaussian"`, `"species"` |
-| `negativeDDWidth` | width $\omega$ of the Gaussian kernel | 0.1 | $> 0$; a message above 1 |
-| `negativeDDResponse` | experimental: the fitness term as a function of $S_i$ instead of $1 - c \cdot S_i$ | `"linear"` | `"linear"`, a function, or at least 2 values in $[0, 1]$ |
-| `positiveDD` | experimental: strength $p$ of positive density dependence | 0 | $[0, 1]$ |
-| `positiveDDCut`, `positiveDDKernel`, `positiveDDWidth` | as for negative density dependence | 1, `"species"`, 0.1 | as for negative density dependence |
-
-**Environment.** If no `airmat` is given, the environment varies only along the
-x-axis: it is $1 - |2i/x - 1|$ in column $i = 0, \dots, x - 1$, i.e., it
-increases linearly in steps of $2/x$ from 0 in the first column to its maximum in
-the middle and then decreases again. The maximum is 1 for even $x$ and $(x-1)/x$
-for odd $x$; for even $x$ all values except the minimum and maximum occur in two
-bands. A user-defined environment can be
-passed as a matrix with values in $[0, 1]$ (`airmat`).
-
-## Speciation mechanisms
-
-The default speciation mechanism is point speciation: in each generation, the
-number of new species is drawn from a Poisson distribution with mean
-`specRate`, and for each of them an individual is chosen at random. `specRate`
-is thus the expected number of new species per generation in the whole grid,
-not a rate per individual. The founding individual keeps its traits, which
-become the initial trait means of the new species (see Known limitations).
-
-All speciation mechanisms implemented in the model are summarized below:
-
-- **Point speciation:** the default, see above.
-- **Fission type 1:** an individual is drawn at random, so that species are
-  chosen in proportion to their abundance; every second individual of its
-  species becomes part of a new species.
-- **Fission type 2:** as type 1, but the species is split geographically at the
-  mean x-coordinate of its individuals. One part becomes a new species, the
-  other part is not affected.
-- **Protracted speciation:** based on @rosindell2010, a species undergoes an
-  incipient stage before becoming a new species. In the implementation, the
-  chosen individual becomes a new species only if it survives `protracted`
-  generations; its offspring do not inherit the incipient state. `specRate` is
-  then the expected number of incipient individuals per generation.
-- **Red Queen:** based on @odwyer2014, new species have advantages over old
-  species due to their novelty alone, and the effect vanishes over time. The
-  fitness is multiplied by $1 + s \exp(-q\,a)$, where $s$ = `redQueenStrength`,
-  $q$ = `redQueen` and $a$ is the number of generations since the species arose,
-  minus one; without environment and density dependence, the base fitness is
-  set to 0.01. With several mechanisms on mortality, the death rate is divided
-  by this factor instead. The bonus does not act on recruitment, and on
-  reproduction only together with environment or density dependence.
-
-| Argument | Meaning | Default | Range |
-|---|---|---|---|
-| `specRate` | expected number of new species per generation in the whole grid | 1 | $\ge 0$, $\le x \cdot y$ |
-| `fission` | speciation by fission: 0 (none), 1 or 2 | 0 | 0, 1, 2 |
-| `protracted` | generations an incipient species must survive | 0 | integer $\ge 0$ |
-| `redQueenStrength`, `redQueen` | strength $s$ and decay $q$ of the novelty advantage | 0, 0 | $\ge 0$ |
-
-## Known limitations
-
-::: {.limitation}
-Some properties of the current implementation can be unexpected; they are
-discussed in the issues of the package repository:
-
-- `dispersal` has an effect only in steps of 0.5
-  ([#141](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/141)).
-- With protracted speciation, the offspring of an incipient individual do not
-  inherit the incipient state
-  ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
-- New species keep the traits of their founding individual; a trait change at
-  speciation is not implemented
-  ([#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).
-- With the trait kernels (`negativeDDKernel = "absolute"` or `"gaussian"`),
-  density dependence develops only after thousands of generations, so short
-  runs show little of its effect; the `"species"` kernel acts from the first
-  speciation on
-  ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
-- `es()` calculates the expected number of species of the neutral model with
-  $\theta = 2 \cdot$ `specRate`, about twice the value that fits the model
-  (see the chapter Emerging patterns;
-  [#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)).
-:::
 
 # Running the model
 
@@ -369,9 +96,13 @@ pars <- createCompletePar(x = 50, y = 50, dispersal = "global", runs = c(500, 10
 In this example, an area of 50 × 50 cells provides the basis for one simulation
 with outputs recorded after 500 and 1,000 generations. The dispersal is set to
 global, meaning each individual could reproduce in every cell of the grid.
-Further, both density dependence and the environment influence the
-individuals. Besides the model parameters described above, `createCompletePar()`
-has arguments that control the run and its output:
+Further, density dependence (`negativeDD`) and environmental filtering
+(`environment`) act on the individuals. All parameters are listed with their
+defaults and ranges in `?createCompletePar`; the vignette "EcoPhyloSim model"
+(`vignette("ModelDescription", package = "EcoPhyloSim")`) explains the
+processes they control and lists known limitations (e.g. `dispersal` has an
+effect only in steps of 0.5). Besides the model parameters,
+`createCompletePar()` has arguments that control the run and its output:
 
 | Argument | Meaning | Default |
 |---|---|---|
@@ -391,7 +122,7 @@ simu <- runSimulation(pars)
 This simulation took `r round(simu$Model$runtime, 1)` seconds. Note that 1,000
 generations are enough for a first look, but some outputs, in particular with
 density dependence and the phylogeny, need several thousand generations to
-reach equilibrium (see the section on the time to equilibrium below).
+reach equilibrium (see Time to equilibrium in the vignette "EcoPhyloSim model").
 
 The result is an object of class `PhyloSim` with two lists: `$Model` contains
 the parameters of the run, and `$Output` contains one element per generation
@@ -492,7 +223,7 @@ aggregation (local dispersal) makes small subplots poor in species and the
 curve steep; with global dispersal, subplots are close to random samples of the
 whole grid and the curve flattens early.
 
-```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the chapter Emerging patterns)."}
+```{r sac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"The EcoPhyloSim model\")."}
 sac(simu)
 ```
 
@@ -502,16 +233,16 @@ species dominate, a flat one that abundances are even; the length of the curve
 is the number of species. Density dependence is expected to flatten the curve,
 as it favors rare species.
 
-```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The chapter Emerging patterns compares such curves with the expectation of neutral theory."}
+```{r rac, results = 'hide', fig.width = 5, fig.height = 5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The vignette \"The EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
 rac(simu)
 ```
 
 **Trait plots:** `plotTraitDistribution()` shows the three traits of the
 individuals. *How to read it:* with environmental filtering, the environmental
-trait follows the environment (points along the diagonal in the top panel);
-with density dependence, the competition traits of neighbors differ, and they
-can move to the ends of the trait range (see Density dependence in the chapter
-Emerging patterns). The neutral trait changes only by drift and serves as a
+trait follows the environment (points along the diagonal in the top panel); with
+density dependence, the competition traits of neighbors differ, and they can
+move to the ends of the trait range (see Density dependence in the vignette
+"EcoPhyloSim model"). The neutral trait changes only by drift and serves as a
 reference.
 
 ```{r traitdist, fig.width = 7, fig.height = 6, fig.cap = "Environmental, competition and neutral trait (columns): trait against the environment of the cell (top), spatial distribution (middle) and histograms per species (bottom; colors as in plotSpatialPhylo)."}
@@ -598,8 +329,8 @@ str(localPlots(simu, size = 10, n = 2), max.level = 1)
 **Mortality data:** `getMortalityData()` returns, for each individual, the number
 of its conspecific neighbors and whether it died until the next recorded
 generation, which allows estimating conspecific negative density dependence
-as in field studies (see the section Density dependence measured from
-mortality). For this, the state
+as in field studies (see Density dependence measured from mortality in
+the vignette "EcoPhyloSim model"). For this, the state
 should be recorded in consecutive generations:
 
 ```{r mortality-run, results = 'hide'}
@@ -663,859 +394,19 @@ plotPhylogeneticDispersion(pvalues = pPD.pvalues, positions = pPD.positions,
                            title = "Null Meta")
 ```
 
-# Emerging patterns
-
-This chapter shows how the main outputs of the model respond to its
-parameters, and compares them with what theory and earlier studies lead us to
-expect. For the neutral model, some expectations are exact analytical
-results; for the other processes, the literature mostly predicts the direction
-of an effect. The parameters are varied one or two at a time around a reference
-setting (50 × 50 cells, `dispersal = 1`, `specRate = 2`, all other parameters
-at their defaults), with replicate runs per setting. The simulations take
-hours to days, so they are not run when this vignette is built: they were run
-with the script `PhyloSim/data-raw/packageBehavior.R` of the
-[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim) (tag
-v0.3.1; now replaced by the scripts in `PhyloSim/data-raw/model-behavior`), and
-their summaries are stored in the data set `packageBehavior` (see
-`?packageBehavior`). They were run with an earlier version of the package
-(commit
-`r packageBehavior$info$commit`), in which
-polytomies of the phylogeny were resolved at random
-([#174](https://github.com/TheoreticalEcology/EcoPhyloSim/pull/174)); with the
-current version, the Colless index would differ slightly. Results with density
-dependence differ more in the current version, which redesigned density
-dependence
-([#172](https://github.com/TheoreticalEcology/EcoPhyloSim/pull/172)); the runs
-use the earlier parameter names `density` and `densityCut` (now `negativeDD` and
-`negativeDDCut`). How these patterns changed between releases is shown in the
-vignette "Model history" (`vignette("ModelHistory", package = "EcoPhyloSim")`).
-
-The indicators are computed for the whole grid at each census: species
-richness, Shannon diversity, the share of the four neighbors of a cell that
-belong to the same species (spatial aggregation), the correlation between the
-environmental trait and the environment, the standard deviation of the
-competition trait, and the Yule-normalized Colless index and the gamma
-statistic of the tree of the extant species. The table summarizes the
-expectations that the following sections test.
-
-| Process | Expectation | Source |
-|---|---|---|
-| Grid size | richness increases with the number of individuals, faster with local dispersal | @ewens1972, @durrett1996 |
-| Neutral model, global dispersal | richness and abundance distribution as in the Ewens sampling formula with $\theta \approx$ `specRate`; share of conspecific neighbors $1/(1+\theta)$ | @ewens1972, @vallade2003 |
-| Neutral model | tree more imbalanced than a Yule tree (Colless index > 0); species old, abundant species older | @davies2011, @manceau2015, @chisholm2014 |
-| Protracted speciation | fewer species | @rosindell2010, see below |
-| Red Queen | younger species | @odwyer2014 |
-| Dispersal limitation | spatial clusters of conspecifics; similarity decreasing with distance; steeper species–area curves within the grid | @durrett1996, @rosindell2007, @chave2002, @chaveleigh2002 |
-| Environmental filtering | traits match the environment, more so with local dispersal; effect on richness can be positive or negative | @mouquet2003, @stein2014, @allouche2012 |
-| Strength of selection | effects of environment and density dependence increase with `fitnessBaseMortalityRatio`; neutral at 1 | model definition |
-| Density dependence | more species, more even abundances, fewer conspecific neighbors, more dispersed competition traits | @chave2002, @levi2019, @scheffer2006 |
-| Environment and density dependence | effects can mask each other; in the runs of this chapter (before #172), neutral if both are > 0 and their sum is ≤ 1 | @kraft2015 |
-| Assembly processes and dispersal | environmental filtering increases, density dependence reduces aggregation; both increase richness; dispersal changes how strongly each shows | @kraft2015, @mouquet2003, @adler2005 |
-| Niche width | richness possibly highest at an intermediate width; best match of traits and environment for narrow niches | @allouche2012 |
-| CNDD from mortality | coefficient close to 0 without and positive with density dependence | @comita2010, @hulsmann2024 |
-
-```{css, echo = FALSE}
-.expectation {
-  background-color: #f2f6fa;
-  border-left: 4px solid #0072B2;
-  padding: 0.4em 1em;
-  margin: 1em 0;
-}
-.limitation {
-  background-color: #fbf3ec;
-  border-left: 4px solid #D55E00;
-  padding: 0.4em 1em;
-  margin: 1em 0;
-}
-```
-
-```{r patterns-setup, echo = FALSE}
-data("packageBehavior")
-pilot <- packageBehavior$pilot
-main <- packageBehavior$main
-
-labels <- c(richness = "Species richness", shannon = "Shannon diversity",
-            conspecificNeighbors = "Conspecific neighbors",
-            corTraitEnv = "Cor(trait, env.)",
-            sdCompetitionTrait = "SD comp. trait",
-            colless = "Colless index", gamma = "Gamma statistic")
-# colorblind-safe palette (Okabe & Ito)
-cols <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9")
-
-# common style of all figures in this chapter (set for each chunk by the hook)
-style <- function(...) par(mar = c(3.4, 3.4, 1.6, 0.6), mgp = c(2.1, 0.55, 0), tcl = -0.3,
-                           las = 1, bty = "l", cex = 0.75, font.main = 1, cex.main = 1, ...)
-knitr::knit_hooks$set(style = function(before, options, envir) if (before) style())
-knitr::opts_chunk$set(style = TRUE, fig.retina = 2)
-
-# x axis with plain numbers (no scientific notation) on a log scale
-logAxis <- function(side = 1) {
-  at <- axTicks(side)
-  axis(side, at = at, labels = format(at, big.mark = ",", scientific = FALSE, trim = TRUE))
-}
-
-# legend in an empty panel of a multi-panel figure
-legendPanel <- function(...) {
-  plot.new()
-  legend("center", bty = "n", cex = 0.95, ...)
-}
-
-# 95% confidence intervals as error bars
-ciBars <- function(x, m, ci, col) {
-  # skip intervals too short to draw (they give "zero-length arrow" warnings)
-  ok <- is.finite(ci) & ci > 1e-3 * diff(par("usr")[3:4])
-  arrows(x[ok], m[ok] - ci[ok], x[ok], m[ok] + ci[ok], angle = 90, code = 3,
-         length = 0.02, col = col)
-}
-
-# setting number of a block with the given parameter values
-settingId <- function(d, block, ...) {
-  s <- d$settings[d$settings$block == block, ]
-  v <- list(...)
-  for (n in names(v)) s <- s[s[[n]] == v[[n]], ]
-  s$setting
-}
-
-# replicate mean and 95% confidence interval at the last census of each setting
-final <- function(d, block, indicator) {
-  x <- d$census[d$census$block == block & d$census$indicator == indicator, ]
-  x <- x[x$generation == ave(x$generation, x$setting, FUN = max), ]
-  x$ci <- qt(0.975, pmax(x$n - 1, 1)) * x$sd / sqrt(x$n)
-  merge(d$settings[d$settings$block == block, ], x[c("setting", "mean", "ci", "n")])
-}
-
-# indicators against a parameter (x-axis), one line per value of `group`
-response <- function(d, block, xvar, group = NULL, indicators = names(labels),
-                     xlab = xvar, log = "", settings = NULL) {
-  op <- style(mfrow = c(2, ceiling((length(indicators) + 1) / 2)))
-  on.exit(par(op))
-  for (ind in indicators) {
-    f <- final(d, block, ind)
-    if (!is.null(settings)) f <- f[f$setting %in% settings, ]
-    f <- f[order(f$setting), ]
-    xv <- f[[xvar]]
-    isFactor <- is.character(xv)
-    if (isFactor) xv <- match(xv, unique(xv))
-    g <- if (is.null(group)) rep("", nrow(f)) else as.character(f[[group]])
-    yr <- range(c(f$mean - f$ci, f$mean + f$ci), na.rm = TRUE)
-    if (!all(is.finite(yr))) yr <- c(0, 1)
-    plot(xv, f$mean, type = "n", ylim = yr, xlab = xlab, ylab = "", main = labels[ind],
-         log = log, xaxt = "n")
-    if (isFactor) axis(1, at = seq_along(unique(f[[xvar]])), labels = unique(f[[xvar]]), gap.axis = 0)
-    else if (grepl("x", log)) logAxis(1) else axis(1)
-    for (k in seq_along(unique(g))) {
-      sel <- g == unique(g)[k]
-      lines(xv[sel], f$mean[sel], col = cols[k], type = "b", pch = 16)
-      ciBars(xv[sel], f$mean[sel], f$ci[sel], cols[k])
-    }
-  }
-  if (!is.null(group))
-    legendPanel(legend = unique(g), col = cols[seq_along(unique(g))], lty = 1, pch = 16,
-                title = group)
-}
-
-# replicate mean (line) and mean +/- sd (band) of each indicator over time
-trajectories <- function(d, cases, indicators = names(labels)) {
-  op <- style(mfrow = c(2, ceiling((length(indicators) + 1) / 2)))
-  on.exit(par(op))
-  for (ind in indicators) {
-    x <- d$census[d$census$indicator == ind, ]
-    sub <- lapply(seq_len(nrow(cases)), function(k)
-      x[x$block == cases$block[k] & x$setting == cases$setting[k], ])
-    yr <- range(unlist(lapply(sub, function(s) c(s$mean - s$sd, s$mean + s$sd))), na.rm = TRUE)
-    plot(1, type = "n", log = "x", xlim = range(x$generation), ylim = yr,
-         xlab = "Generation", ylab = "", main = labels[ind], xaxt = "n")
-    logAxis(1)
-    for (k in seq_along(sub)) {
-      s <- sub[[k]][order(sub[[k]]$generation), ]
-      ok <- is.finite(s$sd)
-      polygon(c(s$generation[ok], rev(s$generation[ok])),
-              c(s$mean[ok] - s$sd[ok], rev(s$mean[ok] + s$sd[ok])),
-              col = adjustcolor(cols[k], 0.25), border = NA)
-      lines(s$generation, s$mean, col = cols[k])
-    }
-  }
-  legendPanel(legend = cases$label, col = cols[seq_len(nrow(cases))], lwd = 2)
-}
-
-# neutral theory for J individuals and specRate new species per generation:
-# speciation probability per replacement nu = specRate / J and
-# theta = (J - 1) nu / (1 - nu) (Vallade & Houchmandzadeh 2003, eq. 6)
-theta <- function(specRate, J) (J - 1) * (specRate / J) / (1 - specRate / J)
-# expected species richness (Ewens sampling formula)
-ewens <- function(theta, J) sum(theta / (theta + 0:(J - 1)))
-# expected rank-abundance curve: mean of sorted abundances of random
-# Ewens partitions (Hoppe urn); like the simulated curves, each rank is
-# averaged over the partitions that have at least that many species
-ewensRac <- function(theta, J, reps = 200) {
-  racs <- replicate(reps, {
-    sp <- integer(J)
-    n <- 0
-    for (i in seq_len(J)) {
-      if (runif(1) < theta / (theta + i - 1)) {
-        n <- n + 1
-        sp[i] <- n
-      } else sp[i] <- sp[sample.int(i - 1, 1)]
-    }
-    sort(tabulate(sp), decreasing = TRUE)
-  }, simplify = FALSE)
-  len <- max(lengths(racs))
-  rowMeans(sapply(racs, function(r) c(r, rep(NA, len - length(r)))), na.rm = TRUE)
-}
-# replicate mean of an indicator at the last census, for the setting of a block
-# with the given parameter values (for the text)
-val <- function(block, indicator, ..., digits = 2) {
-  f <- final(main, block, indicator)
-  signif(f$mean[f$setting == settingId(main, block, ...)], digits)
-}
-```
-
-## Run length and runtime
-
-This part shows how long a simulation must run to reach equilibrium and how
-long it takes.
-
-### Time to equilibrium
-
-All results below refer to the state of the model at the end of the runs. In
-the main runs, each setting was simulated
-`r packageBehavior$info$modes$main$reps` times for
-`r format(packageBehavior$info$modes$main$generations[["default"]], big.mark = ",", scientific = FALSE)`
-generations
-(`r format(packageBehavior$info$modes$main$generations[["density"]], big.mark = ",", scientific = FALSE)`
-in the density block,
-`r format(packageBehavior$info$modes$main$generations[["neutral"]], big.mark = ",", scientific = FALSE)`
-in the neutral block).
-
-::: {.expectation}
-**Expectation.** In the neutral model, abundances change only by drift, which
-is slower in larger communities. We therefore expect the time to equilibrium
-to grow with the number of cells, and to be longer for indicators that depend
-on the whole history of the community (the phylogeny) than for those that
-depend on the current abundances.
-:::
-
-To check how long the model needs to reach equilibrium, a pilot run simulated
-each setting for
-`r format(packageBehavior$info$modes$pilot$generations[["default"]], big.mark = ",", scientific = FALSE)`
-generations
-(`r format(packageBehavior$info$modes$pilot$generations[["density"]], big.mark = ",", scientific = FALSE)`
-in the density block) with
-`r packageBehavior$info$modes$pilot$reps` replicates. The figure shows the
-replicate mean (line) and the variation between replicates (band: mean ± sd)
-of each indicator over time for five settings. Most diversity and spatial
-indicators settle within a few thousand generations, except richness on large
-grids. The gamma statistic and the spread of the competition trait settle much
-more slowly in many settings, also in the neutral model, often only after
-20,000 generations or more; with 5 replicates, this criterion is also noisy.
-The results for these indicators therefore describe a slowly changing rather
-than a fully stationary state.
-
-```{r equilibrium, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators over time in the pilot runs: replicate mean (line) and mean ± standard deviation across replicates (band)."}
-cases <- data.frame(
-  block = c("neutral", "neutral", "dispersal", "environment", "density"),
-  setting = c(settingId(pilot, "neutral", specRate = 2, x = 50),
-              settingId(pilot, "neutral", specRate = 0.5, x = 100),
-              settingId(pilot, "dispersal", dispersal = "1"),
-              settingId(pilot, "environment", environment = 1, dispersal = "1"),
-              settingId(pilot, "density", density = 1, densityCut = 1)),
-  label = c("neutral, global", "neutral, global,\n100 x 100,\nspecRate 0.5",
-            "neutral, dispersal 1", "environment 1", "density 1"))
-trajectories(pilot, cases)
-```
-
-The table gives, for the same settings, the first census after which the
-replicate mean of an indicator stays within 5% of its final level (the mean
-over the last quarter of the run) or within its 95% confidence interval,
-whichever is wider.
-
-```{r equilibrium-table, echo = FALSE}
-eqTime <- function(d, block, setting, indicator) {
-  x <- d$census[d$census$block == block & d$census$setting == setting &
-                  d$census$indicator == indicator, ]
-  x <- x[order(x$generation), ]
-  last <- x$generation >= 0.75 * max(x$generation)
-  level <- mean(x$mean[last])
-  tol <- max(0.05 * abs(level), mean(qt(0.975, x$n[last] - 1) * x$sd[last] / sqrt(x$n[last])))
-  out <- which(is.na(x$mean) | abs(x$mean - level) > tol)
-  if (length(out) == 0) return(format(min(x$generation), big.mark = ",", scientific = FALSE))
-  if (max(out) == nrow(x)) return("not reached")
-  format(x$generation[max(out) + 1], big.mark = ",", scientific = FALSE)
-}
-tab <- sapply(seq_len(nrow(cases)), function(k)
-  sapply(names(labels), eqTime, d = pilot, block = cases$block[k], setting = cases$setting[k]))
-dimnames(tab) <- list(labels, gsub("\n", " ", cases$label))
-knitr::kable(tab, caption = "Generations to equilibrium in the pilot runs.")
-```
-
-### Runtime
-
-```{r runtime-setup, echo = FALSE}
-# runtimes of the runs of this chapter, stored in modelHistory (built with
-# PhyloSim/data-raw/model-behavior/makeData.R; missing in installations without it)
-hasRuntime <- exists("modelHistory") ||
-  "modelHistory" %in% utils::data(package = "EcoPhyloSim")$results[, "Item"]
-if (hasRuntime && !exists("modelHistory")) data("modelHistory")
-rt <- if (hasRuntime) modelHistory$summary else data.frame(indicator = character(0), version = character(0),
-                                                           block = character(0), mean = numeric(0), generations = numeric(0))
-rt <- rt[rt$indicator == "runtime" & rt$version == "0.3.1", ]
-rt$per1000 <- rt$mean / rt$generations * 1000
-# runtime per 1,000 generations of the setting of a block with the given parameter values
-rtVal <- function(block, ..., digits = 2) {
-  d <- rt[rt$block == block, ]
-  v <- list(...)
-  for (n in names(v)) d <- d[d[[n]] == v[[n]], ]
-  if (!nrow(d)) return(NA)
-  signif(d$per1000, digits)
-}
-```
-
-::: {.expectation}
-**Expectation.** In each generation, every individual dies and is replaced, so
-the runtime grows with the number of cells. Each replacement looks at the
-cells within the dispersal kernel and, with density dependence, at the
-neighborhood of the recruit, so larger kernels and neighborhoods take longer.
-:::
-
-```{r runtime-missing, echo = FALSE, results = "asis", eval = !hasRuntime}
-cat("The runtimes of these runs are stored in the data set `modelHistory`, which is",
-    "not available in this installation (see `PhyloSim/data-raw/model-behavior/README.md` of the repository).\n")
-```
-
-```{r runtime-text, echo = FALSE, results = "asis", eval = hasRuntime}
-fold <- function(cut) round(max(rtVal("density", densityCut = cut)) / rtVal("density", density = 0, densityCut = cut))
-cat(sprintf(
-"The figure shows the runtime of the core simulation per 1,000 generations in
-the runs of this chapter (replicate means; one core of a desktop PC, 10
-simulations in parallel; the runtimes of these runs are stored in the data set
-`modelHistory`). Runtimes on other computers and in the current version
-differ, but the ratios between settings should be similar. On 50 × 50 cells,
-global dispersal is fastest (%s seconds per 1,000 generations). With local
-dispersal, the runtime increases steeply with the dispersal distance (from %s
-seconds at 0.5 to %s seconds at 3). With dispersal 1, it grows somewhat faster
-than the number of cells. Density dependence increases it up to about %s-fold
-with neighborhood radius 1 and %s-fold with radius 2. Together with the time to
-equilibrium, this gives the cost of a simulation: e.g. 50,000 generations on
-100 × 100 cells with dispersal 1 take about %s minutes.
-",
-rtVal("dispersal", dispersal = "global"), rtVal("dispersal", dispersal = "0.5"),
-rtVal("dispersal", dispersal = "3"), fold(1), fold(2), round(rtVal("gridSize", x = 100) * 50 / 60)))
-```
-
-```{r runtime, echo = FALSE, eval = hasRuntime, fig.width = 7, fig.height = 2.6, fig.cap = "Runtime of the core simulation in seconds per 1,000 generations against the dispersal kernel (50 × 50 cells), the number of cells (dispersal 1) and the strength of density dependence (dispersal 1, two neighborhood radii)."}
-op <- style(mfrow = c(1, 3))
-d <- rt[rt$block == "dispersal", ]
-d <- d[match(c("global", "0.5", "1", "2", "3"), d$dispersal), ]
-plot(seq_len(nrow(d)), d$per1000, type = "b", pch = 16, col = cols[1], xaxt = "n",
-     xlab = "Dispersal", ylab = "Seconds per 1,000 generations", main = "Dispersal")
-axis(1, at = seq_len(nrow(d)), labels = d$dispersal)
-d <- rt[rt$block == "gridSize", ]
-d <- d[order(d$x), ]
-plot(d$x^2, d$per1000, type = "b", pch = 16, col = cols[1], log = "xy", xaxt = "n",
-     xlab = "Cells", ylab = "", main = "Grid size")
-axis(1, at = d$x^2, labels = format(d$x^2, big.mark = ","))
-d <- rt[rt$block == "density", ]
-plot(range(d$density), range(d$per1000), type = "n", xlab = "Density dependence",
-     ylab = "", main = "Density dependence")
-for (k in 1:2) {
-  dk <- d[d$densityCut == k, ]
-  dk <- dk[order(dk$density), ]
-  lines(dk$density, dk$per1000, type = "b", pch = 16, col = cols[k])
-}
-legend("topleft", legend = paste("densityCut", 1:2), col = cols[1:2], lty = 1, pch = 16, bty = "n")
-par(op)
-```
-
-## Neutral model and speciation
-
-This part shows the neutral model, the reference for all other processes, the
-speciation mechanisms and the effect of the grid size.
-
-### Neutral model and speciation rate
-
-::: {.expectation}
-**Expectation.** With global dispersal and no fitness differences, the model
-is a zero-sum Moran model: in each generation, $J = x \cdot y$ individuals die
-and are replaced by offspring of random individuals, and on average `specRate`
-of the replacements found a new species, so the speciation probability per
-replacement is $\nu = \texttt{specRate}/J$. (In `runSimulation()`, the new
-species arise at the end of each generation rather than at single
-replacements, so the model is close to, but not exactly, a Moran model.) The
-equilibrium of the Moran model is known exactly [@vallade2003]. The number of
-species follows the Ewens sampling formula [@ewens1972],
-$$E(S) = \sum_{i=0}^{J-1} \frac{\theta}{\theta + i}, \qquad
-\theta = \frac{(J-1)\,\nu}{1-\nu} \approx \texttt{specRate}.$$
-For large $J$ and small $\nu$, this $\theta$ is about half of the fundamental
-biodiversity number $2J\nu$ used in other formulations of neutral theory
-[@hubbell2001; @vallade2003]; `es()` uses $2J\nu$ (see Known limitations). The
-same theory predicts that two random individuals belong to the same species
-with probability $1/(1+\theta)$. With global dispersal, space plays no role, so
-this is also the expected share of conspecific neighbors. The theory also gives
-the expected abundance distribution [@vallade2003], which we compare with the
-rank–abundance curve of the model.
-
-For the tree of the extant species, neutral theory predicts more imbalance
-than a Yule tree, because the speciation probability of a species is
-proportional to its abundance [@davies2011; @manceau2015]. The
-Yule-normalized Colless index is close to 0 for Yule trees [@blum2006], so we
-expect positive values. Neutral models in equilibrium are not expected to show
-the slowdown of branching towards the present (negative gamma statistic) that
-is typical of empirical trees [@davies2011; @manceau2015; @phillimore2008].
-:::
-
-```{r neutral, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Neutral model with global dispersal against the speciation rate, for three grid sizes (replicate mean and 95% confidence interval). Left: species richness; dashed: Ewens sampling formula, dotted: es(). Right: share of conspecific neighbors; dashed: 1/(1 + θ)."}
-op <- par(mfrow = c(1, 2))
-f <- final(main, "neutral", "richness")
-g <- final(main, "neutral", "conspecificNeighbors")
-sizes <- sort(unique(f$x))
-sr <- exp(seq(log(min(f$specRate)), log(max(f$specRate)), length.out = 30))
-plot(f$specRate, f$mean, type = "n", log = "xy", xlab = "specRate",
-     ylab = "Species richness", ylim = range(c(pmax(f$mean - f$ci, 1), 2 * f$mean), na.rm = TRUE))
-for (k in seq_along(sizes)) {
-  s <- f[f$x == sizes[k], ]
-  points(s$specRate, s$mean, col = cols[k], pch = 16)
-  ciBars(s$specRate, s$mean, s$ci, cols[k])
-  lines(sr, sapply(sr, function(r) ewens(theta(r, sizes[k]^2), sizes[k]^2)), col = cols[k], lty = 2)
-  lines(sr, sapply(sr, es, dimensions = sizes[k]), col = cols[k], lty = 3)
-}
-legend("topleft", legend = paste(sizes, "x", sizes), col = cols[seq_along(sizes)],
-       pch = 16, bty = "n")
-plot(g$specRate, g$mean, type = "n", log = "x", xlab = "specRate",
-     ylab = "Conspecific neighbors", ylim = c(0, 1))
-for (k in seq_along(sizes)) {
-  s <- g[g$x == sizes[k], ]
-  points(s$specRate, s$mean, col = cols[k], pch = 16)
-  ciBars(s$specRate, s$mean, s$ci, cols[k])
-  lines(sr, 1 / (1 + theta(sr, sizes[k]^2)), col = cols[k], lty = 2)
-}
-par(op)
-```
-
-```{r neutral-rac, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Rank–abundance curve of the neutral model with global dispersal (50 × 50 cells, specRate = 2; replicate mean) and the expectation from the Ewens sampling formula (dashed)."}
-s <- settingId(main, "neutral", specRate = 2, x = 50)
-r <- main$rac[main$rac$block == "neutral" & main$rac$setting == s, ]
-r <- r[order(r$rank), ]
-set.seed(1)
-e <- ewensRac(theta(2, 2500), 2500)
-plot(r$rank, r$mean, log = "y", pch = 16, col = cols[1], xlab = "Rank",
-     ylab = "Abundance", xlim = range(c(r$rank, seq_along(e))), ylim = c(0.5, max(r$mean, e)))
-lines(seq_along(e)[e >= 0.5], e[e >= 0.5], lty = 2)
-```
-
-**Result.** The share of conspecific neighbors and the rank–abundance curve
-agree with the Ewens sampling formula. Species richness is higher than expected
-in all settings, by up to about 15%, but within the 95% confidence interval in
-more than half of them (e.g.
-`r val("neutral", "richness", x = 50, specRate = 8, digits = 3)` instead of
-`r round(ewens(theta(8, 2500), 2500), 1)` for 50 × 50 cells and `specRate = 8`),
-possibly because of the batch speciation described above
-([#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)). `es()`
-gives 40–80% more species than the simulations, as expected from its definition
-of $\theta$. As predicted, the Colless index is
-positive in all settings. The gamma statistic is positive and increases with the
-speciation rate, i.e. the trees show more recent than early branching.
-
-### Protracted speciation and Red Queen
-
-::: {.expectation}
-**Expectation.** In the model, protracted speciation completes only if the
-founding individual survives `protracted` generations (see Known limitations). An
-individual survives a generation with probability of about $\exp(-1)$, so in the
-neutral model protracted speciation should act like a speciation rate reduced
-by a factor of about $\exp(-p)$, with $p$ = `protracted`, and richness should decrease accordingly. In
-the original model of protracted speciation, in which the whole incipient
-lineage becomes a new species [@rosindell2010], the effects are different;
-there, protracted speciation also slows down branching towards the present
-[@etienne2012]. A Red Queen advantage of young species is expected to make
-species younger without changing abundance distributions much
-[@odwyer2014]. Without environment and density dependence, the base fitness is
-0.01, so `redQueenStrength` must be large (here 100) for young species to
-survive the fitness-dependent draws noticeably more often.
-:::
-
-```{r protracted, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the duration of protracted speciation."}
-response(main, "speciation", "protracted",
-         settings = settingId(main, "speciation", redQueen = 0))
-```
-
-```{r protracted-ratio, echo = FALSE}
-# richness relative to protracted = 0: simulated and Ewens with specRate * exp(-p)
-rich <- function(p) val("speciation", "richness", protracted = p, redQueen = 0, digits = 10)
-ewensRatio <- function(p) ewens(theta(2, 2500) * exp(-p), 2500) / ewens(theta(2, 2500), 2500)
-```
-
-**Result.** Richness decreases with `protracted` as predicted by a speciation
-rate reduced by $\exp(-p)$: relative to `protracted = 0`, it is
-`r round(rich(1) / rich(0), 2)` for $p = 1$ (Ewens sampling formula with the
-reduced rate: `r round(ewensRatio(1), 2)`) and `r round(rich(2) / rich(0), 2)` for
-$p = 2$ (`r round(ewensRatio(2), 2)`). With $p = 5$, most runs end with a single
-species. The Red Queen advantage more than doubles richness
-(`r val("speciation", "richness", redQueen = 0.01, digits = 3)` and
-`r val("speciation", "richness", redQueen = 0.1, digits = 3)` species instead of
-`r val("speciation", "richness", redQueen = 0, protracted = 0, digits = 3)`) and
-strongly increases Shannon diversity, so it changes the abundance distribution
-more than expected.
-
-### Species ages
-
-The age of a species is estimated from its ID: species are numbered in the
-order of their origin, and new species arise at a roughly constant rate, so the
-age of species $i$ at generation $G$ is about $G(1 - i/i_{max})$, where
-$i_{max}$ is the largest ID in the phylogeny.
-
-::: {.expectation}
-**Expectation.** In neutral models, species persist for a long time, longer
-than observed in nature [@chisholm2014], and since species start with one
-individual and grow by drift, abundant species are on average older.
-:::
-
-```{r ages, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = "Mean species age (left) and rank correlation between age and abundance (right). Circles: neutral model with global dispersal against the speciation rate (50 × 50 cells). At specRate = 2, for dispersal = 1: without (square) and with a Red Queen advantage (triangles)."}
-op <- par(mfrow = c(1, 2))
-for (ind in c("meanSpeciesAge", "corAgeAbundance")) {
-  f <- final(main, "neutral", ind)
-  f <- f[f$x == 50, ]
-  sp <- final(main, "speciation", ind)
-  sp <- sp[sp$protracted == 0, ]
-  sp <- sp[order(sp$redQueen), ]
-  xs <- 2 * 1.12^(seq_len(nrow(sp)) - 1) # side by side at specRate = 2
-  cs <- cols[1 + seq_len(nrow(sp))]
-  yr <- range(c(f$mean - f$ci, f$mean + f$ci, sp$mean - sp$ci, sp$mean + sp$ci), na.rm = TRUE)
-  plot(f$specRate, f$mean, log = "x", pch = 16, col = cols[1], ylim = yr, xlab = "specRate",
-       xlim = range(c(f$specRate, xs)),
-       ylab = if (ind == "meanSpeciesAge") "Mean species age (generations)" else "Cor(age, abundance)")
-  ciBars(f$specRate, f$mean, f$ci, cols[1])
-  points(xs, sp$mean, pch = ifelse(sp$redQueen > 0, 17, 15), col = cs)
-  ciBars(xs, sp$mean, sp$ci, cs)
-  if (ind == "meanSpeciesAge")
-    legend("topright", legend = c("neutral, global", paste("dispersal 1, redQueen =", sp$redQueen)),
-           pch = c(16, ifelse(sp$redQueen > 0, 17, 15)), col = c(cols[1], cs), bty = "n")
-}
-par(op)
-```
-
-**Result.** In the neutral model, mean species age decreases with the speciation
-rate, and abundant species are older (rank correlation about
-`r val("neutral", "corAgeAbundance", x = 50, specRate = 2, digits = 1)`), as
-expected. The Red Queen advantage reduces the mean species age from
-`r val("speciation", "meanSpeciesAge", redQueen = 0, protracted = 0, digits = 3)` to
-about `r val("speciation", "meanSpeciesAge", redQueen = 0.01)` generations and
-removes most of the correlation between age and abundance.
-
-### Grid size
-
-::: {.expectation}
-**Expectation.** In the neutral model, richness increases roughly with the
-logarithm of the number of individuals (Ewens sampling formula). With local
-dispersal, larger grids also contain more spatially separated clusters
-[@durrett1996], so richness should increase faster.
-:::
-
-```{r gridsize, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the grid size (cells per side) with local dispersal."}
-response(main, "gridSize", "x", xlab = "grid size")
-```
-
-**Result.** With local dispersal, richness increases from
-`r val("gridSize", "richness", x = 20, digits = 3)` to
-`r val("gridSize", "richness", x = 100, digits = 3)` species between 20 × 20 and
-100 × 100 cells, faster than in the neutral model with global dispersal (from
-`r val("neutral", "richness", x = 20, specRate = 2, digits = 3)` to
-`r val("neutral", "richness", x = 100, specRate = 2, digits = 3)`), as expected.
-
-## Dispersal, environment and density dependence
-
-This part shows the effects of dispersal, environmental filtering and density
-dependence, alone and combined.
-
-### Dispersal
-
-::: {.expectation}
-**Expectation.** With local dispersal, offspring settle near their parents, so
-conspecifics form spatial clusters [@chaveleigh2002] and the share of
-conspecific neighbors increases. Lineages in different parts of the grid stay
-apart longer before they replace each other, so we expect more species on the
-whole grid than with global dispersal. Species–area curves within a landscape
-are steep at small areas when dispersal is short relative to the area
-[@durrett1996; @rosindell2007], whereas global dispersal gives flatter curves
-[@chave2002].
-:::
-
-```{r dispersal, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against dispersal (replicate mean and 95% confidence interval)."}
-response(main, "dispersal", "dispersal")
-```
-
-```{r dispersal-sac, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Species–area curves within the grid (mean number of species in square subplots of the given area) for different dispersal distances."}
-s <- main$sac[main$sac$block == "dispersal", ]
-st <- main$settings[main$settings$block == "dispersal", ]
-plot(s$size, s$mean, type = "n", log = "xy", xlab = "Subplot area (cells)",
-     ylab = "Species")
-for (k in seq_len(nrow(st))) {
-  x <- s[s$setting == st$setting[k], ]
-  x <- x[order(x$size), ]
-  lines(x$size, x$mean, col = cols[k], type = "b", pch = 16)
-}
-legend("topleft", legend = st$dispersal, col = cols[seq_len(nrow(st))], lty = 1,
-       pch = 16, title = "dispersal", bty = "n")
-```
-
-The probability that two individuals at a given distance belong to the same
-species is expected to decrease with distance when dispersal is limited
-[@chaveleigh2002; @condit2002]. With global dispersal, it should be the same at
-all distances and equal to the neutral expectation $1/(1+\theta)$.
-
-```{r dispersal-decay, echo = FALSE, fig.width = 4.5, fig.height = 4, fig.cap = "Probability that two cells at the given distance (along rows and columns) contain the same species, for different dispersal distances (replicate mean and 95% confidence interval). Dashed: neutral expectation for global dispersal."}
-s <- main$decay[main$decay$block == "dispersal", ]
-s$ci <- qt(0.975, pmax(s$n - 1, 1)) * s$sd / sqrt(s$n)
-plot(s$distance, s$mean, type = "n", log = "x", ylim = c(0, 1),
-     xlab = "Distance (cells)", ylab = "Same species")
-for (k in seq_len(nrow(st))) {
-  x <- s[s$setting == st$setting[k], ]
-  x <- x[order(x$distance), ]
-  lines(x$distance, x$mean, col = cols[k], type = "b", pch = 16)
-  ciBars(x$distance, x$mean, x$ci, cols[k])
-}
-abline(h = 1 / (1 + theta(2, 2500)), lty = 2)
-legend("topright", legend = st$dispersal, col = cols[seq_len(nrow(st))], lty = 1,
-       pch = 16, title = "dispersal", bty = "n")
-```
-
-**Result.** As expected, shorter dispersal increases richness on the whole grid
-(`r val("dispersal", "richness", dispersal = "0.5", digits = 3)` species with
-`dispersal = 0.5`, `r val("dispersal", "richness", dispersal = "global", digits = 3)`
-with global dispersal) and the share of conspecific neighbors. With local
-dispersal, small subplots contain fewer species, and with `dispersal` ≤ 1 the
-species–area curve is steeper than with global dispersal. With local dispersal,
-the probability that two cells contain the same species decreases with distance,
-as expected.
-Dispersal distances of 2 and 3 cells give almost the same richness as global
-dispersal.
-
-### Environmental filtering
-
-::: {.expectation}
-**Expectation.** Environmental filtering sorts species along the gradient, so
-the correlation between trait and environment should increase with
-`environment`. With local dispersal, offspring stay in the habitat of their
-parents (species sorting); with global dispersal, many offspring land in
-unsuitable cells (mass effects), which weakens the match between traits and
-environment and reduces the differences between parts of the grid
-[@mouquet2003]. The effect on richness can go either way: environmental
-heterogeneity increases richness through niche partitioning in most empirical
-studies [@stein2014], but in an area of fixed size, narrow niches reduce the
-area available to each species and can reduce richness [@allouche2012]. With
-the default niche width, a species finds good conditions only in a narrow band
-of the gradient. Daughter species keep the traits of their founder, so closely
-related species occupy similar positions on the gradient; such niche
-conservatism together with environmental filtering is expected to make local
-communities phylogenetically clustered [@webb2002] (not measured by the
-indicators here). For tree shape, we found
-no consistent prediction.
-:::
-
-```{r environment, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the strength of environmental filtering, for global and local dispersal."}
-response(main, "environment", "environment", group = "dispersal")
-```
-
-**Result.** With local dispersal, already weak filtering (`environment = 0.25`)
-makes the correlation between trait and environment almost perfect
-(`r val("environment", "corTraitEnv", dispersal = "1", environment = 0.25)`),
-whereas with global dispersal it stays at
-`r val("environment", "corTraitEnv", dispersal = "global", environment = 1)` even
-at `environment = 1`, as expected from mass effects. Richness increases with the
-strength of filtering in both cases, so niche partitioning dominates over the
-loss of area per species. Filtering makes the trees more balanced (Colless index
-below 0) and increases the gamma statistic, i.e. branching is even more
-concentrated towards the present than in the neutral model. A possible
-explanation is that lineages adapted to different parts of the gradient persist
-for a long time, while species within each part turn over as in the neutral
-model; the speciation rate does not depend on richness, so no slowdown of
-branching is expected [@phillimore2008]. With global dispersal, filtering lowers
-the share of conspecific neighbors; with local dispersal, it changes it little.
-
-### Strength of selection
-
-::: {.expectation}
-**Expectation.** With `fitnessBaseMortalityRatio = 1`, every death is random
-and the model is neutral whatever the fitness; larger values increase the ratio
-of the death rates of unfit and fit individuals. We therefore expect the effects of environmental filtering
-and density dependence to increase with `fitnessBaseMortalityRatio`, starting
-from the neutral values.
-:::
-
-```{r selection, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against fitnessBaseMortalityRatio, with environmental filtering (environment = 1) or density dependence (density = 1)."}
-response(main, "selection", "fitnessBaseMortalityRatio", group = "environment", log = "x")
-```
-
-**Result.** With `fitnessBaseMortalityRatio = 1`, both scenarios give the values
-of the neutral model with local dispersal, as expected. With environmental
-filtering, richness keeps increasing up to the largest value
-(`r val("selection", "richness", environment = 1, fitnessBaseMortalityRatio = 50, digits = 3)`
-species at 50). With density dependence, the spread of the competition trait
-almost reaches its maximum already at 2, and richness increases only slightly.
-
-### Density dependence
-
-::: {.expectation}
-**Expectation.** In the model, an individual is fitter the more its
-competition trait differs from those of its neighbors. Because the traits
-within a species are similar, this acts like conspecific negative density
-dependence, as in the Janzen-Connell hypothesis. Such density dependence is
-expected to increase species richness and to make abundances more even
-[@chave2002; @levi2019]; its
-effect depends on how far offspring disperse relative to the neighborhood
-[@adler2005]. It should reduce the share of conspecific neighbors. Competition
-on a trait favors dissimilar trait values, so the spread of the competition
-trait should increase; species may form groups of similar trait values rather
-than spreading evenly along the trait axis [@scheffer2006].
-:::
-
-```{r density, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the strength of density dependence, for two neighborhood radii (densityCut)."}
-response(main, "density", "density", group = "densityCut")
-```
-
-**Result.** Density dependence reduces the share of conspecific neighbors, as
-expected, but increases richness only slightly (from
-`r val("density", "richness", density = 0, densityCut = 1, digits = 3)` to
-`r val("density", "richness", density = 1, densityCut = 1, digits = 3)` species)
-and Shannon diversity.
-Already at `density = 0.25`, the standard deviation of the competition trait
-rises to `r val("density", "sdCompetitionTrait", density = 0.25, densityCut = 1)`,
-close to its maximum of 0.5 for traits in $[0, 1]$: the competition traits split
-into two groups at the ends of the trait range. Stronger density dependence or a
-larger neighborhood changes the indicators little in these runs; density
-dependence was redesigned in
-[#172](https://github.com/TheoreticalEcology/EcoPhyloSim/pull/172) (see the
-vignette Model history).
-
-### Environment and density dependence combined
-
-::: {.expectation}
-**Expectation.** Environmental filtering favors similar species in the same
-place, and density dependence favors dissimilar neighbors, so the two
-processes can mask each other in the patterns [@kraft2015]. Because the two
-fitness terms were added in the version of these runs (before #172), the model
-is neutral there if both are > 0 and `environment + density` ≤ 1.
-:::
-
-```{r envdensity, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against environment, for three strengths of density dependence."}
-response(main, "envDensity", "environment", group = "density")
-```
-
-**Result.** With `environment = density = 0.5`, the indicators have the values of
-the neutral model, as expected. Combined with environmental filtering, density
-dependence reduces richness (with `environment = 0.5`:
-`r val("envDensity", "richness", environment = 0.5, density = 1, digits = 3)`
-species with and
-`r val("envDensity", "richness", environment = 0.5, density = 0, digits = 3)`
-without `density = 1`), whereas on its own it increases richness slightly.
-
-### Assembly processes and dispersal
-
-The four combinations of environmental filtering (`environment` = 0 or 1) and
-density dependence (`density` = 0 or 1), each with global and local
-dispersal.
-
-::: {.expectation}
-**Expectation.** Environmental filtering should increase spatial aggregation
-and the match between traits and environment, and density dependence should
-reduce aggregation; both are expected to increase richness (see the sections
-above). With both processes, their effects on the patterns can partly cancel
-[@kraft2015], and dispersal can change how strongly each process shows
-[@mouquet2003; @adler2005].
-:::
-
-```{r assembly, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators for the four combinations of environmental filtering and density dependence, for global and local dispersal."}
-a <- main$settings$block == "assembly"
-main$settings$scenario[a] <- c("neutral", "env.", "dens.", "both")[
-  1 + main$settings$environment[a] + 2 * main$settings$density[a]]
-response(main, "assembly", "scenario", group = "dispersal", xlab = "")
-```
-
-**Result.** Environmental filtering increases richness and the match between
-traits and environment, much more with local than with global dispersal.
-Contrary to the expectation, it does not increase spatial aggregation (see
-Environmental filtering). Density dependence reduces aggregation with local
-dispersal, and, combined with filtering, it reduces rather than increases
-richness (see Environment and density dependence combined).
-
-### Niche width
-
-::: {.expectation}
-**Expectation.** Narrower niches mean stronger filtering. Following the idea of
-limiting similarity, more species with narrow niches can be packed along the
-gradient, but narrow niches also reduce the area available to each species,
-which increases the risk of extinction [@allouche2012]. Richness may therefore
-peak at an intermediate niche width. The correlation between trait and
-environment should be highest for narrow niches.
-:::
-
-```{r nichewidth, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators against the niche width (environment = 1), for global and local dispersal."}
-response(main, "nicheWidth", "nicheWidth", group = "dispersal", log = "x")
-```
-
-**Result.** With global dispersal, richness is highest at intermediate niche
-widths, as expected, but the correlation between trait and environment increases
-with niche width (from
-`r val("nicheWidth", "corTraitEnv", dispersal = "global", nicheWidth = 0.01)` to
-`r val("nicheWidth", "corTraitEnv", dispersal = "global", nicheWidth = 0.3)`).
-A possible reason is that with narrow niches and global dispersal, almost all
-offspring land in unsuitable cells, so that fitness is low everywhere and
-filtering is weak. With
-local dispersal, traits match the environment closely at all widths, and richness
-is highest for the narrowest niches.
-
-### Density dependence measured from mortality
-
-Field studies estimate conspecific negative density dependence (CNDD) from
-the mortality of individuals in relation to the number of conspecific
-neighbors [@comita2010; @hulsmann2024]. The same can be done with the model
-output (`getMortalityData()`): for the last five generations of each run, a
-logistic regression of death on the number of conspecifics within a radius of
-2 cells, with a separate intercept per species, gives one CNDD coefficient per
-run; positive values mean that mortality increases with the number of
-conspecific neighbors.
-
-::: {.expectation}
-**Expectation.** In the neutral model, mortality does not depend on
-neighbors, so the coefficient should be close to 0; this is a check of the analysis.
-With density dependence, it should be positive. With environmental filtering
-and local dispersal, conspecific neighbors indicate suitable habitat, so
-mortality may decrease with their number, which would hide density dependence
-in such an analysis.
-:::
-
-```{r cndd, echo = FALSE, fig.width = 5, fig.height = 3.5, fig.cap = "CNDD coefficient per scenario and dispersal (replicate mean and 95% confidence interval; dashed: no effect)."}
-f <- merge(main$settings[a, ], main$cndd[main$cndd$block == "assembly", ])
-f$ci <- qt(0.975, pmax(f$n - 1, 1)) * f$sd / sqrt(f$n)
-f <- f[order(f$density, f$environment, f$dispersal), ]
-sc <- unique(f$scenario)
-xpos <- match(f$scenario, sc) + ifelse(f$dispersal == "global", -0.1, 0.1)
-plot(xpos, f$mean, pch = 16, col = cols[1 + (f$dispersal != "global")], xaxt = "n",
-     xlab = "", ylab = "CNDD coefficient", ylim = range(c(0, f$mean - f$ci, f$mean + f$ci)))
-axis(1, at = seq_along(sc), labels = sc)
-ciBars(xpos, f$mean, f$ci, cols[1 + (f$dispersal != "global")])
-abline(h = 0, lty = 2)
-legend("topleft", legend = c("global", "1"), pch = 16, col = cols[1:2], title = "dispersal", bty = "n")
-```
-
-**Result.** As expected, the CNDD coefficient is close to 0 in the neutral model
-and positive with density dependence. Environmental filtering makes it negative,
-and with both processes it is negative as well, so filtering hides the density
-dependence in this analysis. Contrary to the expectation, the effect is stronger with global
-than with local dispersal.
-
 # Fitting the model to data
 
 EcoPhyloSim has no tractable likelihood: the probability of observed data, such
 as a species map, abundances and a phylogeny, cannot be calculated for given
-parameters. Its parameters can still be estimated by simulation-based
-inference [@hartig2011; @cranmer2020]: the model is run for many parameter
-values drawn from a prior, and the simulations that resemble the data are kept,
-or used to train an estimator. Data and simulations are usually compared through
-summary statistics, such as those of `calculateSummaryStatistics()`. Which
-statistics are used, and how the data are observed (e.g. as subplots, see
-`localPlots()`), decides what can be learned; the patterns in the chapter
-Emerging patterns show which outputs respond to which parameters, and how long
-runs must be to reach equilibrium.
+parameters. Its parameters can still be estimated by simulation-based inference
+[@hartig2011; @cranmer2020]: the model is run for many parameter values drawn
+from a prior, and the simulations that resemble the data are kept, or used to
+train an estimator. Data and simulations are usually compared through summary
+statistics, such as those of `calculateSummaryStatistics()`. Which statistics
+are used, and how the data are observed (e.g. as subplots, see `localPlots()`),
+decides what can be learned; the patterns in the vignette "EcoPhyloSim model"
+show which outputs respond to which parameters, and how long runs must be to
+reach equilibrium.
 
 ## Approximate Bayesian computation
 
@@ -1535,7 +426,7 @@ a random forest with the package ranger).
 priors <- list(specRate = function() runif(1, 0.5, 8),
                negativeDD = function() runif(1, 0, 1),
                environment = function() runif(1, 0, 1))
-# runs long enough to reach equilibrium (see Time to equilibrium)
+# runs long enough to reach equilibrium (see the vignette "EcoPhyloSim model")
 fixed <- list(x = 50, y = 50, dispersal = 1, runs = 50000, calculateSummaries = TRUE)
 runPhylosimAnalysis(priors, fixed, nRuns = 10000, outDir = "abc", summariesOnly = TRUE)
 chunkwiseCleanup("abc")
@@ -1547,14 +438,14 @@ recovery <- rejectionSamplePhylosimAnalysis("abc/analysis_ready/parameters",
                                             nDraws = 100, which = c("none", "rf"))
 ```
 
-Such runs need thousands of simulations, each run to equilibrium, so they
-take long (see the section Runtime). For observed data, the same table of
-simulated parameters and summaries can be used with general ABC packages, e.g.
-abc [@csillery2012], or abcrf, which estimates the parameters with random
-forests, is robust to the choice of summary statistics and needs no tolerance
-level [@raynal2019]. The observed summaries must be computed in the same way as
-the simulated ones and scaled with the standard deviations of the simulated
-summaries.
+Such runs need thousands of simulations, each run to equilibrium, so they take
+long (see Runtime in the vignette "EcoPhyloSim model"). For observed data, the
+same table of simulated parameters and summaries can be used with general ABC
+packages, e.g. abc [@csillery2012], or abcrf, which estimates the parameters
+with random forests, is robust to the choice of summary statistics and needs no
+tolerance level [@raynal2019]. The observed summaries must be computed in the
+same way as the simulated ones and scaled with the standard deviations of the
+simulated summaries.
 
 ## Neural simulation-based inference
 

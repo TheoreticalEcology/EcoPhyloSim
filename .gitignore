@@ -13,6 +13,10 @@
 PhyloSim/vignettes/Vignette_bib.bib.bak
 PhyloSim/inst/doc/PhyloSimManual.R
 PhyloSim/vignettes/PhyloSimManual.R
+PhyloSim/inst/doc/ModelDescription.R
+PhyloSim/vignettes/ModelDescription.R
+PhyloSim/inst/doc/ModelHistory.R
+PhyloSim/vignettes/ModelHistory.R
 
 
 *.aux

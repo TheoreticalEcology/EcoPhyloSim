@@ -11,7 +11,7 @@ This page is for the EcoPhyloSim team (maintainers and collaborators with write 
 ## Releases
 
 - Before tagging a release, run the model-behavior design with the commit that freezes the release and rebuild the data sets as described in "Release" of [PhyloSim/data-raw/model-behavior/README.md](PhyloSim/data-raw/model-behavior/README.md) (days of computing); after tagging, attach the archive of the run to the GitHub release.
-- With every version change in `PhyloSim/DESCRIPTION`, also set its `Date` field to the current date: `citation("EcoPhyloSim")`, also in the vignette, takes the year from it unless the package is installed from CRAN, and `R CMD check --as-cran` notes a `Date` older than a month.
+- With every version change in `PhyloSim/DESCRIPTION`, also set its `Date` field to the current date: `citation("EcoPhyloSim")`, also in the user guide vignette, takes the year from it unless the package is installed from CRAN, and `R CMD check --as-cran` notes a `Date` older than a month.
 
 ## Branches
 
