@@ -19,13 +19,13 @@ runSimulationBatch(pars, parallel = FALSE, backup = FALSE, strip = NULL,
 \item{onError}{"stop" (default) to stop at the first simulation that fails, or "NA" to return NA for each failed simulation, with the error message as attribute "error" and a warning that lists the failed simulations.}
 }
 \value{
-An object of class "PhylosimList", or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhylosimList" may fail.
+An object of class \code{\link{PhylosimList}}, or, if strip = "summaries", a plain list of the summary statistics of each scenario. With onError = "NA", failed simulations are NA, so that methods for "PhylosimList" may fail.
 }
 \description{
 A model of species community assembly under different assembly mechanisms, using parallel computing to make use of multi core CPUs and clusters in order to reduce computation time. The function is an extension to \link{runSimulation} in order to accelerate the simulation of multiple scenarios.
 }
 \details{
-The "PhylosimList" object is a list of "PhyloSim" objects. They can be accessed by indexing (see Example).\cr\cr This function uses the \pkg{foreach} and \pkg{doParallel} packages to compute the model scenarios in parallel on several cores. \cr\cr The phylogeny is passed to R in the newick format and parsed to an object of class "phylo" with the function \code{\link[ape]{read.tree}} from the \pkg{ape} package.
+This function uses the \pkg{foreach} and \pkg{doParallel} packages to compute the model scenarios in parallel on several cores. \cr\cr The phylogeny is passed to R in the newick format and parsed to an object of class "phylo" with the function \code{\link[ape]{read.tree}} from the \pkg{ape} package.
 }
 \examples{
 ## Define two parameter sets

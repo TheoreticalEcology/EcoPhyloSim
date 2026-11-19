@@ -69,15 +69,14 @@ plotPhylogeneticDispersion <- function(pvalues, positions=NULL, title = "P-value
   
   for(i in 1:nlengths){
     for(k in 1:length(pvaluesT)){
-      z[i,k]<-mean(MeanMatZ[i,k,])
-      zCILOW[i,k]<-mean(MeanMatZLow[i,k,])
-      zCIUP[i,k]<-mean(MeanMatZUp[i,k,])
+      z[i,k]<-mean(MeanMatZ[i,k,], na.rm = TRUE)
+      zCILOW[i,k]<-mean(MeanMatZLow[i,k,], na.rm = TRUE)
+      zCIUP[i,k]<-mean(MeanMatZUp[i,k,], na.rm = TRUE)
     }
   }
   
   ColPalet <- colorRampPalette(c("turquoise4", "white", "palevioletred"))
   Cols <- ColPalet(100)
-  index <- seq(0,1,0.01)
   oldpar<-par()
   
   par(mar=c(0, 3, 0, 0), xpd=TRUE)
@@ -96,8 +95,8 @@ plotPhylogeneticDispersion <- function(pvalues, positions=NULL, title = "P-value
       
       k <- length(positions$x)*(i-1) + j
       
-      mpv <- mean(z[,k])
-      rect(x - 0.15, y - 0.15, x + 0.15, y + 0.15, col = Cols[which.max(index[index <= mpv])],
+      mpv <- mean(z[,k], na.rm = TRUE)
+      rect(x - 0.15, y - 0.15, x + 0.15, y + 0.15, col = if (is.nan(mpv)) "grey" else Cols[min(floor(mpv * 100) + 1, 100)], # fixes #195 (no colour for NA or p = 1)
            border = "darkgrey", lwd = 2)
       
       xval <- (lengths - min(lengths)) / lRange *0.3 -0.15

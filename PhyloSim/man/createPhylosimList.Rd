@@ -10,7 +10,7 @@ createPhylosimList(simu)
 \item{simu}{List of objects of type PhyloSim as created by \code{\link{runSimulation}}}
 }
 \value{
-An object of type PhylosimList
+An object of class \code{\link{PhylosimList}}
 }
 \description{
 Creates an object of class "PhylosimList" from a list of "PhyloSim" objects.

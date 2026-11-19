@@ -134,7 +134,7 @@ using namespace Rcpp;
 //'   \code{Phylogeny} (Newick string). \code{\link{runSimulation}} reshapes and renames
 //'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 //'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
-//' @export
+//' @keywords internal
 // [[Rcpp::export]]
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
                bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff,

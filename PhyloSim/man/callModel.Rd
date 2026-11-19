@@ -156,3 +156,4 @@ user -- most parameters correspond directly to the (user-facing) arguments of
 are split here into separate on/off switches and strength values (see the parameter descriptions below).
 It draws from R's random number generator, so set the seed with \code{set.seed()} before the call.
 }
+\keyword{internal}
