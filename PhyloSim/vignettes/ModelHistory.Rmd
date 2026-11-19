@@ -76,6 +76,107 @@ notes <- list("0.3.2" = c(
           val("0.3.1", "speciation", "richness", redQueen = 0.01),
           val("0.3.1", "speciation", "meanSpeciesAge", protracted = 0, redQueen = 0),
           val("0.3.1", "speciation", "meanSpeciesAge", redQueen = 0.01))))
+compareRuns <- function(o, w) {
+  # a parameter of only one run: keep only its most frequent value there (the default)
+  p <- params[vapply(params, function(x) any(!is.na(o[[x]])) && any(!is.na(w[[x]])), logical(1))]
+  for (x in setdiff(params, p)) {
+    if (any(!is.na(o[[x]]))) o <- o[o[[x]] %in% names(which.max(table(o[[x]]))), ]
+    if (any(!is.na(w[[x]]))) w <- w[w[[x]] %in% names(which.max(table(w[[x]]))), ]
+  }
+  k <- function(d) do.call(paste, c(lapply(d[c(p, "indicator")], as.character), sep = "|"))
+  m <- merge(cbind(key = k(o), o), cbind(key = k(w), w[c("mean", "sd", "n")]), by = "key",
+             suffixes = c(".old", ".new"))
+  # share of failed simulations (mean of `failed` over all simulations of a setting)
+  f <- m[m$indicator == "failed", ]
+  f$p.adj <- p.adjust(unlist(Map(function(a, n1, b, n2) fisher.test(matrix(c(a, n1 - a, b, n2 - b), 2))$p.value,
+                                 round(f$mean.old * f$n.old), f$n.old, round(f$mean.new * f$n.new), f$n.new)), "BH")
+  # runtime is machine-dependent; the species age is estimated from the species IDs,
+  # whose numbering and pruning differ between versions
+  m <- m[!m$indicator %in% c("failed", "runtime", "meanSpeciesAge", "corAgeAbundance"), ]
+  se2 <- m$sd.old^2 / m$n.old + m$sd.new^2 / m$n.new
+  df <- se2^2 / ((m$sd.old^2 / m$n.old)^2 / (m$n.old - 1) + (m$sd.new^2 / m$n.new)^2 / (m$n.new - 1))
+  m$p.adj <- p.adjust(2 * pt(-abs(m$mean.new - m$mean.old) / sqrt(se2), df), "BH")
+  m$d <- (m$mean.new - m$mean.old) / sqrt((m$sd.old^2 + m$sd.new^2) / 2)
+  se.d <- sqrt((m$n.old + m$n.new) / (m$n.old * m$n.new) + m$d^2 / (2 * (m$n.old + m$n.new)))
+  m$"95% CI of d" <- sprintf("%.2f to %.2f", m$d - 1.96 * se.d, m$d + 1.96 * se.d)
+  rel <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
+  rel <- rel[order(-abs(rel$d)), ]
+  # one column for the setting: block and the parameters that differ from the reference setting
+  ref <- m[m$block == "dispersal" & m$dispersal == "1", ][1, ]
+  q <- setdiff(p, c("block", "generations"))
+  rel$setting <- vapply(seq_len(nrow(rel)), function(i) {
+    d <- q[vapply(q, function(x) !identical(as.character(rel[[x]][i]), as.character(ref[[x]])), logical(1))]
+    if (length(d)) paste0(lab(rel$block[i]), ": ", paste(d, vapply(d, function(x) as.character(rel[[x]][i]), ""), collapse = ", "))
+    else lab(rel$block[i])
+  }, "")
+  list(m = m, rel = rel, f = f)
+}
+# readable names of the blocks of the design (design.R)
+blockLabel <- c(neutral = "neutral model", dispersal = "dispersal distance", specRateLocal = "speciation rate",
+                environment = "environmental filtering", selection = "strength of selection",
+                fitnessActsOn = "life stage of selection", density = "density dependence",
+                densityDispersal = "density dependence and dispersal", densityKernel = "density kernels",
+                positiveDD = "positive density dependence", envDensity = "environment and density dependence",
+                assembly = "environment, density dependence and dispersal", nicheWidth = "niche width",
+                speciation = "protracted speciation and Red Queen", fission = "fission",
+                speciationRate = "speciation mechanisms and rates", gridSize = "grid size", gridShape = "grid shape")
+lab <- function(b) ifelse(b %in% names(blockLabel), blockLabel[b], b)
+# a run as release (or development version of a release) and commit
+runLabel <- function(r) {
+  v <- sub(" .*", "", r)
+  rv <- releaseOf(r)
+  paste0(if (!is.na(rv) && v != rv) paste(rv, "in development") else v, " (", sub(".* ", "", r), ")")
+}
+# table of the largest measured differences of a comparison
+printComparison <- function(x) {
+  m <- x$m; rel <- x$rel; f <- x$f
+  cat(nrow(rel), " of ", sum(!is.na(m$p.adj)), " comparisons differ significantly; comparisons with fewer than 20 ",
+      "replicates in a run: ", sum(m$n.old < 20 | m$n.new < 20), ". The share of failed simulations differs in ",
+      sum(f$p.adj < 0.05, na.rm = TRUE), " of ", nrow(f), " settings.\n\n", sep = "")
+  rel$p.adj <- format.pval(rel$p.adj, digits = 2, eps = 0.001)
+  rel$indicator <- ifelse(rel$indicator %in% names(indicators), indicators[rel$indicator], rel$indicator)
+  if (nrow(rel)) print(knitr::kable(head(rel, 15)[c("setting", "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
+                                    digits = 3, row.names = FALSE,
+                                    col.names = c("Setting", "Indicator", "Older", "Newer", "d", "95% CI of d", "p (adjusted)")))
+  if (nrow(rel) > 15) cat("\n\nThe table shows the 15 largest of the", nrow(rel), "differences;",
+                          "all are in `modelHistory` (see Using the data).\n\n")
+}
+byRun <- split(s, paste(s$version, s$commit))[runs]
+# comparison of each run with the previous one, named by the later run
+cmp <- if (length(runs) > 1) setNames(Map(compareRuns, byRun[-length(byRun)], byRun[-1]), runs[-1]) else list()
+# changes of the model code of a release that alter results
+count <- function(v) {
+  t <- table(factor(ch$type[ch$kind == "change" & ch$version == v], names(typeCol)))
+  t <- t[t > 0]
+  if (!length(t)) "none" else paste(t, names(t), collapse = ", ")
+}
+changesText <- function(v) {
+  if (v == rel$version[1]) return("First release in this record.")
+  n <- count(v)
+  if (n == "none") "No changes of the model code that alter results." else
+    paste0("Changes of the model code that alter results: ", n, ".")
+}
+# measured differences of the runs of a release, one sentence per run
+measured <- function(v) {
+  j <- runs[which(vapply(runs, releaseOf, "") == v)]
+  if (!length(j)) return("No run of the design yet.")
+  paste(vapply(j, function(r) {
+    x <- cmp[[r]]
+    if (is.null(x)) return(paste0("Run ", runLabel(r), ": first run, reference for the later runs."))
+    d <- x$rel
+    nTest <- sum(!is.na(x$m$p.adj))
+    prev <- runLabel(runs[match(r, runs) - 1])
+    if (!nrow(d)) return(sprintf("Run %s compared with %s: none of %d tested results differs significantly.",
+                                 runLabel(r), prev, nTest))
+    b <- sort(table(d$block), decreasing = TRUE)
+    same <- setdiff(unique(x$m$block), names(b))
+    paste0("Run ", runLabel(r), " compared with ", prev, ": ", nrow(d), " of ", nTest,
+           " tested results differ significantly, in ", paste0(lab(names(b)), " (", b, ")", collapse = ", "),
+           if (length(same)) paste0("; no differences in the other ", length(same), " groups of settings"), ".")
+  }, ""), collapse = " ")
+}
+# what a release means for users, in short, written after its run (first element: overview at the top)
+inShort <- list()
 ```
 
 ```{css, echo = FALSE, file = "ecophylosim.css"}
@@ -86,19 +187,34 @@ notes <- list("0.3.2" = c(
 changes of the model code alter simulation results and how. Every release is
 run with the same design, and differences between releases are attributed to
 single changes (see Methods). Use it before reusing code or results of an
-earlier release, and to check whether the patterns of the vignette
-"EcoPhyloSim model" (`vignette("ModelDescription", package = "EcoPhyloSim")`),
-which describes the current model, changed between releases; to check a setting
-of your own, see
+earlier release, and to check whether the patterns described in the vignette
+"EcoPhyloSim model" (`vignette("ModelDescription", package = "EcoPhyloSim")`)
+changed. To check a setting of your own, see
 [Rerunning a setting with an earlier release](#rerunning-a-setting-with-an-earlier-release).
 </div>
 
+```{r inshort, results = "asis"}
+cat("::: {.result}\n**What changed, in short.**\n\n",
+    paste0("- **", rev(rel$version), "**: ", vapply(rev(rel$version), function(v)
+      paste(c(inShort[[v]][1], changesText(v)), collapse = " "), ""), collapse = "\n"),
+    "\n\nN: other numbers per seed, same patterns; B: patterns change; S: parameters renamed or",
+    " redefined, so old scripts may fail or mean a different model (see",
+    " [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).\n:::\n\n", sep = "")
+```
+
 # Releases at a glance
 
-Types of changes: **N** (numeric): results for a given seed change, but no
-change of their distributions was detected; **B** (behavior): patterns change; **S** (semantics):
-parameters are renamed or redefined, so that the same call means a different
-model; **S+B**: both.
+Each change of the model code is classified by what it means when you rerun a
+simulation with another release:
+
+- **N** (numeric): the same seed gives other numbers, but no change of their
+  distributions was detected. Conclusions hold; exact values are not reproduced.
+- **B** (behavior): patterns change in the affected settings. Rerun these
+  settings before comparing with results of the other release.
+- **S** (semantics): parameters were renamed or redefined. An old script may
+  fail, or run but mean a different model (see
+  [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).
+- **S+B**: both.
 
 ```{r timeline, fig.height = 3, fig.cap = "Releases (diamonds; open: planned) and the changes of the model code that alter simulation results, in their order (not to scale in time)."}
 op <- par(mar = c(0, 0.5, 0, 0.5))
@@ -119,34 +235,17 @@ legend("topright", legend = names(typeCol), pt.bg = typeCol, pch = 21, col = "wh
 par(op)
 ```
 
-```{r overview}
-count <- function(v) {
-  t <- table(factor(ch$type[ch$kind == "change" & ch$version == v], names(typeCol)))
-  t <- t[t > 0]
-  if (!length(t)) "none" else paste(t, names(t), collapse = ", ")
-}
-tab <- data.frame(Release = rel$version,
-                  Date = ifelse(is.na(rel$date), "planned", format(rel$date)),
-                  Commit = rel$commit,
-                  "Changes of results" = vapply(rel$version, count, ""),
-                  "Run of the design" = vapply(rel$version, function(v) {
-                    r <- runs[vapply(runs, releaseOf, "") == v]
-                    if (length(r)) paste(r, collapse = ", ") else "not yet" }, ""),
-                  check.names = FALSE)
-knitr::kable(tab[nrow(tab):1, ], row.names = FALSE)
-```
 
 # Upgrading from an earlier release
-
-Changes of type S or S+B mean that the same call gives a different model in
-another release. Check them before reusing code or results of an earlier
-release:
 
 ```{r upgrading, results = "asis"}
 u <- ch[ch$kind == "change" & ch$type %in% c("S", "S+B"), ]
 u <- u[rev(seq_len(nrow(u))), ]
-cat(if (!nrow(u)) "None so far." else
-  paste0("- **", u$version, "** (", u$reference, ", type ", u$type, "): ", u$change, collapse = "\n"), "\n")
+cat("::: {.limitation}\n**Before reusing code or results of an earlier release.** Changes of type S or ",
+    "S+B mean that the same call may fail or give a different model in another release:\n\n",
+    if (!nrow(u)) "None so far." else
+      paste0("- **", u$version, "** (", u$reference, ", type ", u$type, "): ", u$change, collapse = "\n"),
+    "\n:::\n", sep = "")
 ```
 
 ## Rerunning a setting with an earlier release
@@ -159,14 +258,14 @@ install them into a separate library (argument `lib` of `install.packages()` or
 Releases 0.2 and 0.3 (package name PhyloSim) need build fixes and archived
 dependencies; the script `installVersion.R` in `PhyloSim/data-raw/model-behavior` of the
 package repository installs any
-release or commit with them. Note the changes listed above.
+release or commit with them. Check the changes of type S and S+B listed above before comparing.
 
 # Patterns across releases
 
 The figure shows eight indicators for nine settings of the main patterns in the
 vignette "EcoPhyloSim model" (50 × 50 cells, `specRate = 2`, other parameters at
 their defaults unless stated). `r if (length(runs) > 1)
-"Intervals of two releases that do not overlap indicate a change; the tests in the next section give the significance." else
+"Each row is one setting, each color one run. A point outside the interval of another run hints at a change; the box below the figure lists the differences that are significant after correction for multiple tests." else
 paste("So far it shows only the run of", runs, "for reference; the comparison follows with the runs of further releases.")`
 
 ```{r keys}
@@ -193,7 +292,6 @@ stat <- function(d, k, i) {
 ```
 
 ```{r patterns, fig.height = 8, fig.cap = "Replicate means with 95% confidence intervals at the last census (CNDD: over the last five generations), per release."}
-byRun <- split(s, paste(s$version, s$commit))[runs]
 vcol <- setNames(hcl.colors(max(3, length(runs)), "Dark 3")[seq_along(runs)], runs)
 vpch <- setNames(rep(c(16, 17, 15, 18, 1, 2), length.out = length(runs)), runs) # not by color only
 op <- par(mfrow = c(4, 2), mar = c(2.5, 0.5, 1.8, 0.5), oma = c(2, 13, 0, 0), cex = 0.7)
@@ -214,86 +312,66 @@ for (j in seq_along(indicators)) {
 }
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot.new()
-legend("bottom", legend = runs, col = vcol, pch = vpch, horiz = TRUE, bty = "n")
+legend("bottom", legend = vapply(runs, runLabel, ""), col = vcol, pch = vpch, horiz = TRUE, bty = "n")
 par(op)
+```
+
+```{r keydiffs, results = "asis"}
+# rows of the figure that differ significantly between consecutive runs
+keyDiffs <- function(x) {
+  out <- vapply(names(key), function(nm) {
+    d <- x$rel[x$rel$indicator %in% names(indicators), ]
+    for (p in names(key[[nm]])) if (p %in% names(d)) d <- d[d[[p]] %in% key[[nm]][[p]], ]
+    if (nrow(d)) paste0(nm, " (", paste(indicators[intersect(names(indicators), d$indicator)], collapse = ", "), ")") else ""
+  }, "")
+  out[out != ""]
+}
+for (r in names(cmp)) {
+  k <- keyDiffs(cmp[[r]])
+  cat("::: {.result}\n**", runLabel(r), " compared with ", runLabel(runs[match(r, runs) - 1]), ":** ",
+      if (length(k)) paste0("significant differences in ", paste(k, collapse = "; "),
+                            ". The other rows of the figure do not differ significantly.")
+      else "no row of the figure differs significantly.", "\n:::\n\n", sep = "")
+}
 ```
 
 # Releases in detail
 
-For each release, newest first: the changes of the model code since the previous
-release that change simulation results, with their effect on the outputs and the
-evidence; the differences measured between the runs of the design; and notes on
-the behavior. How changes and runs are compared is described in Methods at the
+For each release, newest first: a summary, notes on its behavior, the changes
+of the model code since the previous release that change simulation results
+(with their evidence folded), and the differences measured between the runs of
+the design (folded). How changes and runs are compared is described in Methods at the
 end.
 
+In the tables of measured differences, *d* is the difference of the replicate
+means (newer minus older) in units of the standard deviation among replicates.
+At |d| = 2 the replicate distributions of the two runs still overlap by about a
+third, at |d| = 3 by about 13%. Very large values of d arise where replicates
+hardly vary, so read them together with the columns Older and Newer. With
+hundreds to over a thousand tests at a false discovery rate of 5%, a few
+significant differences with |d| below 1 can be false positives.
+
 ```{r detail, results = "asis"}
-compareRuns <- function(o, w) {
-  # a parameter of only one run: keep only its most frequent value there (the default)
-  p <- params[vapply(params, function(x) any(!is.na(o[[x]])) && any(!is.na(w[[x]])), logical(1))]
-  for (x in setdiff(params, p)) {
-    if (any(!is.na(o[[x]]))) o <- o[o[[x]] %in% names(which.max(table(o[[x]]))), ]
-    if (any(!is.na(w[[x]]))) w <- w[w[[x]] %in% names(which.max(table(w[[x]]))), ]
-  }
-  k <- function(d) do.call(paste, c(lapply(d[c(p, "indicator")], as.character), sep = "|"))
-  m <- merge(cbind(key = k(o), o), cbind(key = k(w), w[c("mean", "sd", "n")]), by = "key",
-             suffixes = c(".old", ".new"))
-  # share of failed simulations (mean of `failed` over all simulations of a setting)
-  f <- m[m$indicator == "failed", ]
-  f$p.adj <- p.adjust(unlist(Map(function(a, n1, b, n2) fisher.test(matrix(c(a, n1 - a, b, n2 - b), 2))$p.value,
-                                 round(f$mean.old * f$n.old), f$n.old, round(f$mean.new * f$n.new), f$n.new)), "BH")
-  # runtime is machine-dependent; the species age is estimated from the species IDs,
-  # whose numbering and pruning differ between versions
-  m <- m[!m$indicator %in% c("failed", "runtime", "meanSpeciesAge", "corAgeAbundance"), ]
-  se2 <- m$sd.old^2 / m$n.old + m$sd.new^2 / m$n.new
-  df <- se2^2 / ((m$sd.old^2 / m$n.old)^2 / (m$n.old - 1) + (m$sd.new^2 / m$n.new)^2 / (m$n.new - 1))
-  m$p.adj <- p.adjust(2 * pt(-abs(m$mean.new - m$mean.old) / sqrt(se2), df), "BH")
-  m$d <- (m$mean.new - m$mean.old) / sqrt((m$sd.old^2 + m$sd.new^2) / 2)
-  se.d <- sqrt((m$n.old + m$n.new) / (m$n.old * m$n.new) + m$d^2 / (2 * (m$n.old + m$n.new)))
-  m$"95% CI of d" <- sprintf("%.2f to %.2f", m$d - 1.96 * se.d, m$d + 1.96 * se.d)
-  rel <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
-  rel <- rel[order(-abs(rel$d)), ]
-  cat(nrow(rel), " of ", sum(!is.na(m$p.adj)), " comparisons differ significantly; ", sum(m$n.old < 20 | m$n.new < 20),
-      " rest on fewer than 20 replicates in a run. The share of failed simulations differs in ",
-      sum(f$p.adj < 0.05, na.rm = TRUE), " of ", nrow(f), " settings.\n\n", sep = "")
-  # one column for the setting: block and the parameters that differ from the reference setting
-  ref <- m[m$block == "dispersal" & m$dispersal == "1", ][1, ]
-  q <- setdiff(p, c("block", "generations"))
-  rel$setting <- vapply(seq_len(nrow(rel)), function(i) {
-    d <- q[vapply(q, function(x) !identical(as.character(rel[[x]][i]), as.character(ref[[x]])), logical(1))]
-    if (length(d)) paste0(rel$block[i], ": ", paste(d, vapply(d, function(x) as.character(rel[[x]][i]), ""), collapse = ", "))
-    else rel$block[i]
-  }, "")
-  rel$p.adj <- format.pval(rel$p.adj, digits = 2, eps = 0.001)
-  if (nrow(rel)) print(knitr::kable(head(rel, 15)[c("setting", "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
-                                    digits = 3, row.names = FALSE,
-                                    col.names = c("Setting", "Indicator", "Older", "Newer", "d", "95% CI of d", "p (adjusted)")))
-  if (nrow(rel) > 15) cat("
-
-The table shows the 15 largest of the", nrow(rel), "differences;",
-                          "all are in `modelHistory` (see Using the data).
-
-")
-}
 for (v in rev(rel$version)) {
   r <- rel[rel$version == v, ]
-  cat("\n## ", v, if (is.na(r$date)) " (planned)" else paste0(" (", format(r$date), ")"), "\n\n", sep = "")
+  cat("\n## ", v, if (is.na(r$date)) " (planned)" else paste0(" (", format(r$date), ", ", r$commit, ")"), "\n\n", sep = "")
+  cat("::: {.result}\n**In short.** ", paste(c(inShort[[v]], measured(v)), collapse = " "), "\n:::\n\n", sep = "")
+  if (!is.null(notes[[v]])) cat("**Behavior of this release.**\n\n", paste("-", notes[[v]], collapse = "\n"), "\n\n", sep = "")
   d <- ch[ch$kind == "change" & ch$version == v, ]
-  cat("**Changes of the model code.** ")
-  if (!nrow(d)) cat("First release in this record.\n\n") else {
-    cat("\n\n")
+  if (nrow(d)) {
+    cat("**Changes of the model code.**\n\n")
     d$change <- paste0(d$change, " (", d$commit, ", ", d$reference, ")")
-    print(knitr::kable(d[c("type", "change", "outputs", "evidence")], row.names = FALSE,
-                       col.names = c("Type", "Change of the model", "Effect on the outputs", "Evidence")))
+    print(knitr::kable(d[c("type", "change", "outputs")], row.names = FALSE,
+                       col.names = c("Type", "Change of the model", "Effect on the outputs")))
+    cat("\n\n<details><summary>Evidence for each change</summary>\n\n")
+    print(knitr::kable(d[c("reference", "evidence")], row.names = FALSE, col.names = c("Change", "Evidence")))
+    cat("\n\n</details>\n\n")
   }
-  j <- which(vapply(runs, releaseOf, "") == v)
-  cat("\n\n**Measured differences.** ")
-  if (!length(j)) cat("No run of the design yet.\n\n") else for (jj in j) {
-    if (jj == 1) cat("Run ", runs[jj], ": no earlier run to compare with.\n\n", sep = "") else {
-      cat("Run ", runs[jj - 1], " → ", runs[jj], ": ", sep = "")
-      compareRuns(byRun[[jj - 1]], byRun[[jj]])
-    }
+  for (jj in which(vapply(runs, releaseOf, "") == v & runs %in% names(cmp))) {
+    cat("<details><summary>Measured differences, ", runLabel(runs[jj - 1]), " → ", runLabel(runs[jj]), "</summary>\n\n", sep = "")
+    printComparison(cmp[[runs[jj]]])
+    cat("\n\n</details>\n\n")
   }
-  if (!is.null(notes[[v]])) cat("\n\n**Notes.**\n\n", paste("-", notes[[v]], collapse = "\n"), "\n\n", sep = "")
 }
 ```
 
@@ -313,13 +391,13 @@ runtime, the share of failed simulations and the species age not tested, as the
 age is estimated from the species IDs, whose numbering and pruning differ between
 versions); d is the difference (newer minus older) in units of the
 pooled standard deviation, with an approximate 95% confidence interval, so that
-the size of a difference can be judged (the tables in Releases in detail list up to the 15 largest).
+the size of a difference can be judged.
 
 With 30 replicates per run, a significant difference has |d| of at least about
 0.5, and a single test
 detects d =
 `r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a probability of 80%,
-but as a pair of runs is compared in about a thousand tests, a difference needs
+but as a pair of runs is compared in hundreds to over a thousand tests, a difference needs
 to be larger to be found reliably (d =
 `r round(power.t.test(n = 30, power = 0.8, sig.level = 0.05 / 1000)$delta, 2)` at
 the Bonferroni level for 1,000 tests; the false discovery rate lies in between). Smaller changes,
