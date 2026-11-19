@@ -433,6 +433,9 @@ $|\Delta x| \le R$ and $|\Delta y| \le \lfloor\sqrt{R^2 - \Delta x^2}\rfloor$.
 |---|---|---|---|
 | `dispersal` | `"global"` (or 0), or the dispersal distance | `"global"` | `"global"`, 0 or $\ge 0.5$ with $2R + 1 \le \min(x, y)$ |
 
+`dispersal` sets how far offspring settle from their parent. The simulations
+vary it from 0.5 to 3 cells and compare it with global dispersal.
+
 ::: {.expectation}
 **Expectation.** With local dispersal, offspring settle near their parents, so
 conspecifics form spatial clusters [@chaveleigh2002] and the share of
@@ -534,6 +537,9 @@ passed as a matrix with values in $[0, 1]$ (`airmat`).
 | `environment` | weight $e$ of the environmental fitness term | 0 | $[0, 1]$ |
 | `nicheWidth` | width $\sigma$ (standard deviation) of the environmental niche | 0.0366 (the value fixed in earlier versions) | $> 0$; a message outside $[0.003, 3]$ (if `environment` > 0) |
 
+`environment` sets the weight of the environmental fitness term. The
+simulations vary it from 0 to 1, with global dispersal and with dispersal 1.
+
 ::: {.expectation}
 **Expectation.** Environmental filtering sorts species along the gradient, so
 the correlation between trait and environment should increase with
@@ -572,6 +578,11 @@ the share of conspecific neighbors; with local dispersal, it changes it little.
 :::
 
 ### Niche width
+
+The niche width `nicheWidth` sets how fast fitness declines when the
+environmental trait of an individual differs from the environment of its cell.
+The simulations vary it from 0.01 to 0.3 with full environmental filtering
+(`environment = 1`), with global dispersal and with dispersal 1.
 
 ::: {.expectation}
 **Expectation.** Narrower niches mean stronger filtering. Following the idea of
@@ -643,12 +654,16 @@ Some consequences of these definitions:
 | `negativeDD` | strength $c$ of negative density dependence (formerly `density`) | 0 | $[0, 1]$ |
 | `negativeDDCut` | radius of its neighborhood (formerly `densityCut`) | 1 | integer $\ge 1$, $\le \min(x, y)$; $2 \cdot$ `negativeDDCut` $+ 1 \le \min(x, y)$ if `negativeDD` > 0 |
 | `negativeDDKernel` | similarity measure | `"absolute"` | `"absolute"`, `"gaussian"`, `"species"` |
-| `negativeDDWidth` | width $\omega$ of the Gaussian kernel | 0.1 | $> 0$; a message above 1 |
+| `negativeDDWidth` | width $\omega$ of the Gaussian kernel | 0.1 | $> 0$; a message above 1 or below 0.001 |
 | `negativeDDResponse` | experimental: the fitness term as a function of $S_i$ instead of $1 - c \cdot S_i$ | `"linear"` | `"linear"`, a function, or at least 2 values in $[0, 1]$ |
 | `positiveDD` | experimental: strength $p$ of positive density dependence | 0 | $[0, 1]$ |
 | `positiveDDCut`, `positiveDDKernel`, `positiveDDWidth` | as for negative density dependence | 1, `"species"`, 0.1 | as for negative density dependence |
 
 ### Negative density dependence
+
+Negative density dependence is set by its strength `negativeDD` and the radius
+`negativeDDCut` of the neighborhood. The simulations vary the strength from 0
+to 1 for the radii 1 and 2.
 
 ::: {.expectation}
 **Expectation.** With the default kernel (`"absolute"`), an individual is
@@ -672,8 +687,13 @@ response(main, "density", "density", group = "densityCut")
 
 ### Similarity measure of density dependence
 
+The kernel `negativeDDKernel` sets how the similarity to the neighbors is
+measured: by the competition trait (`"absolute"`, `"gaussian"`) or by species
+identity (`"species"`). The simulations compare the three kernels at strengths
+0.5 and 1 against no density dependence.
+
 ::: {.expectation}
-**Expectation.** The kernel defines whom an individual competes with (see above). With `"species"`, the fitness term depends on the share
+**Expectation.** With `"species"`, the fitness term depends on the share
 of conspecific neighbors, which corresponds to conspecific negative density
 dependence as measured in field studies [@comita2010]; it acts from the first speciation on,
 so we expect effects on richness and on the share of conspecific neighbors
@@ -695,6 +715,11 @@ response(withSettings(main, "densityKernel", "density", density = c(0, 0.5, 1), 
 
 ### Density dependence and dispersal
 
+Dispersal sets how far offspring settle relative to the neighborhood of density
+dependence. The simulations vary `dispersal` from 0.5 to 3 cells and include
+global dispersal, with full negative density dependence (`negativeDD = 1`,
+radius 1, kernel `"absolute"`).
+
 ::: {.expectation}
 **Expectation.** The effect of density dependence on diversity depends on how
 far offspring disperse relative to the neighborhood of competition
@@ -711,6 +736,10 @@ response(withSettings(main, "densityDispersal", "density", density = 1, densityC
 <!-- results: write with the run of 0.3.2 -->
 
 ### Positive density dependence
+
+`positiveDD` sets the strength of positive density dependence. The simulations use the `"species"` kernel with
+radius 2 and strengths 0.01 and 0.05, alone and together with negative density
+dependence (`negativeDD = 1`, kernel `"species"`, radius 1).
 
 ::: {.expectation}
 **Expectation.** Positive density dependence favors individuals surrounded by
@@ -784,10 +813,14 @@ Red Queen bonus (see Speciation) multiplies fitness.
 
 ### Strength of selection
 
+`fitnessBaseMortalityRatio` sets how strongly fitness acts on mortality: the
+ratio of the death rates of individuals with fitness terms 0 and 1. The
+simulations vary it from 1 to 50, with full environmental filtering
+(`environment = 1`) or full density dependence (`negativeDD = 1`).
+
 ::: {.expectation}
 **Expectation.** With `fitnessBaseMortalityRatio = 1`, the model is neutral
-here (fitness acts only on mortality); larger values increase the ratio
-of the death rates of unfit and fit individuals. We therefore expect the effects of environmental filtering
+here (fitness acts only on mortality). We therefore expect the effects of environmental filtering
 and density dependence to increase with `fitnessBaseMortalityRatio`, starting
 from the neutral values.
 :::
@@ -808,6 +841,11 @@ species at 50).
 :::
 
 ### Life stage of selection
+
+`fitnessActsOn` sets the life stages on which fitness acts: mortality,
+reproduction, recruitment or a combination (`"both"` is mortality and
+reproduction). The simulations compare mortality, reproduction, both and
+recruitment with full environmental filtering or full density dependence.
 
 ::: {.expectation}
 **Expectation.** On mortality, unfit individuals
@@ -874,7 +912,9 @@ All speciation mechanisms implemented in the model are summarized below:
 ### Neutral model and speciation rate
 
 The neutral model, without fitness differences and with point speciation, is
-the reference for all other processes.
+the reference for all other processes. The simulations vary
+`specRate` from 0.5 to 8 on grids of 20, 50 and 100 cells per side with global
+dispersal.
 
 ::: {.expectation}
 **Expectation.** With global dispersal and no fitness differences, the model
@@ -969,10 +1009,15 @@ speciation rate, i.e. the trees show more recent than early branching.
 
 ### Protracted speciation and Red Queen
 
+Two mechanisms change whether new species persist: protracted speciation
+completes a speciation only if the founding individual survives `protracted`
+generations (see Known limitations), and the Red Queen gives young species a
+fitness advantage (`redQueenStrength`, decaying with `redQueen`). The
+simulations vary `protracted` from 0 to 5, and use `redQueen = 0.01` and `0.1`
+with `redQueenStrength = 100`.
+
 ::: {.expectation}
-**Expectation.** In the model, protracted speciation completes only if the
-founding individual survives `protracted` generations (see Known limitations). An
-individual survives a generation with probability of about $\exp(-1)$, so in the
+**Expectation.** An individual survives a generation with probability of about $\exp(-1)$, so in the
 neutral model protracted speciation should act like a speciation rate reduced
 by a factor of about $\exp(-p)$, with $p$ = `protracted`, and richness should decrease accordingly. In
 the original model of protracted speciation, in which the whole incipient
@@ -1012,10 +1057,13 @@ more than expected.
 
 ### Fission
 
+With `fission`, a new species arises by splitting an existing species instead
+of from a single individual. The simulations compare the two types of fission
+with point speciation.
+
 ::: {.expectation}
-**Expectation.** With fission, a species is chosen in proportion to its
-abundance and split into two (see above); fission as a mode of
-speciation in neutral models is described by @hubbell2001. Unlike point
+**Expectation.** Fission as a mode of speciation in neutral models is
+described by @hubbell2001. Unlike point
 speciation, a new species starts with many individuals, so it rarely goes
 extinct soon after its origin. We therefore expect fewer rare species, more
 even abundances and older species than with point speciation at the same
@@ -1204,6 +1252,11 @@ par(op)
 
 ## Grid size and shape
 
+The number of cells sets the number of individuals in the community. The
+simulations use square grids of 20, 50 and 100 cells per side and, for the
+shape, grids of 49 × 49 and 50 × 40 cells with environmental filtering
+(`environment = 1`), compared with 50 × 50 cells.
+
 ::: {.expectation}
 **Expectation.** In the neutral model, richness increases roughly with the
 logarithm of the number of individuals (Ewens sampling formula). With local
@@ -1284,7 +1337,9 @@ Processes show the effects on the tree.
 The age of a species is estimated from its ID: species are numbered in the
 order of their origin, and new species arise at a roughly constant rate, so the
 age of species $i$ at generation $G$ is about $G(1 - i/i_{max})$, where
-$i_{max}$ is the largest ID in the phylogeny.
+$i_{max}$ is the largest ID in the phylogeny. The figure uses the neutral model
+with global dispersal (50 × 50 cells) and the runs of Protracted speciation and
+Red Queen.
 
 ::: {.expectation}
 **Expectation.** In neutral models, species persist for a long time, longer
@@ -1334,6 +1389,8 @@ removes most of the correlation between age and abundance.
 
 ### Environment and density dependence combined
 
+The simulations combine `environment` and `negativeDD` at 0, 0.5 and 1 each.
+
 ::: {.expectation}
 **Expectation.** Environmental filtering favors similar species in the same
 place, and density dependence favors dissimilar neighbors, so the two
@@ -1350,9 +1407,9 @@ response(main, "envDensity", "environment", group = "density")
 
 ### Assembly processes and dispersal
 
-This section compares the four combinations of environmental filtering (`environment` = 0 or 1) and
-density dependence (`negativeDD` = 0 or 1), each with global and local
-dispersal.
+The simulations combine environmental filtering (`environment` = 0 or 1) and
+density dependence (`negativeDD` = 0 or 1), each with global dispersal and
+dispersal 1.
 
 ::: {.expectation}
 **Expectation.** Environmental filtering should increase spatial aggregation
@@ -1388,7 +1445,8 @@ output (`getMortalityData()`): for the last five generations of each run, a
 logistic regression of death on the number of conspecifics within a radius of
 2 cells, with a separate intercept per species, gives one CNDD coefficient per
 run; positive values mean that mortality increases with the number of
-conspecific neighbors.
+conspecific neighbors. It is computed for the runs of Assembly processes and
+dispersal.
 
 ::: {.expectation}
 **Expectation.** In the neutral model, mortality does not depend on
@@ -1425,9 +1483,14 @@ than with local dispersal.
 
 ## Run length and runtime
 
-How long a simulation must run to reach equilibrium and how long it takes.
+This section shows how long a simulation must run to reach equilibrium and how
+long it takes.
 
 ### Time to equilibrium
+
+A simulation starts with a single species whose individuals all have the same
+traits, so the indicators change until the model reaches equilibrium. The time
+this takes is shown for five settings.
 
 ::: {.expectation}
 **Expectation.** In the neutral model, abundances change only by drift, which
@@ -1437,7 +1500,6 @@ on the whole history of the community (the phylogeny) than for those that
 depend on the current abundances.
 :::
 
-The figure shows each indicator over time for five settings.
 <!-- results: rewrite with the run of 0.3.2 (which indicators settle when) -->
 
 ```{r equilibrium, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators over time: replicate mean (line) and mean ± standard deviation across replicates (band)."}
@@ -1479,6 +1541,10 @@ knitr::kable(tab, caption = "Generations to equilibrium.")
 ```
 
 ### Runtime
+
+The runtime depends on the number of cells, the dispersal distance and the
+neighborhood of density dependence. It was recorded for all runs of the
+design.
 
 ```{r runtime-setup, echo = FALSE}
 # replicate mean runtime of the core simulation per setting
