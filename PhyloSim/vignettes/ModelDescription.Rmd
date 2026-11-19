@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
     toc: true
-    toc_depth: 3
+    toc_depth: 2
     fig_caption: true
 bibliography: Vignette_bib.bib
 link-citations: true
@@ -27,6 +27,9 @@ library(EcoPhyloSim)
 ```
 
 ```{css, echo = FALSE, file = "ecophylosim.css"}
+```
+
+```{js, echo = FALSE, file = "ecophylosim.js"}
 ```
 
 <div class="abstract">

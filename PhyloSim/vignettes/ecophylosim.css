@@ -22,3 +22,16 @@ table tr.even { background-color: transparent; } /* no alternating row colors */
    group: lines only between groups, stronger than the others */
 .grouped tbody tr + tr > td { border-top: 2px solid #999; }
 .grouped td:first-child:empty, .grouped td:first-child:empty ~ td { border-top-style: hidden; }
+
+/* table of contents (after the abstract, see ecophylosim.js): light, full width, two columns */
+#TOC { width: auto; margin: 1em 0 1.5em; padding: 0.2em 0 0.2em 1em; border: none;
+       border-left: 4px solid #ddd; border-radius: 0; background: none; font-size: 0.9em;
+       column-count: 2; column-gap: 2em; }
+#TOC::before { content: "Contents"; display: block; font-weight: bold; margin-bottom: 0.3em;
+               column-span: all; }
+#TOC ul { list-style: none; margin: 0; padding-left: 0; }
+#TOC ul ul { margin: 0; padding-left: 1em; }
+#TOC > ul > li { break-inside: avoid; margin-bottom: 0.3em; }
+#TOC > ul > li > a { font-weight: bold; }
+#TOC li { list-style: none; line-height: 1.35; }
+@media (max-width: 600px) { #TOC { column-count: 1; } }

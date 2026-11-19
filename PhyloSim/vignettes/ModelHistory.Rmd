@@ -182,10 +182,13 @@ inShort <- list()
 ```{css, echo = FALSE, file = "ecophylosim.css"}
 ```
 
+```{js, echo = FALSE, file = "ecophylosim.js"}
+```
+
 <div class="abstract">
 **Abstract.** This vignette records, for each release of EcoPhyloSim, which
 changes of the model code alter simulation results and how. Every release is
-run with the same design, and differences between releases are attributed to
+run with the same design (as far as it supports its parameters), and differences between releases are attributed to
 single changes (see Methods). Use it before reusing code or results of an
 earlier release, and to check whether the patterns described in the vignette
 "EcoPhyloSim model" (`vignette("ModelDescription", package = "EcoPhyloSim")`)
@@ -193,19 +196,16 @@ changed. To check a setting of your own, see
 [Rerunning a setting with an earlier release](#rerunning-a-setting-with-an-earlier-release).
 </div>
 
-```{r inshort, results = "asis"}
-cat("::: {.result}\n**What changed, in short.**\n\n",
-    paste0("- **", rev(rel$version), "**: ", vapply(rev(rel$version), function(v)
-      paste(c(inShort[[v]][1], changesText(v)), collapse = " "), ""), collapse = "\n"),
-    "\n\nN: other numbers per seed, same patterns; B: patterns change; S: parameters renamed or",
-    " redefined, so old scripts may fail or mean a different model (see",
-    " [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).\n:::\n\n", sep = "")
-```
 
 # Releases at a glance
 
-Each change of the model code is classified by what it means when you rerun a
-simulation with another release:
+Between releases, the model code has changed. Some changes only fix errors or
+make the code faster; others change what the model simulates. The figure shows
+the releases and, between them, each change that alters simulation results. The
+box below it summarizes each release in one line.
+
+The color of a change says what it means when you rerun a simulation with
+another release:
 
 - **N** (numeric): the same seed gives other numbers, but no change of their
   distributions was detected. Conclusions hold; exact values are not reproduced.
@@ -235,14 +235,26 @@ legend("topright", legend = names(typeCol), pt.bg = typeCol, pch = 21, col = "wh
 par(op)
 ```
 
+```{r inshort, results = "asis"}
+cat("::: {.result}\n**What changed, in short.**\n\n",
+    paste0("- **", rev(rel$version), "**: ", vapply(rev(rel$version), function(v)
+      paste(c(inShort[[v]][1], changesText(v)), collapse = " "), ""), collapse = "\n"),
+    "\n\nChanges of type S may break old scripts (see",
+    " [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).\n:::\n\n", sep = "")
+```
+
 
 # Upgrading from an earlier release
+
+Most changes alter only the results of a simulation. Changes of type S also
+change what a call means: code written for an earlier release may stop with an
+error, or run but simulate a different model. Check this list before you reuse
+code or results of an earlier release.
 
 ```{r upgrading, results = "asis"}
 u <- ch[ch$kind == "change" & ch$type %in% c("S", "S+B"), ]
 u <- u[rev(seq_len(nrow(u))), ]
-cat("::: {.limitation}\n**Before reusing code or results of an earlier release.** Changes of type S or ",
-    "S+B mean that the same call may fail or give a different model in another release:\n\n",
+cat("::: {.limitation}\n**Changes of type S or S+B.**\n\n",
     if (!nrow(u)) "None so far." else
       paste0("- **", u$version, "** (", u$reference, ", type ", u$type, "): ", u$change, collapse = "\n"),
     "\n:::\n", sep = "")
@@ -262,10 +274,12 @@ release or commit with them. Check the changes of type S and S+B listed above be
 
 # Patterns across releases
 
-The figure shows eight indicators for nine settings of the main patterns in the
-vignette "EcoPhyloSim model" (50 × 50 cells, `specRate = 2`, other parameters at
-their defaults unless stated). `r if (length(runs) > 1)
-"Each row is one setting, each color one run. A point outside the interval of another run hints at a change; the box below the figure lists the differences that are significant after correction for multiple tests." else
+Every release is run with the same set of simulations, as far as it supports
+their parameters (see Methods). The figure compares their results for nine
+settings that show the main patterns of the vignette "EcoPhyloSim model"
+(50 × 50 cells, `specRate = 2`, other parameters at their defaults unless
+stated). `r if (length(runs) > 1)
+"Each panel is one indicator, each row one setting, each color one run. If a point lies outside the interval of another run, the result may have changed; the box below the figure lists the differences that are significant after correction for multiple tests." else
 paste("So far it shows only the run of", runs, "for reference; the comparison follows with the runs of further releases.")`
 
 ```{r keys}
@@ -337,19 +351,15 @@ for (r in names(cmp)) {
 
 # Releases in detail
 
-For each release, newest first: a summary, notes on its behavior, the changes
-of the model code since the previous release that change simulation results
-(with their evidence folded), and the differences measured between the runs of
-the design (folded). How changes and runs are compared is described in Methods at the
-end.
+This section goes through the releases, newest first. For each release, a box
+says in short what changed and what this means for results. Below it follow
+notes on the behavior of the release, a table of the code changes that alter
+results (evidence folded), and the differences measured against the previous
+run (folded). Methods describes how they are compared.
 
-In the tables of measured differences, *d* is the difference of the replicate
-means (newer minus older) in units of the standard deviation among replicates.
-At |d| = 2 the replicate distributions of the two runs still overlap by about a
-third, at |d| = 3 by about 13%. Very large values of d arise where replicates
-hardly vary, so read them together with the columns Older and Newer. With
-hundreds to over a thousand tests at a false discovery rate of 5%, a few
-significant differences with |d| below 1 can be false positives.
+In the tables of measured differences, *d* is the difference of the means in
+standard deviations (see Methods); read large values together with the columns
+Older and Newer.
 
 ```{r detail, results = "asis"}
 for (v in rev(rel$version)) {
@@ -359,7 +369,7 @@ for (v in rev(rel$version)) {
   if (!is.null(notes[[v]])) cat("**Behavior of this release.**\n\n", paste("-", notes[[v]], collapse = "\n"), "\n\n", sep = "")
   d <- ch[ch$kind == "change" & ch$version == v, ]
   if (nrow(d)) {
-    cat("**Changes of the model code.**\n\n")
+    cat("**Changes of the model code since the previous release that alter simulation results.**\n\n")
     d$change <- paste0(d$change, " (", d$commit, ", ", d$reference, ")")
     print(knitr::kable(d[c("type", "change", "outputs")], row.names = FALSE,
                        col.names = c("Type", "Change of the model", "Effect on the outputs")))
@@ -379,19 +389,25 @@ for (v in rev(rel$version)) {
 
 ## Comparisons
 
-Each change is compared with its parent commit in two stages:
-stage 1 runs the whole design briefly (2 replicates, 300 generations) with the
-same seeds and shows whether the results are identical; stage 2 runs the blocks
-that differ with 30 replicates and tests whether their distributions differ.
+Two kinds of comparisons are made. Each change of the model code is compared
+with the commit just before it, so that a difference can be attributed to this
+change. This is done in two stages: stage 1 runs the whole design briefly (2
+replicates, 300 generations) with the same seeds and shows whether the results
+are identical; stage 2 runs the blocks that differ with 30 replicates and tests
+whether their distributions differ. Each run of a release is compared with the
+run of the previous release; these are the measured differences shown per
+release.
 
 Measured differences are settings where the replicate means of two consecutive
 runs differ significantly (Welch test from mean, sd and number of replicates,
 false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
-runtime, the share of failed simulations and the species age not tested, as the
+runtime and the species age not tested, as the
 age is estimated from the species IDs, whose numbering and pruning differ between
 versions); d is the difference (newer minus older) in units of the
 pooled standard deviation, with an approximate 95% confidence interval, so that
-the size of a difference can be judged.
+the size of a difference can be judged: at |d| = 2 the replicate distributions
+of the two runs still overlap by about a third, at |d| = 3 by about 13%, and
+very large values arise where replicates hardly vary.
 
 With 30 replicates per run, a significant difference has |d| of at least about
 0.5, and a single test
@@ -409,6 +425,11 @@ undefined indicators) are counted, as their means may refer to a different subse
 of replicates.
 
 ## Design and indicators
+
+Every release run uses the same design, as far as the release supports its
+parameters: blocks of settings, each varying a few parameters around a
+reference setting, with 30 replicates per setting (first table). The second
+table defines the indicators computed for each simulation.
 
 ```{r design}
 d <- unique(s[c("version", "block", "setting", params[params != "block"])])
