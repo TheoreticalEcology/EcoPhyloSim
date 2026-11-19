@@ -8,9 +8,11 @@ versions <- list(
   "0.2"   = list(oldDeps = TRUE,
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "fitnessActsOn", "fitnessBaseMortalityRatio")),
+  # without fission: it assigns the wrong individuals in 0.3 (#85), so that the Newick string
+  # breaks or runs of 50,000 generations take hours instead of minutes
   "0.3"   = list(oldDeps = TRUE,
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
-                            "fitnessActsOn", "fitnessBaseMortalityRatio", "fission", "protracted",
+                            "fitnessActsOn", "fitnessBaseMortalityRatio", "protracted",
                             "redQueen", "redQueenStrength")),
   "0.3.1" = list(
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
