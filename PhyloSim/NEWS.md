@@ -1,5 +1,7 @@
 # EcoPhyloSim 0.3.2
 
+Results differ from 0.3.1 for the same parameters and seed, because the C++ model uses R's random number generator (#14); with `negativeDD > 0`, the distributions of results also change (#144, #165).
+
 ## New features
 
 * `createCompletePar()`: new arguments `negativeDDKernel` and `negativeDDWidth` measure the similarity to the neighbors by the competition trait (absolute difference or Gaussian kernel) or by species identity (conspecific density dependence without burn-in) (@AndyEnvFr, #104, #133, #144).
@@ -10,8 +12,8 @@
 
 ## Changes
 
-* `density` and `densityCut` in `createCompletePar()` and `NeutralMod()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144).
-* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144). Results without `negativeDD` are unchanged.
+* `density` and `densityCut` in `createCompletePar()` and `NeutralMod()` were renamed to `negativeDD` and `negativeDDCut`; the old names still work with a deprecation warning, and parameter lists with the old names are converted (#144). Results store the new names in `$Model`, so code that reads `$Model$density` or extracts it with `extractParams()` must use `negativeDD`; `runPhylosimAnalysis()` renames the old names with a deprecation warning.
+* Environment and density dependence now combine multiplicatively (their death rates for mortality, their fitness terms for reproduction and recruitment) instead of adding their fitness terms; this changes all results with `environment > 0` and `negativeDD > 0`, which were neutral with `fitnessActsOn = "mortality"` if `environment + negativeDD <= 1` (#144). Models without `negativeDD` are not affected by this change.
 * The default `negativeDDKernel = "absolute"` averages the trait differences over the `k` neighbors instead of dividing their sum by `k + 1`, which had reduced their effect by `k / (k + 1)`; this changes results with `negativeDD > 0` (#144).
 * `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, as in `runSimulation()` with `fitnessActsOn = "recruitment"`: with global dispersal, after `min(1000, x * y - 1)` rejections the parent is drawn directly with fitness-weighted probabilities; with a dispersal function, the 1000th recruit is accepted. Before, the 10th recruit was accepted without a test. This changes results with `negativeDD > 0` (#165).
 * The C++ simulation uses R's random number generator, which `runSimulation()` sets from `seed` and restores afterwards, so that results for a given seed no longer depend on the compiler's random number library (but differ from earlier versions); this also seeds the summary statistics and replaces their separate seed handling from 0.3.1 (#135). `callModel()` has no `seed` argument any more, and `createCompletePar()` draws a missing `seed` from a larger range (#14).
@@ -20,6 +22,7 @@
 
 ## Bug fixes
 
+* Functions that need the phylogeny (e.g. `plot()`, `summary()`, `collessImbalance()`, `nullModel()`, `calculatePhylogeneticDispersion()`) stop with a clear message for results with a single species, whose phylogeny is 0, instead of the error "$ operator is invalid for atomic vectors".
 * `nullModel()` with `fun = "mpd"` and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"` give p = NA instead of p = 0 for plots with a single species (#186), and instead of an error in `ecdf()` if all null communities have a single species, e.g. with a plot size of 1 (#196).
 * `plotPhylogeneticDispersion()` fills the square of a scenario also if a plot size has only NA p-values (grey if all are NA) or the mean p-value is 1, where the square was left empty, and ignores NA values in the means over simulations (`means > 1`) (#195).
 * `nullModel()` and `calculatePhylogeneticDispersion()` stop with an error, and `calculateSummaryStatistics()` gives `dispersion = NA` with a message, for trees with more than 23170 extant species (in a binary tree) on Windows, where `cophenetic()` crashed R (#168).
@@ -34,7 +37,7 @@
 
 * The vignette is split into "EcoPhyloSim user guide" (`vignette("PhyloSimManual")`: running the model, plots and summary statistics, fitting it to data) and "EcoPhyloSim model" (`vignette("ModelDescription")`: model overview, processes and community patterns). The user guide has new chapters "Quick start" and "Fitting the model to data" (approximate Bayesian computation and neural simulation-based inference) and explanations of the plots and summary statistics; the model vignette has three chapters: an overview, the processes with their equations, parameters and specific patterns, and the patterns of the community that arise from the processes together (#180).
 * New vignette "Model history" and data set `modelHistory`: which changes of the model code alter simulation results, and how the patterns of the vignette "EcoPhyloSim model" compare between releases; the scripts that produce the data are in the folder `PhyloSim/data-raw/model-behavior` of the repository (#180, #181).
-* The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #144).
+* The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence, and says that with `protracted > 0` the offspring of an incipient individual do not inherit its incipient state; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #143, #144).
 * New help page `?PhylosimList` for the class returned by `runSimulationBatch()` and `createPhylosimList()`; the help of `rac()` and `sac()` says that `which.result` accepts several results (#92).
 
 # EcoPhyloSim 0.3.1

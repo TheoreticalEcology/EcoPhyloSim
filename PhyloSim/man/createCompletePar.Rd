@@ -49,7 +49,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{redQueenStrength}{Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty. Must not be negative.}
 
-\item{protracted}{Integer, determining the time span in generations a new species stays 'incipient' before turning into a 'good' species. Default is 0.}
+\item{protracted}{Integer >= 0. With \code{protracted > 0}, the individual chosen for speciation becomes a new species only if it survives \code{protracted} generations; its offspring do not inherit this incipient state, so speciation becomes much rarer with larger values, and \code{specRate} counts incipient individuals. Default is 0.}
 
 \item{airmat}{matrix determining the environment of the simulation, with \code{y} rows and \code{x} columns (the grid dimensions); values must be between 0 and 1. A single value (the default) gives an environmental gradient along \code{x} that rises from 0 to 1 and falls back (1 - |2i/x - 1| in column i = 0, ..., x - 1, so the maximum is below 1 if x is odd).}
 
