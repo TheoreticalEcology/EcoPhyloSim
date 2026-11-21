@@ -33,3 +33,42 @@ test_that("results with only one fitness mechanism are numerically reproducible"
   expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, positiveDD = 0.05),
                         style = "deparse", tolerance = 1e-6)
 })
+
+# MD5 hash of the complete output of the C++ model (all matrices and the Newick string of each census), written
+# as bytes in a fixed byte order; the phylogeny and the summaries are computed from them in R
+outputHash <- function(...) {
+  simu <- suppressMessages(suppressWarnings(quietSimulation(x = 24, y = 16, runs = c(100, 200), seed = 1,
+                                                            specRate = 2, ...)))
+  f <- tempfile()
+  on.exit(unlink(f))
+  con <- file(f, "wb")
+  for (o in simu$Output) {
+    for (m in o[c("specMat", "traitMat", "envMat", "compMat", "neutMat")]) writeBin(as.vector(m), con, endian = "little")
+    writeBin(charToRaw(o$phyloTXT), con)
+  }
+  close(con)
+  unname(tools::md5sum(f))
+}
+
+test_that("simulation results are identical to the stored ones", {
+  skip_on_cran()
+  # local and global dispersal, fitness on mortality, recruitment and reproduction, all density kernels (#207)
+  MR <- c("mortality", "recruitment")
+  hashes <- c(
+    global = outputHash(),
+    local2 = outputHash(dispersal = 2),
+    env = outputHash(dispersal = 1, environment = 1),
+    dd = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2),
+    ddGaussian = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2, negativeDDKernel = "gaussian"),
+    ddSpeciesResponse = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2, negativeDDKernel = "species",
+                                   negativeDDResponse = function(S) 1 - S^2),
+    posDD = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2, positiveDD = 0.1, positiveDDCut = 3),
+    envDDRecruitment = outputHash(dispersal = 1, environment = 1, negativeDD = 1, fitnessActsOn = MR),
+    envRecruitmentNarrow = outputHash(dispersal = 1, environment = 1, nicheWidth = 0.01, fitnessActsOn = "recruitment"),
+    envDDReproduction = outputHash(dispersal = 1, environment = 1, negativeDD = 1,
+                                   fitnessActsOn = c("reproduction", "mortality")),
+    globalDD = outputHash(negativeDD = 1, negativeDDCut = 2),
+    globalEnvRecruitment = outputHash(environment = 1, fitnessActsOn = "recruitment"),
+    fissionDD = outputHash(dispersal = 1, fission = 1, negativeDD = 1, negativeDDKernel = "species"))
+  expect_snapshot_value(hashes, style = "deparse")
+})

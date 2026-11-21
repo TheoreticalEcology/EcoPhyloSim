@@ -43,3 +43,13 @@
     list(abundances = c(890L, 4L, 2L, 2L, 1L, 1L), nTips = 6L, sac = c(1.02, 
     1.18, 1.52, 3.24))
 
+# simulation results are identical to the stored ones
+
+    c(global = "ce46f28fd45e2ca1f36219dd93eded57", local2 = "b593f59f00df4ffee00a2fff598c0938", 
+    env = "1cec672ec785201cf0499a827bad3e82", dd = "c38f1cf961d3fe7250b99c9bd424d6d5", 
+    ddGaussian = "2a0f982aea81b09ff5412c1e37aa88ed", ddSpeciesResponse = "e828d1bae91f0e4322315a83324c4afd", 
+    posDD = "c5293546b9097678c61619331fbf76c2", envDDRecruitment = "6a96959e966dec08e81d729f1b7c800b", 
+    envRecruitmentNarrow = "a281e7dcf01f95331422d67792d2c68c", envDDReproduction = "1ec30bccfa3d16f54f1a9a0b6a46fc0c", 
+    globalDD = "9b150b5b053c6a56fd0862033cb1a5eb", globalEnvRecruitment = "2d814994aea860610a56e10b0cbc09e5", 
+    fissionDD = "71bc17345b8cd5e23ad7dc14461ae086")
+
