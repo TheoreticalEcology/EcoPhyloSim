@@ -38,11 +38,16 @@ cat("\n== Bisection 0.3 -> 0.3.1 (pairs-bisect.csv)\n")
 print(steps("pairs-bisect.csv", c("v0.3", "46a21df", "0919b9b", "v0.3.1"))[, c("step", "parameters", "n", "ratio", "min", "max")], row.names = FALSE)
 
 cat("\n== Prototypes against master (prototypes.csv): speed-up = 1 / median ratio; cpuA = median CPU s of the paired master runs\n")
-pr <- rd("prototypes.csv")
-for (tg in c("proto1", "proto2", "proto3")) {
-  s <- summ(pairs(pr, "m802", tg), "parameters")
-  cat("\n", tg, "\n"); print(s[, c("parameters", "n", "cpuA", "speedup", "min", "max")], row.names = FALSE)
+speedups <- function(file, tags) {
+  d <- rd(file)
+  for (tg in tags) {
+    s <- summ(pairs(d, "m802", tg), "parameters")
+    cat("\n", tg, "\n"); print(s[, c("parameters", "n", "cpuA", "speedup", "min", "max")], row.names = FALSE)
+  }
 }
+speedups("prototypes.csv", c("proto1", "proto2", "proto3"))
+cat("\n== Implementation in the package against master (implementation.csv), after each commit of #207\n")
+speedups("implementation.csv", c("i207-c2", "i207-c3", "i207-c4"))
 
 cat("\n== Scaling of master (scaling.csv): ns of CPU time per death, median\n")
 sc <- rd("scaling.csv"); print(round(tapply(1e9 * sc$cpu_s / sc$deaths, sc$parameters, median)))

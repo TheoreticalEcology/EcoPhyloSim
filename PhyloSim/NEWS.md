@@ -16,6 +16,7 @@
 * `NeutralMod()` with `negativeDD > 0` draws parents until a recruit is accepted, as in `runSimulation()` with `fitnessActsOn = "recruitment"`: with global dispersal, after `min(1000, x * y - 1)` rejections the parent is drawn directly with fitness-weighted probabilities; with a dispersal function, the 1000th recruit is accepted. Before, the 10th recruit was accepted without a test. This changes results with `negativeDD > 0` (#165).
 * The C++ simulation uses R's random number generator, which `runSimulation()` sets from `seed` and restores afterwards, so that results for a given seed no longer depend on the compiler's random number library (but differ from earlier versions); this also seeds the summary statistics and replaces their separate seed handling from 0.3.1 (#135). `callModel()` has no `seed` argument any more, and `createCompletePar()` draws a missing `seed` from a larger range (#14).
 * `callModel()`, the interface to the C++ simulation that `runSimulation()` calls, is no longer exported; use `runSimulation()` instead (#74).
+* `runSimulation()` is 4 to more than 40 times faster with local dispersal (more with larger `dispersal`) and 4 to 20 times faster with density dependence, with the same results for a given seed: the dispersal kernel is computed once per run, and the local densities are recomputed only when they are read (#207).
 * `citation("EcoPhyloSim")` is generated from DESCRIPTION instead of the removed `inst/CITATION` file, so that it gives the CRAN URL and DOI after a CRAN release (#30).
 
 ## Bug fixes

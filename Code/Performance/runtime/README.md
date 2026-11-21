@@ -1,6 +1,6 @@
 # Runtime of the simulation model: diagnosis and prototypes
 
-Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and three prototype changes that make it 3.8 to 42 times faster without changing results. The prototypes are patches in `prototypes/`; none is part of the package. The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
+Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and three changes that make it 4 to 44 times faster without changing results: prototyped as patches in `prototypes/`, and since #207 part of the package (see [Implementation](#implementation)). The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
 
 ## Summary
 
@@ -9,6 +9,7 @@ Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its 
 - **Global dispersal with `fitnessActsOn = "recruitment"`**: a fallback that evaluates all N cells dominates when many parents are rejected; its cost per generation grows with N².
 - **History**: master is 12 % slower than 0.3 with local dispersal and 3 % faster with global dispersal; the local slowdown between 0.3 and 0.3.1 comes entirely from the #149 fix (0919b9b).
 - **Prototypes**: a dispersal table computed once per run, an exact rewrite of the density loops, and densities recomputed only when read. Output identical to master in all 39 test simulations (52 for the third); 6.6x faster with `dispersal = 1`, 42x with `dispersal = 3`, 3.8-19x with density dependence.
+- **Implementation** (#207): the three prototypes without their fallbacks to the old code; output identical to master, 4.0-44x faster in the benchmark settings.
 
 ## Methods
 
@@ -93,7 +94,7 @@ In the model-behavior runs of the vignette (archives of 0.3 and 0.3.2 in `PhyloS
 
 ## Prototypes
 
-The patches apply in this order to 802e558 (`patch -p1`). They are prototypes for measuring, not finished code: the old loops are kept as fallback, and comments and tests are missing.
+The patches apply in this order to 802e558 (`patch -p1`). They are the prototypes as measured before the implementation, not finished code: the old loops are kept as fallback, and comments and tests are missing.
 
 1. **`1-dispersal-table.patch`**: the offsets, weights and cumulative weights of the dispersal kernel are computed once per run, in the same order and with the same function as before; per death, a parent is drawn from the stored cumulative weights and only its coordinates are computed. The recruitment fallback uses a buffer allocated once. Used when fitness does not act on reproduction and the kernel radius is smaller than both grid dimensions (guaranteed by `checkPar.R:72`); otherwise the old code runs.
 2. **`2-density-loops.patch`**: `densityUpdate()` and `localDissimilarity()` iterate over precomputed offset lists in the old order, instead of computing `floor(sqrt())` per row and two `%` per cell; the kernel type is a template parameter instead of a branch per neighbour; for the `"species"` kernel, species are compared by pointer instead of by ID (each species ID belongs to exactly one `Species` object).
@@ -117,6 +118,24 @@ Speed-up against master (1 / median ratio of 4-8 pairs, `results/prototypes.csv`
 
 **After the prototypes** (`results/profiles-prototype3/`): with `dispersal = 1`, R.dll is the largest item (34 %), followed by copying the individual (10 %), the binary search for the parent (9 %) and the species bookkeeping in `reportDeath` (8 %). With density dependence (cutoff 2), recomputing the densities that are read (`ensureDensity()`, inclusive) takes 24 % (`"absolute"`), 34 % (`"species"`) and 68 % (`"gaussian"`, mostly `exp()`), marking them 3-9 %, and R.dll 8-24 %. With positive (cutoff 3) and negative density dependence, recomputing takes 50 % and marking 16 %. With selection at recruitment, `recruitFitness()` takes 34 %.
 
+## Implementation
+
+The three prototypes are implemented in the package, one commit each (#207), without the fallbacks to the old loops: `callModel()` (`PhylSimModelInterface.cpp`) and `checkPar()` guarantee `2 * cutoff + 1 <= min(x, y)` for the dispersal kernel and for active density dependence, so that no offset reaches the focal cell again and one addition or subtraction wraps a coordinate. The dispersal table is also used with `fitnessActsOn = "reproduction"`, with the weights of each death stored in buffers allocated once. After each commit, the output was identical to master in the identity checks (32 short and 7 long runs), in the reference test in `test-reproducibility.R` and in 54 further runs on small and non-square grids with the largest allowed cutoffs.
+
+Speed-up against master after each commit (1 / median ratio of 4 pairs, `results/implementation.csv`, tags `i207-c2`, `i207-c3` and `i207-c4` for the three commits; "master CPU s" is the median of the master runs paired with the first commit; the second commit was measured before a small cleanup outside the loops):
+
+| Setting | Master CPU s | 1 | 1+2 | 1+2+3 |
+|---|---|---|---|---|
+| `dispersal = 1`, 2000 generations | 6.76 | 6.7x | 7.0x | 6.6x |
+| `dispersal = 3`, 300 generations | 6.61 | 39x | 42x | 44x |
+| `environment = 1`, 1000 generations | 3.87 | 4.1x | 4.1x | 4.0x |
+| `negativeDD = 1`, cutoff 2, 500 generations | 4.40 | 1.5x | 3.6x | 11x |
+| `negativeDD = 1`, cutoff 3, 200 generations | 4.74 | 1.2x | 2.6x | 21x |
+| cutoff 2, `"gaussian"`, 200 generations | 7.64 | 1.1x | 1.2x | 13x |
+| cutoff 2, `"species"`, 500 generations | 5.55 | 1.4x | 3.0x | 5.6x |
+| `positiveDD` (cutoff 3) and `negativeDD` (cutoff 2), 150 generations | 4.74 | 1.2x | 2.8x | 16x |
+| `negativeDD`, cutoff 2, mortality and recruitment, 300 generations | 4.20 | 1.3x | 2.8x | 4.1x |
+
 ## Further options (not prototyped)
 
 From three independent design reviews of the code and profiles; all would keep results unchanged unless noted.
@@ -129,7 +148,7 @@ From three independent design reviews of the code and profiles; all would keep r
 
 ## Testing future changes
 
-The snapshot tests (`tests/testthat/test-reproducibility.R`) cover local dispersal, but only abundances, the number of tips and the SAC (30x30, 200 generations, tolerance 1e-6, skipped on CRAN), so they would not detect every change of the trajectory. Changes meant to keep results should be checked with `identical()` on the full output, as `scripts/identity.R` does.
+`tests/testthat/test-reproducibility.R` compares, besides summaries with a tolerance, an MD5 hash of the complete output of the C++ model for 13 short simulations (24x16, 200 generations, skipped on CRAN) with a snapshot; changes meant to keep results must pass it unchanged (the snapshot was made on Windows, x86-64). For more settings and longer runs, compare the full output of two builds with `scripts/identity.R` and `identity-compare.R`, and measure with `scripts/pair.ps1`.
 
 ## Files
 
@@ -137,6 +156,6 @@ The snapshot tests (`tests/testthat/test-reproducibility.R`) cover local dispers
 |---|---|
 | `prototypes/` | the three prototypes and the counter instrumentation (patches against 802e558) |
 | `scripts/` | `settings.R` (named settings), `run-one.R` and `pair.ps1` (paired benchmark; adjust `-cpus` and `-Rscript` to the machine), `identity.R` and `identity-compare.R`, `count-run.R`, `profile.ps1`, `profile-run.R` and `profile-analyse.R` (needs Very Sleepy and Rtools), `analyse.R` (tables) |
-| `results/` | `pairs-aa.csv`, `pairs-history.csv`, `pairs-bisect.csv`, `prototypes.csv`, `scaling.csv` (one row per run: tag, parameters, seed, CPU, CPU s, elapsed s, deaths, time), `counters.txt`, `identity.txt`, profile summaries |
+| `results/` | `pairs-aa.csv`, `pairs-history.csv`, `pairs-bisect.csv`, `prototypes.csv`, `implementation.csv`, `scaling.csv` (one row per run: tag, parameters, seed, CPU, CPU s, elapsed s, deaths, time), `counters.txt`, `identity.txt`, profile summaries |
 
 The pair scripts of the history and bisection used named settings; `results/pairs-*.csv` give the equivalent `run-one.R` parameters. Raw profiles (`*.sleepy`), libraries and simulation output are not kept.
