@@ -489,17 +489,17 @@ legend("topright", legend = st$dispersal, col = dc, lty = 1,
        pch = 16, title = "dispersal", bty = "n")
 ```
 
-<!-- results: check against the run of 0.3.2 -->
 ::: {.result}
 **Result.** As expected, shorter dispersal increases richness on the whole grid
 (`r val("dispersal", "richness", dispersal = "0.5", digits = 3)` species with
 `dispersal = 0.5`, `r val("dispersal", "richness", dispersal = "global", digits = 3)`
 with global dispersal) and the share of conspecific neighbors. With local
-dispersal, small subplots contain fewer species, and with `dispersal` ≤ 1 the
-species–area curve is steeper than with global dispersal. With local dispersal,
+dispersal, small subplots contain fewer species, so that, contrary to the
+expectation, the species–area curve is flatter at small areas than with global
+dispersal; it is steeper only at large areas. With local dispersal,
 the probability that two cells contain the same species decreases with distance,
 as expected.
-Dispersal distances of 2 and 3 cells give almost the same richness as global
+With dispersal distances of 2 and 3 cells, richness is close to that with global
 dispersal.
 :::
 
@@ -561,7 +561,6 @@ tree shape, we found no consistent prediction.
 response(main, "environment", "environment", group = "dispersal")
 ```
 
-<!-- results: check against the run of 0.3.2 -->
 ::: {.result}
 **Result.** With local dispersal, already weak filtering (`environment = 0.25`)
 makes the correlation between trait and environment almost perfect
@@ -600,7 +599,6 @@ environment should be highest for narrow niches.
 response(main, "nicheWidth", "nicheWidth", group = "dispersal", log = "x")
 ```
 
-<!-- results: check against the run of 0.3.2 -->
 ::: {.result}
 **Result.** With global dispersal, richness is highest at intermediate niche
 widths, as expected, but the correlation between trait and environment increases
@@ -686,7 +684,27 @@ than spreading evenly along the trait axis [@scheffer2006].
 response(main, "density", "density", group = "densityCut")
 ```
 
-<!-- results: write with the run of 0.3.2 (density dependence redesigned in #172; the run of 0.3.1 showed a split of the competition traits into two groups) -->
+::: {.result}
+**Result.** Density dependence clearly reduces the share of conspecific
+neighbors (with radius 1 from
+`r val("density", "conspecificNeighbors", density = 0, densityCut = 1)` to
+`r val("density", "conspecificNeighbors", density = 1, densityCut = 1)`, less with
+radius 2), but it increases richness only slightly (from
+`r val("density", "richness", density = 0, densityCut = 1, digits = 3)` to
+`r val("density", "richness", density = 1, densityCut = 1, digits = 3)` species with
+radius 1) and, contrary to the expectation, does not make abundances more even.
+As expected, competition drives the traits apart, and they form groups: already
+at `negativeDD = 0.25`, the standard deviation of the competition trait rises
+from `r val("density", "sdCompetitionTrait", density = 0, densityCut = 1)` to
+about `r val("density", "sdCompetitionTrait", density = 0.25, densityCut = 1)`,
+close to its maximum of 0.5 on $[0, 1]$, i.e. the traits split into two groups
+near 0 and 1. Species within each group have similar traits, so the trait kernel
+hardly separates them, which is a likely reason for the small effect on
+richness (see Similarity measure of density dependence). Density dependence
+also increases the gamma statistic. Above 0.25, the strength changes the
+patterns little, except that the share of conspecific neighbors keeps
+decreasing.
+:::
 
 ### Similarity measure of density dependence
 
@@ -714,7 +732,26 @@ response(withSettings(main, "densityKernel", "density", density = c(0, 0.5, 1), 
          indicators = c(core[-4], "sdNeutralTrait"))
 ```
 
-<!-- results: write with the run of 0.3.2 -->
+::: {.result}
+**Result.** The `"species"` kernel has by far the strongest effect: richness
+rises from `r val("density", "richness", density = 0, densityCut = 1, digits = 3)`
+species without density dependence to
+`r val("densityKernel", "richness", negativeDDKernel = "species", density = 1, digits = 3)`
+at strength 1 (`"absolute"`:
+`r val("density", "richness", density = 1, densityCut = 1, digits = 3)`), the
+share of conspecific neighbors falls to
+`r val("densityKernel", "conspecificNeighbors", negativeDDKernel = "species", density = 1)`,
+and abundances become much more even. As expected, the competition trait is not
+under selection with this kernel: its spread is the same as that of the neutral
+trait. The `"gaussian"` kernel lies in between
+(`r val("densityKernel", "richness", negativeDDKernel = "gaussian", density = 1, digits = 3)`
+species at strength 1). The spread of the competition trait is smaller than
+with `"absolute"` (standard deviation
+`r val("densityKernel", "sdCompetitionTrait", negativeDDKernel = "gaussian", density = 1)`),
+but the kernel acts less like `"species"`
+than expected, possibly because the traits of many species still differ by less
+than the kernel width 0.1.
+:::
 
 ### Density dependence and dispersal
 
@@ -736,7 +773,18 @@ response(withSettings(main, "densityDispersal", "density", density = 1, densityC
          "densityDispersal", "dispersal")
 ```
 
-<!-- results: write with the run of 0.3.2 -->
+::: {.result}
+**Result.** As expected, density dependence increases richness most when
+offspring settle close to their parents: with `dispersal = 0.5`, it gives
+`r val("densityDispersal", "richness", dispersal = "0.5", digits = 3)` species
+(`r val("dispersal", "richness", dispersal = "0.5", digits = 3)` without density
+dependence, see Dispersal), whereas with global dispersal, richness is about the
+same with and without it
+(`r val("densityDispersal", "richness", dispersal = "global", digits = 3)` and
+`r val("dispersal", "richness", dispersal = "global", digits = 3)`). It reduces the
+share of conspecific neighbors at all dispersal distances. (Runs without density
+dependence: 50,000 instead of 100,000 generations; see Time to equilibrium.)
+:::
 
 ### Positive density dependence
 
@@ -760,7 +808,23 @@ response(pd, "positiveDD", "positiveDD", group = "density",
          indicators = c("richness", "evenness", "dominance", "conspecificNeighbors", "sdCompetitionTrait", "colless", "gamma"))
 ```
 
-<!-- results: write with the run of 0.3.2 -->
+::: {.result}
+**Result.** Alone, positive density dependence leads to the dominance of a
+single species, as expected: with `positiveDD = 0.01`, the most abundant
+species holds on average
+`r round(100 * val("positiveDD", "dominance", positiveDD = 0.01, density = 0))`% of
+the individuals, richness falls from
+`r val("density", "richness", density = 0, densityCut = 1, digits = 3)` to
+`r val("positiveDD", "richness", positiveDD = 0.01, density = 0)` species
+(`r val("positiveDD", "richness", positiveDD = 0.05, density = 0)` at 0.05), and
+almost all neighbors are conspecific. Combined with negative density dependence,
+positive density dependence at these strengths reduces richness only slightly
+(`r val("positiveDD", "richness", positiveDD = 0.05, density = 1, digits = 3)`
+species at 0.05 instead of
+`r val("densityKernel", "richness", negativeDDKernel = "species", density = 1, digits = 3)`),
+and the share of conspecific neighbors stays low: negative density dependence
+dominates, and no clusters of intermediate size form.
+:::
 
 ## Selection
 
@@ -834,13 +898,21 @@ sel$settings$scenario <- ifelse(sel$settings$environment > 0, "environment", "ne
 response(sel, "selection", "fitnessBaseMortalityRatio", group = "scenario", log = "x")
 ```
 
-<!-- results: rewrite with the run of 0.3.2 (density dependence redesigned in #172) -->
 ::: {.result}
 **Result.** With `fitnessBaseMortalityRatio = 1`, both scenarios give the values
 of the neutral model with local dispersal, as expected. With environmental
-filtering, richness keeps increasing up to the largest value
+filtering, the correlation between trait and environment is almost perfect
+already at 2
+(`r val("selection", "corTraitEnv", environment = 1, fitnessBaseMortalityRatio = 2)`),
+and richness keeps increasing up to the largest value
 (`r val("selection", "richness", environment = 1, fitnessBaseMortalityRatio = 50, digits = 3)`
-species at 50).
+species at 50). At 50, the gamma statistic drops and the Colless index becomes
+positive; the reason is unknown. With density dependence, richness increases
+only slowly (to
+`r val("selection", "richness", density = 1, fitnessBaseMortalityRatio = 50, digits = 3)`
+species at 50), whereas the share of conspecific neighbors keeps decreasing, and
+the competition trait splits into two groups already at 2 (see Negative density
+dependence).
 :::
 
 ### Life stage of selection
@@ -869,7 +941,25 @@ response(fa, "fitnessActsOn", "fitnessActsOn", group = "scenario", xlab = "",
          xnames = c(mortality = "mort.", reproduction = "repr.", both = "both", recruitment = "recr."))
 ```
 
-<!-- results: write with the run of 0.3.2 -->
+::: {.result}
+**Result.** With environmental filtering, traits match the environment at all
+stages, but richness increases much more when fitness acts on mortality
+(`r val("fitnessActsOn", "richness", environment = 1, fitnessActsOn = "mortality", digits = 3)`
+species) than on reproduction
+(`r val("fitnessActsOn", "richness", environment = 1, fitnessActsOn = "reproduction", digits = 3)`)
+or recruitment
+(`r val("fitnessActsOn", "richness", environment = 1, fitnessActsOn = "recruitment", digits = 3)`).
+Contrary to the expectation, the stages do not all act in the same direction:
+on mortality, filtering slightly lowers the share of conspecific neighbors
+compared with the neutral model, on reproduction and recruitment it raises it.
+With density dependence, richness hardly differs between the stages, but on
+recruitment, density dependence almost removes conspecific neighbors (share
+`r val("fitnessActsOn", "conspecificNeighbors", density = 1, fitnessActsOn = "recruitment")`,
+on mortality
+`r val("fitnessActsOn", "conspecificNeighbors", density = 1, fitnessActsOn = "mortality")`),
+probably because each offspring is compared directly with the neighbors of the
+cell it would settle in.
+:::
 
 ## Speciation
 
@@ -994,11 +1084,10 @@ logAxis(2)
 lines(seq_along(e)[e >= 0.5], e[e >= 0.5], lty = 2)
 ```
 
-<!-- results: check against the run of 0.3.2 (the "about 15%" and "40–80%" are from the run of 0.3.1) -->
 ::: {.result}
 **Result.** The share of conspecific neighbors and the rank–abundance curve
 agree with the Ewens sampling formula. Species richness is higher than expected
-in all settings, by up to about 15%, but within the 95% confidence interval in
+in most settings, by up to about 15%, but within the 95% confidence interval in
 more than half of them (e.g.
 `r val("neutral", "richness", x = 50, specRate = 8, digits = 3)` instead of
 `r round(ewens(theta(8, 2500), 2500), 1)` for 50 × 50 cells and `specRate = 8`),
@@ -1043,10 +1132,10 @@ rich <- function(p) val("speciation", "richness", protracted = p, redQueen = 0, 
 ewensRatio <- function(p) ewens(theta(2, 2500) * exp(-p), 2500) / ewens(theta(2, 2500), 2500)
 ```
 
-<!-- results: check against the run of 0.3.2 -->
 ::: {.result}
-**Result.** Richness decreases with `protracted` as predicted by a speciation
-rate reduced by $\exp(-p)$: relative to `protracted = 0`, it is
+**Result.** Richness decreases with `protracted` roughly as predicted by a
+speciation rate reduced by $\exp(-p)$, slightly more: relative to
+`protracted = 0`, it is
 `r round(rich(1) / rich(0), 2)` for $p = 1$ (Ewens sampling formula, which assumes global dispersal, with the
 reduced rate: `r round(ewensRatio(1), 2)`) and `r round(rich(2) / rich(0), 2)` for
 $p = 2$ (`r round(ewensRatio(2), 2)`). With $p = 5$, most runs end with a single
@@ -1085,7 +1174,24 @@ response(withSettings(main, "fission", "dispersal", dispersal = "1"), "fission",
          indicators = c("richness", "evenness", "dominance", "conspecificNeighbors", "colless", "gamma", "sdCompetitionTrait"))
 ```
 
-<!-- results: write with the run of 0.3.2 -->
+::: {.result}
+**Result.** Both types of fission give more than four times as many species as
+point speciation at the same `specRate`
+(`r val("fission", "richness", fission = 1, digits = 3)` and
+`r val("fission", "richness", fission = 2, digits = 3)` instead of
+`r val("dispersal", "richness", dispersal = "1", digits = 3)`), with much more
+even abundances, as expected. Contrary to the expectation, the species are
+much younger (mean age `r val("fission", "meanSpeciesAge", fission = 1)` and
+`r val("fission", "meanSpeciesAge", fission = 2)` instead of
+`r val("speciation", "meanSpeciesAge", protracted = 0, redQueen = 0)` generations).
+A likely explanation: nearly every new species survives its origin, so about
+2 species are added per generation, and richness divided by 2 (about 45
+generations) roughly matches the mean age. With point speciation, most new species go
+extinct within a few generations, and the few that persist are old. Both types of fission reduce
+the share of conspecific neighbors; for type 2, this is contrary to the
+expectation. They also make the trees more balanced and increase the gamma
+statistic.
+:::
 
 ### Comparing speciation mechanisms
 
@@ -1149,7 +1255,18 @@ legendPanel(legend = mechs, col = cols, lty = 1, pch = 16, title = "speciation")
 par(op)
 ```
 
-<!-- results: write with the run of 0.3.2 -->
+::: {.result}
+**Result.** As expected, protracted speciation lies on the curves of point
+speciation. Fission and the Red Queen do not: at the same richness, both give
+higher Shannon diversity, i.e. more even abundances, more balanced trees
+(lower Colless index) and a lower gamma statistic than point speciation. They
+differ in spatial structure: at the same richness, fission gives fewer
+conspecific neighbors than point speciation, and the Red Queen more. (At the
+same `specRate`, fission increases the gamma statistic, see Fission, in line with
+its much higher richness.) The curves of fission overlap those of point
+speciation only at `specRate = 0.5`, so for fission the comparison rests on few
+settings.
+:::
 
 ## Known limitations
 
@@ -1288,7 +1405,6 @@ knitr::kable(reshape(shape, idvar = "grid", timevar = "indicator", direction = "
              caption = "Indicators for grids of different shape with environmental filtering (environment = 1, dispersal 1; replicate mean ± 95% confidence interval).")
 ```
 
-<!-- results: check the grid size against the run of 0.3.2 and add the grid shape -->
 ::: {.result}
 **Result.** With local dispersal, richness increases from
 `r val("gridSize", "richness", x = 20, digits = 3)` to
@@ -1296,6 +1412,11 @@ knitr::kable(reshape(shape, idvar = "grid", timevar = "indicator", direction = "
 100 × 100 cells, faster than in the neutral model with global dispersal (from
 `r val("neutral", "richness", x = 20, specRate = 2, digits = 3)` to
 `r val("neutral", "richness", x = 100, specRate = 2, digits = 3)`), as expected.
+With environmental filtering, the grid of 49 × 49 cells gives the same values as
+50 × 50 cells, so the slightly different gradient of an odd number of columns
+does not matter here. The grid of 50 × 40 cells has about 10% fewer species,
+with the same correlation between trait and environment and the same share of
+conspecific neighbors.
 :::
 
 ## Species richness and abundances
@@ -1305,7 +1426,15 @@ neutral model are compared with the Ewens sampling formula in the section
 Neutral model and speciation rate; the overview figure shows which processes
 change them.
 
-<!-- synthesis: write with the run of 0.3.2 -->
+Richness increases with local dispersal, environmental filtering (most with
+local dispersal and strong selection on mortality), density dependence by
+species identity, the Red Queen advantage and fission. It decreases with
+protracted speciation and with positive density dependence. Density dependence
+on the competition trait increases it only slightly at dispersal 1 and above,
+but more with shorter dispersal. Shannon diversity mostly follows richness, but
+environmental filtering, density dependence by species identity, fission and
+the Red Queen make abundances more even than point speciation does at the same
+richness (see Comparing speciation mechanisms).
 
 ## Spatial structure
 
@@ -1314,7 +1443,19 @@ describe how the species are distributed in space. Dispersal limitation creates
 clusters of conspecifics (see Dispersal), and density dependence changes their
 size (see Density dependence).
 
-<!-- synthesis: write with the run of 0.3.2 -->
+Without positive density dependence, local dispersal is the main source of
+aggregation: with dispersal 1, about
+`r round(100 * val("dispersal", "conspecificNeighbors", dispersal = "1"))`% of
+the neighbors are conspecific, with global dispersal
+`r round(100 * val("dispersal", "conspecificNeighbors", dispersal = "global"))`%.
+Negative density dependence reduces aggregation, most when it acts on
+recruitment or uses the `"species"` kernel; positive density dependence alone
+makes almost all neighbors conspecific. Environmental filtering with the default
+niche width, acting on mortality, reduces aggregation strongly with global
+dispersal and slightly with local dispersal; with wider niches or acting on
+reproduction or recruitment, it increases it with local dispersal.
+With local dispersal, the species–area curve is flatter at small areas and
+steeper at large areas than with global dispersal.
 
 ## Traits and environment
 
@@ -1324,7 +1465,15 @@ well species are sorted along the gradient (see Environmental filtering), the
 spread of the competition trait how far competition drives traits apart (see
 Density dependence).
 
-<!-- synthesis: write with the run of 0.3.2 -->
+Whenever environmental filtering acts with local dispersal, traits match the
+environment almost perfectly, at all niche widths, life stages and strengths of
+selection from 2 on; with global dispersal, the correlation stays below 0.6
+(mass effects). The spread of the competition trait shows whether density
+dependence acts on it (see Similarity measure of density dependence).
+Environmental filtering also
+increases the spread of the competition and neutral traits, which are not under
+selection, possibly because there are more and older species whose traits have
+drifted apart.
 
 ## Phylogeny
 
@@ -1333,7 +1482,17 @@ The tree of the extant species is summarized by the Colless index
 their mean age and its correlation with abundance. The sections of the chapter
 Processes show the effects on the tree.
 
-<!-- synthesis: write with the run of 0.3.2 -->
+The trees of the neutral model are less balanced than Yule trees (positive
+Colless index). In most settings, environmental filtering, density dependence,
+fission and the Red Queen advantage make them more balanced (Colless index
+around or below 0). The gamma statistic is not clearly negative in any setting,
+i.e. none of the processes produces the slowdown of branching towards the
+present that is typical of empirical trees. It tends to increase with richness,
+but fission, the Red Queen advantage, environmental filtering combined with
+density dependence or acting on reproduction, and very strong selection
+(`fitnessBaseMortalityRatio = 50`) give lower values than point speciation at
+the same richness, and it is low wherever there are few species (low speciation rates,
+protracted speciation, positive density dependence).
 
 ### Species ages
 
@@ -1377,7 +1536,6 @@ for (ind in c("meanSpeciesAge", "corAgeAbundance")) {
 par(op)
 ```
 
-<!-- results: check against the run of 0.3.2 -->
 ::: {.result}
 **Result.** In the neutral model, mean species age decreases with the speciation
 rate, and abundant species are older (rank correlation about
@@ -1406,7 +1564,21 @@ strength of the other.
 response(main, "envDensity", "environment", group = "density")
 ```
 
-<!-- results: write with the run of 0.3.2 (in 0.3.1, the model was neutral at environment = density = 0.5) -->
+::: {.result}
+**Result.** The two processes do not mask each other in richness, trait sorting
+or aggregation: with environmental filtering, density dependence still
+increases richness (at `environment = 1` from
+`r val("envDensity", "richness", environment = 1, density = 0, digits = 3)` to
+`r val("envDensity", "richness", environment = 1, density = 1, digits = 3)`
+species), reduces the share of conspecific neighbors and splits the competition
+trait as without filtering, and filtering sorts the traits along the gradient at
+all strengths of density dependence. They interact in the shape of the tree:
+with both processes, the gamma statistic is much lower
+(`r val("envDensity", "gamma", environment = 1, density = 1)`) than with
+filtering alone (`r val("envDensity", "gamma", environment = 1, density = 0)`) or
+density dependence alone (`r val("envDensity", "gamma", environment = 0, density = 1)`),
+and the Colless index is close to 0.
+:::
 
 ### Assembly processes and dispersal
 
@@ -1429,14 +1601,15 @@ main$settings$scenario[a] <- c("neutral", "env.", "dens.", "both")[
 response(main, "assembly", "scenario", group = "dispersal", xlab = "")
 ```
 
-<!-- results: check against the run of 0.3.2, incl. the cross-reference to Environment and density dependence combined -->
 ::: {.result}
 **Result.** Environmental filtering increases richness and the match between
 traits and environment, much more with local than with global dispersal.
-Contrary to the expectation, it does not increase spatial aggregation (see
-Environmental filtering). Density dependence reduces aggregation with local
-dispersal, and, combined with filtering, it reduces rather than increases
-richness (see Environment and density dependence combined).
+Contrary to the expectation, it does not increase spatial aggregation here (see
+Environmental filtering and Spatial structure). Density dependence reduces aggregation with both
+types of dispersal, but increases richness only with local dispersal (see
+Density dependence and dispersal). With local dispersal, both processes
+together give the highest richness (see Environment and density dependence
+combined).
 :::
 
 ## Density dependence measured from mortality
@@ -1475,13 +1648,14 @@ abline(h = 0, lty = 2)
 legend("topleft", legend = names(dc), pch = 16, col = dc, title = "dispersal", bty = "n")
 ```
 
-<!-- results: check against the run of 0.3.2 -->
 ::: {.result}
-**Result.** As expected, the CNDD coefficient is close to 0 in the neutral model
-and positive with density dependence. Environmental filtering makes it negative,
-and with both processes it is negative as well, so filtering hides the density
-dependence in this analysis. Contrary to the expectation, the effect is stronger with global
-than with local dispersal.
+**Result.** As expected, the CNDD coefficient is close to 0 in the neutral model.
+With density dependence, it is positive with dispersal 1, but close to 0 with
+global dispersal, where density dependence also has little effect on richness
+(see Density dependence and dispersal). Environmental filtering makes it
+negative, and with both processes it is negative as well, so filtering hides
+the density dependence in this analysis. Contrary to the expectation, the
+negative effect of filtering is stronger with global than with local dispersal.
 :::
 
 ## Run length and runtime
@@ -1502,8 +1676,6 @@ to grow with the number of cells, and to be longer for indicators that depend
 on the whole history of the community (the phylogeny) than for those that
 depend on the current abundances.
 :::
-
-<!-- results: rewrite with the run of 0.3.2 (which indicators settle when) -->
 
 ```{r equilibrium, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Indicators over time: replicate mean (line) and mean ± standard deviation across replicates (band)."}
 cases <- data.frame(
@@ -1543,6 +1715,21 @@ dimnames(tab) <- list(labels[core], gsub("\n", " ", cases$label))
 knitr::kable(tab, caption = "Generations to equilibrium.")
 ```
 
+::: {.result}
+**Result.** In the figure, species richness, Shannon diversity and the share of
+conspecific neighbors level off within a few thousand generations (in the
+neutral model on 50 × 50 cells after about 2,000–4,000 generations). The table
+gives much later times for some of them, because their replicate means still
+fluctuate by more than 5% late in the run; for these indicators, the figure is
+the better guide. The gamma statistic, and in some settings the Colless index
+and the spread of the competition trait, take longer, up to tens of thousands
+of generations. On 100 × 100 cells with
+`specRate = 0.5`, the tree statistics settle only after more than 80,000
+generations, as expected for a larger community with fewer new species. The
+correlation between trait and environment has no meaning without
+environmental filtering.
+:::
+
 ### Runtime
 
 The runtime depends on the number of cells, the dispersal distance and the
@@ -1571,7 +1758,10 @@ neighborhood of the recruit, so larger kernels and neighborhoods take longer.
 :::
 
 ```{r runtime-text, echo = FALSE, results = "asis"}
-fold <- function(cut) round(max(rtVal("density", densityCut = cut)) / rtVal("density", density = 0, densityCut = cut))
+fold <- function(cut) {
+  d <- rt[rt$block == "density" & rt$densityCut == cut, ]
+  round(max(d$per1000) / d$per1000[d$density == 0], 1)
+}
 cat(sprintf(
 "The figure shows the runtime of the core simulation per 1,000 generations in
 the runs of this chapter (replicate means; each simulation on one core of a
@@ -1580,8 +1770,9 @@ between settings should be similar. On 50 × 50 cells,
 global dispersal is fastest (%s seconds per 1,000 generations). With local
 dispersal, the runtime increases steeply with the dispersal distance (from %s
 seconds at 0.5 to %s seconds at 3). With dispersal 1, it grows somewhat faster
-than the number of cells. Density dependence increases it up to about %s-fold
-with neighborhood radius 1 and %s-fold with radius 2. Together with the time to
+than the number of cells. Density dependence increases it by a factor of up to
+about %s with neighborhood radius 1 and %s with radius 2, almost independently
+of its strength. Together with the time to
 equilibrium, this gives the cost of a simulation: e.g. 50,000 generations on
 100 × 100 cells with dispersal 1 take about %s minutes.
 ",

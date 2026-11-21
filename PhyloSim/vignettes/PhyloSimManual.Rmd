@@ -129,7 +129,7 @@ simu <- runSimulation(pars)
 
 This simulation took `r round(simu$Model$runtime, 1)` seconds. Note that 1,000
 generations are enough for a first look, but some outputs, in particular with
-density dependence and the phylogeny, need several thousand generations to
+density dependence and the phylogeny, need tens of thousands of generations to
 reach equilibrium (see Time to equilibrium in the vignette "EcoPhyloSim model").
 
 The result is an object of class `PhyloSim` with two lists: `$Model` contains
@@ -216,8 +216,8 @@ plotSpatialPhylo(simu)
 **Species–area curve:** `sac()` computes the mean number of species in square
 subplots of increasing size, placed at random in the grid. *How to read it:* on
 log–log axes, the slope tells how fast new species appear with area. Spatial
-aggregation (local dispersal) makes small subplots poor in species and the
-curve steep; with global dispersal, subplots are close to random samples of the
+aggregation (local dispersal) makes small subplots poor in species, so the
+curve is flat at small areas and steep at large areas; with global dispersal, subplots are close to random samples of the
 whole grid and the curve flattens early.
 
 ```{r sac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
