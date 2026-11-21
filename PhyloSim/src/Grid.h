@@ -47,7 +47,12 @@ public:
 
     // The size of the landscape is defined as m_Xdimensions * m_Ydimensions
     unsigned int m_LandscapeSize;
-    int m_KernelSize;
+
+    // local dispersal: offsets of the cells within m_Cutoff (without the target cell), their dispersal weights
+    // and cumulative weights, computed once; buffers for weights that depend on fitness
+    std::vector<std::pair<int, int> > m_dispersalOffsets;
+    std::vector<double> m_dispersalWeights, m_cumDispersalWeights;
+    std::vector<double> m_fitnessWeights, m_cumFitnessWeights, m_cumRecruit;
 
     double m_AirTemperature;
     double m_Speciation_Rate;
@@ -106,6 +111,13 @@ public:
 
     // number of cells within the cutoff, including the focal cell
     double cellsWithin(int cutoff);
+
+    // offsets (dx, dy) of the cells within the cutoff, ordered by dx, then dy
+    static std::vector<std::pair<int, int> > circleOffsets(int cutoff, bool withCenter);
+
+    // coordinate on the torus, for coordinates between -m_Xdimensions (-m_Ydimensions) and 2 * m_Xdimensions - 1
+    int wrapX(int x) const { return x < 0 ? x + m_Xdimensions : (x >= m_Xdimensions ? x - m_Xdimensions : x); }
+    int wrapY(int y) const { return y < 0 ? y + m_Ydimensions : (y >= m_Ydimensions ? y - m_Ydimensions : y); }
 
     // dissimilarity of ind to the neighbors of cell (x, y), without the cell itself, for negative or
     // positive density dependence

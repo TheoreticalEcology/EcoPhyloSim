@@ -393,6 +393,18 @@ LocalEnvironment::LocalEnvironment(int xsize, int ysize, int type, bool neutral,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
                   soilmat, nicheWidth, ddOptions) {
 
+    // fixes #207 (dispersal weights depend only on the offset; computed once instead of for every death)
+    m_dispersalOffsets = circleOffsets(m_Cutoff, false);
+    for (const auto &o : m_dispersalOffsets) {
+        m_dispersalWeights.push_back(m_Individuals[0][0].dispersal(m_Dispersal_type,
+                                                                   m_Individuals[0][0].euclidian_distance(o.first, o.second)));
+    }
+    int nKernel = m_dispersalOffsets.size();
+    m_cumDispersalWeights.resize(nKernel);
+    std::partial_sum(m_dispersalWeights.begin(), m_dispersalWeights.end(), m_cumDispersalWeights.begin());
+    m_fitnessWeights.resize(nKernel);
+    m_cumFitnessWeights.resize(nKernel);
+    m_cumRecruit.resize(nKernel);
 }
 
 LocalEnvironment::~LocalEnvironment() {
@@ -407,12 +419,11 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
     int x_coordinate;
     int y_coordinate;
-    int x_parent = 0, kernel_x = 0;
-    int y_parent = 0, kernel_y = 0;
-    unsigned int array_length;
+    int x_parent = 0;
+    int y_parent = 0;
     int new_parent;
     unsigned int numberOfRuns = 0;
-    m_KernelSize = ((2 * m_Cutoff + 1) * (2 * m_Cutoff + 1) - 1);
+    int nKernel = m_dispersalOffsets.size();
 
     numberOfRuns = m_LandscapeSize;
 
@@ -455,65 +466,47 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         ////////////////////////////////////////////
         // DISPERSAL
 
-        std::vector <std::pair<int, int> > parents(m_KernelSize);
+        // parent cells; callModel() and checkPar() guarantee 2 * m_Cutoff + 1 <= min(x, y), so that no offset reaches
+        // the target cell again
+        auto parentX = [&](int i) { return wrapX(x_coordinate + m_dispersalOffsets[i].first); };
+        auto parentY = [&](int i) { return wrapY(y_coordinate + m_dispersalOffsets[i].second); };
 
-        std::vector<double> weights(m_KernelSize); // fixes #149 (heap instead of stack)
-        array_length = 0;
-
-        for (int relativeX = -m_Cutoff; relativeX <= m_Cutoff; relativeX++) {
-            int yLims = floor(sqrt(m_Cutoff * m_Cutoff - relativeX * relativeX)); // avoid diagonal bias
-            for (int relativeY = -yLims; relativeY <= yLims; relativeY++) {
-                kernel_x = (x_coordinate + relativeX + m_Xdimensions) % m_Xdimensions;
-                kernel_y = (y_coordinate + relativeY + m_Ydimensions) % m_Ydimensions;
-                if (!(kernel_x == x_coordinate && kernel_y == y_coordinate)) {
-                    parents[array_length].first = kernel_x;
-                    parents[array_length].second = kernel_y;
-                    if (m_reproduction) {
-                        weights[array_length] = m_Individuals[kernel_x][kernel_y].getSeedsTo(relativeX, relativeY,
-                                                                                             m_Dispersal_type,
-                                                                                             m_Environment[kernel_x *
-                                                                                                           m_Ydimensions +
-                                                                                                           kernel_y].first,
-                                                                                             m_Env, m_DD, generation,
-                                                                                             m_redQueenStrength,
-                                                                                             m_redQueen);
-                    } else {
-                        weights[array_length] = m_Individuals[kernel_x][kernel_y].dispersal(m_Dispersal_type,
-                                                                                            m_Individuals[kernel_x][kernel_y].euclidian_distance(
-                                                                                                    relativeX,
-                                                                                                    relativeY));
-                    }
-                    array_length += 1;
-                }
+        if (m_reproduction) {
+            for (int i = 0; i < nKernel; i++) {
+                int p_x = parentX(i), p_y = parentY(i);
+                m_fitnessWeights[i] = m_Individuals[p_x][p_y].getSeedsTo(m_dispersalOffsets[i].first,
+                                                                         m_dispersalOffsets[i].second, m_Dispersal_type,
+                                                                         m_Environment[p_x * m_Ydimensions + p_y].first,
+                                                                         m_Env, m_DD, generation, m_redQueenStrength,
+                                                                         m_redQueen);
             }
+            std::partial_sum(m_fitnessWeights.begin(), m_fitnessWeights.end(), m_cumFitnessWeights.begin());
         }
-
-        std::vector<double> cumWeights(array_length);
-        std::partial_sum(weights.begin(), weights.begin() + array_length, cumWeights.begin());
-        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
+        const std::vector<double> &weights = m_reproduction ? m_fitnessWeights : m_dispersalWeights;
+        const std::vector<double> &cumWeights = m_reproduction ? m_cumFitnessWeights : m_cumDispersalWeights;
+        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, nKernel);
 
         // fixes #165 (rejection sampling: parent with probability ~ weight * fitness of its recruit here);
         // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
         for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
-                recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
+                recruitFitness(parentX(new_parent), parentY(new_parent), x_coordinate, y_coordinate);
              tries++) {
-            if (tries < std::min(maxRecruitTries, (int) array_length)) {
-                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
+            if (tries < std::min(maxRecruitTries, nKernel)) {
+                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, nKernel);
                 continue;
             }
-            std::vector<double> cumRecruit(array_length);
             double sum = 0.0;
-            for (unsigned int i = 0; i < array_length; i++) {
-                sum += weights[i] * (recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
+            for (int i = 0; i < nKernel; i++) {
+                sum += weights[i] * (recruitFitness(parentX(i), parentY(i), x_coordinate, y_coordinate) +
                                      DBL_MIN * 100.0);
-                cumRecruit[i] = sum;
+                m_cumRecruit[i] = sum;
             }
             // if all products underflow (fitness about 0 for reproduction and recruitment), keep the proposal
-            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(cumRecruit, array_length);
+            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(m_cumRecruit, nKernel);
             break;
         }
-        x_parent = parents[new_parent].first;
-        y_parent = parents[new_parent].second;
+        x_parent = parentX(new_parent);
+        y_parent = parentY(new_parent);
 
         m_Individuals[x_coordinate][y_coordinate] = m_Individuals[x_parent][y_parent];  // overloaded operator, deep copy ! // report birth and evolve is automatic
         m_Individuals[x_coordinate][y_coordinate].m_X_coordinate = x_coordinate;
@@ -550,14 +543,18 @@ void Landscape::densityUpdate(int x, int y) {
 }
 
 double Landscape::cellsWithin(int cutoff) {
-    double cells = 0.0;
+    return circleOffsets(cutoff, true).size();
+}
+
+std::vector<std::pair<int, int> > Landscape::circleOffsets(int cutoff, bool withCenter) {
+    std::vector<std::pair<int, int> > offsets;
     for (int i = -cutoff; i <= cutoff; i++) {
         int yLim = floor(sqrt(cutoff * cutoff - i * i)); // avoid diagonal bias
         for (int j = -yLim; j <= yLim; j++) {
-            cells += 1.0;
+            if (withCenter || i != 0 || j != 0) offsets.push_back(std::make_pair(i, j));
         }
     }
-    return cells;
+    return offsets;
 }
 
 double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) {
