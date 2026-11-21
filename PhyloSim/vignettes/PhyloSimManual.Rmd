@@ -53,7 +53,7 @@ changed between releases in the vignette "Model history"
 A simulation on a grid of 50 × 50 cells with local dispersal, run for 1,000
 generations:
 
-```{r quickstart, results = 'hide', fig.width = 7, fig.height = 5, fig.cap = "Phylogeny, mean traits and spatial distribution of the species at the end of the quick-start simulation."}
+```{r quickstart, results = 'hide', fig.width = 7, fig.height = 5, fig.cap = "Result of the quick-start simulation (50 × 50 cells, dispersal 1, specRate 2, no environmental filtering or density dependence) after 1,000 generations, shown by plot(): phylogeny of the extant species (left), mean environment and traits of the species (middle) and the species of each cell (right). Each species has the same color in the phylogeny and the map, and related species have similar colors."}
 library(EcoPhyloSim)
 pars <- createCompletePar(x = 50, y = 50, dispersal = 1, runs = 1000,
                           specRate = 2, seed = 1)
@@ -121,6 +121,8 @@ effect only in steps of 0.5). Besides the model parameters,
 | `calculateSummaries` | calculate summary statistics (`calculateSummaryStatistics()`) for the last recorded generation | `FALSE` |
 | `scenario` | a label stored with the parameters | `NULL` |
 
+Table: Arguments of `createCompletePar()` that control the run and its output, not the model.
+
 The list of parameters is then used to run the simulation:
 
 ```{r runsim, results = 'hide'}
@@ -144,6 +146,8 @@ in `runs`, here two. Each of them contains:
 | `phylogeny` | phylogeny of the species (class `phylo` of the package ape; 0 if only one species is left) |
 | `phyloTXT` | the phylogeny as Newick text |
 | `summaries` | summary statistics if `calculateSummaries = TRUE`, stored in the first element of `$Output` only |
+
+Table: Elements of each recorded generation in `$Output` of a `PhyloSim` object.
 
 ```{r output1}
 str(simu$Output[[1]], max.level = 1)
@@ -194,6 +198,8 @@ model.
 | `getMortalityData()` | death and conspecific neighbors of each individual | How strong is conspecific density dependence? |
 | `nullModel()`, `calculatePhylogeneticDispersion()` | phylogenetic dispersion against random communities | Are local communities phylogenetically clustered or overdispersed? |
 
+Table: Functions to plot and summarize a simulation, what they return and which question they answer.
+
 ```{r plotsfig, echo = FALSE, out.width = "90%", fig.cap = "Functions (boxes) to plot and summarize a simulation, and the objects (ellipses) they return. Arrows within a group show which function uses the output of another or calls it internally."}
 knitr::include_graphics("plots.svg")
 ```
@@ -209,7 +215,7 @@ spatial aggregation, which local dispersal creates even in the neutral model;
 colors that follow the environmental gradient show environmental filtering. The
 middle panel shows whether related species have similar traits.
 
-```{r plotspatialphylo, fig.width = 7, fig.height = 5, fig.cap = "Phylogeny of the species (left), their mean traits (middle; point size) and their spatial distribution (right), with colors matching the colors in the phylogeny. The arguments plot and plotTraits select the panels."}
+```{r plotspatialphylo, fig.width = 7, fig.height = 5, fig.cap = "plotSpatialPhylo() for the simulation of the section Running a simulation (50 × 50 cells, dispersal 1, environment 1, specRate 2) after 1,000 generations: phylogeny of the extant species (left), mean environment and traits of the species in the order of the tips (middle) and the species of each cell (right), with the colors of the phylogeny. The arguments plot and plotTraits select the panels."}
 plotSpatialPhylo(simu)
 ```
 
@@ -220,8 +226,8 @@ aggregation (local dispersal) makes small subplots poor in species, so the
 curve is flat at small areas and steep at large areas; with global dispersal, subplots are close to random samples of the
 whole grid and the curve flattens early.
 
-```{r sac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Species–area curve: mean number of species against the area of the subplots (both axes logarithmic). Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
-sac(simu)
+```{r sac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Species–area curve of the same simulation (sac()): mean number of species in randomly placed square subplots against their area in cells (both axes logarithmic); grey band and dashed lines: 5% and 95% quantiles across subplots. Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
+sac(simu, title = "")
 ```
 
 **Rank–abundance curve:** `rac()` shows the abundance of each species in the
@@ -230,8 +236,8 @@ species dominate, a flat one that abundances are even; the length of the curve
 is the number of species. Density dependence is expected to flatten the curve,
 as it favors rare species.
 
-```{r rac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Rank–abundance curve: abundance of each species against its rank (most abundant species = rank 1). The vignette \"EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
-rac(simu)
+```{r rac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Rank–abundance curve of the same simulation (rac()): number of individuals of each species in the whole grid against its rank (most abundant species = rank 1). The vignette \"EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
+rac(simu, title = "")
 ```
 
 **Trait plots:** `plotTraitDistribution()` shows the three traits of the
@@ -242,7 +248,7 @@ move to the ends of the trait range (see Negative density dependence in the
 vignette "EcoPhyloSim model"). The neutral trait changes only by drift and serves as a
 reference.
 
-```{r traitdist, fig.width = 7, fig.height = 6, fig.cap = "Environmental, competition and neutral trait (columns): trait against the environment of the cell (top), spatial distribution (middle) and histograms per species (bottom; colors as in plotSpatialPhylo)."}
+```{r traitdist, fig.width = 7, fig.height = 6, fig.cap = "plotTraitDistribution() for the same simulation: environmental, competition and neutral trait (columns) of all individuals against the environment of their cell (top), their spatial distribution (middle) and their histograms per species (bottom; colors as in plotSpatialPhylo()). With environment = 1, the environmental trait follows the environment."}
 plotTraitDistribution(simu, type = "all")
 ```
 
@@ -251,7 +257,7 @@ mean of their neutral trait (hierarchical clustering with `hclust()`). As the
 neutral trait changes only by drift, comparing the result with the true
 phylogeny shows how much phylogenetic signal such a trait carries.
 
-```{r phylorecon, fig.width = 7, fig.height = 4, fig.cap = "Phylogeny reconstructed from the mean neutral traits of the species (left) and the true phylogeny of the extant species (right)."}
+```{r phylorecon, fig.width = 7, fig.height = 4, fig.cap = "Phylogeny of the same simulation reconstructed from the mean neutral traits of the species with phyloReconstruct() (left) and the true phylogeny of the extant species (right)."}
 reconstructed <- phyloReconstruct(simu)
 true <- simu$Output[[length(simu$Output)]]$phylogeny
 
@@ -267,8 +273,8 @@ grid (the metacommunity). *How to read it:* highlighted species that sit in a
 few clades indicate phylogenetic clustering, species spread over the whole tree
 overdispersion; the null models below test this.
 
-```{r highlight-large, fig.width = 6, fig.height = 4.5, fig.cap = "Species of a subplot of 10 × 10 cells (highlighted) in the phylogeny of the metacommunity."}
-highlightLocalPhylo(simu, size = 10, n = 1)
+```{r highlight-large, fig.width = 6, fig.height = 4.5, fig.cap = "highlightLocalPhylo() for the same simulation: phylogeny of all extant species in the grid (the metacommunity), with the species of one randomly placed subplot of 10 × 10 cells (the local community) in black, with thicker branches and their species numbers."}
+highlightLocalPhylo(simu, size = 10, n = 1, title = "")
 ```
 
 ## Summary statistics
@@ -304,6 +310,8 @@ calculateSummaryStatistics(simu)
 | | `varPart_1`, `varPart_2` | variance of the community composition explained by environment and by competition traits |
 | Phylogeny | `imbalance`, `gammaStatistics` | Colless index and gamma statistic (negative: branching slows down towards the present) |
 | | `meanNodeAge`, `dispersion` | mean branch length; standardized phylogenetic dispersion of subplots (SES of the MPD) |
+
+Table: Summary statistics returned by `calculateSummaryStatistics()`, grouped by the pattern they describe.
 :::
 
 The phylogenetic statistics use the tree of the extant species. Several
@@ -379,12 +387,12 @@ The result can be visualized with `plotPhylogeneticDispersion()`. The figure
 uses example results stored in the package (`pPD.pvalues`, `pPD.positions`);
 they illustrate the plot only.
 
-```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "Phylogenetic dispersion for combinations of dispersal limitation (rows), environmental filtering (upper axis) and density dependence (lower axis). The color shows whether the local communities are phylogenetically clustered or overdispersed."}
+```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "plotPhylogeneticDispersion() for the example data pPD.pvalues: one simulation of 50,000 generations on 50 × 50 cells for each of four dispersal settings (rows: global or dispersal distance) and seven combinations of environmental filtering and density dependence (columns; upper labels: strength of environment, lower labels: strength of negativeDD): neither, a gradient from filtering only to density dependence only, and both; analysed with the null model \"PhylMeta\" (200 subplots per size). In each square, the line shows the median p-value against the subplot size (2 to 10 cells per side), the band the interquartile range; the color shows the mean over subplot sizes of the median p-values, from clustered (turquoise) through neutral (white) to overdispersed (pink)."}
 data("pPD.pvalues")
 data("pPD.positions")
 
 plotPhylogeneticDispersion(pvalues = pPD.pvalues, positions = pPD.positions,
-                           title = "Null Meta")
+                           title = "")
 ```
 
 # Fitting the model to data

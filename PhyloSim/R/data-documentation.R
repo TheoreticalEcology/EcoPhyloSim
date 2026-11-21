@@ -63,8 +63,7 @@ NULL
 #' @source created with the script \code{PhyloSim/data-raw/model-behavior/pPD.R} in the package
 #' repository at each release: one run of 50,000 generations per scenario on a 50 x 50
 #' grid, and the "PhylMeta" null model of \code{\link{calculatePhylogeneticDispersion}}
-#' with 500 replicates; from the next rerun on, \code{attr(pPD.pvalues, "provenance")}
-#' records the run. The
+#' with 500 replicates; \code{attr(pPD.pvalues, "provenance")} records the run. The
 #' data only illustrate the plot.
 NULL
 
@@ -86,8 +85,8 @@ NULL
 
 #' Summaries of simulations on how the model outputs depend on the parameters
 #'
-#' Used in the vignette "EcoPhyloSim model" (chapters "Processes" and "Community patterns") to show
-#' how the outputs of the model respond to its parameters and how fast they reach equilibrium.
+#' Used in the vignette "EcoPhyloSim model" (chapters "Overview", "Processes" and "Community patterns") to show
+#' how the outputs of the model respond to its parameters, how fast they reach equilibrium and how long the simulations take.
 #'
 #' @name packageBehavior
 #' @format A list with two entries, \code{main} and \code{info}. \code{main}

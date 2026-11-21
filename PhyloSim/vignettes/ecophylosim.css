@@ -11,9 +11,20 @@
 .result     { border-color: #009E73; background-color: #f1f8f5; }
 .limitation { border-color: #D55E00; background-color: #fbf3ec; }
 
-/* smaller captions and tables */
-p.caption, caption { font-size: 0.88em; color: #555; }
-table { font-size: 0.88em; }
+/* figures and tables: more space to the text; captions left-aligned and numbered
+   ("Fig. 1:", "Table 1:"), counted by CSS, so only captioned figures and tables count */
+body { counter-reset: figure table; }
+div.figure { margin: 2em 0; }
+p.caption, caption { font-size: 0.88em; color: #555; text-align: left; }
+p.caption { counter-increment: figure; }
+p.caption::before { content: "Fig. " counter(figure) ": "; font-weight: bold; color: #333; }
+caption { counter-increment: table; caption-side: top; padding-bottom: 0.4em; }
+caption::before { content: "Table " counter(table) ": "; font-weight: bold; color: #333; }
+table { font-size: 0.88em; margin-top: 2em; margin-bottom: 2em; }
+/* tables in folded blocks are not numbered: a closed block does not count, so
+   opening it would renumber the tables after it */
+details caption { counter-increment: none; }
+details caption::before { content: none; }
 th { text-align: left; }
 td { vertical-align: top; }
 table tr.even { background-color: transparent; } /* no alternating row colors */

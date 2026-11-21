@@ -9,6 +9,7 @@ Results differ from 0.3.1 for the same parameters and seed, because the C++ mode
 * `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
 * `runSimulationBatch()`: new argument `onError = "NA"` returns NA for failed simulations instead of stopping (#158).
+* `highlightLocalPhylo()`: new argument `title` replaces the default title of the plots (e.g. `title = ""` for none).
 
 ## Changes
 

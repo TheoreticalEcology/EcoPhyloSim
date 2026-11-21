@@ -10,8 +10,7 @@ A list of length 1, wrapping a list of 28 scenarios (one for each combination of
 created with the script \code{PhyloSim/data-raw/model-behavior/pPD.R} in the package
 repository at each release: one run of 50,000 generations per scenario on a 50 x 50
 grid, and the "PhylMeta" null model of \code{\link{calculatePhylogeneticDispersion}}
-with 500 replicates; from the next rerun on, \code{attr(pPD.pvalues, "provenance")}
-records the run. The
+with 500 replicates; \code{attr(pPD.pvalues, "provenance")} records the run. The
 data only illustrate the plot.
 }
 \description{

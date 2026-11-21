@@ -128,7 +128,7 @@ runLabel <- function(r) {
   paste0(if (!is.na(rv) && v != rv) paste(rv, "in development") else v, " (", sub(".* ", "", r), ")")
 }
 # table of the largest measured differences of a comparison
-printComparison <- function(x) {
+printComparison <- function(x, caption) {
   m <- x$m; rel <- x$rel; f <- x$f
   cat(nrow(rel), " of ", sum(!is.na(m$p.adj)), " comparisons differ significantly; comparisons with fewer than 20 ",
       "replicates in a run: ", sum(m$n.old < 20 | m$n.new < 20), ". The share of failed simulations differs in ",
@@ -136,7 +136,7 @@ printComparison <- function(x) {
   rel$p.adj <- format.pval(rel$p.adj, digits = 2, eps = 0.001)
   rel$indicator <- ifelse(rel$indicator %in% names(indicators), indicators[rel$indicator], rel$indicator)
   if (nrow(rel)) print(knitr::kable(head(rel, 15)[c("setting", "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
-                                    digits = 3, row.names = FALSE,
+                                    digits = 3, row.names = FALSE, caption = caption,
                                     col.names = c("Setting", "Indicator", "Older", "Newer", "d", "95% CI of d", "p (adjusted)")))
   if (nrow(rel) > 15) cat("\n\nThe table shows the 15 largest of the", nrow(rel), "differences;",
                           "all are in `modelHistory` (see Using the data).\n\n")
@@ -216,7 +216,7 @@ another release:
   [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).
 - **S+B**: both.
 
-```{r timeline, fig.height = 3, fig.cap = "Releases (diamonds; open: planned) and the changes of the model code that alter simulation results, in their order (not to scale in time)."}
+```{r timeline, fig.height = 3, fig.cap = "Timeline of the releases (diamonds with version and year; open: planned) and of the changes of the model code that alter simulation results (circles, labeled with their issue or commit and colored by type), in their order, not to scale in time."}
 op <- par(mar = c(0, 0.5, 0, 0.5))
 n <- nrow(ch)
 isRel <- ch$kind == "release"
@@ -305,7 +305,7 @@ stat <- function(d, k, i) {
 }
 ```
 
-```{r patterns, fig.height = 8, fig.cap = "Replicate means with 95% confidence intervals at the last census (CNDD: over the last five generations), per release."}
+```{r patterns, fig.height = 8, fig.cap = "Indicators (panels) of nine settings (rows) in the runs of each release (colors and symbols): means of the replicate runs at the last census with 95% confidence intervals (CNDD: estimated over the last five generations). All settings on 50 × 50 cells with specRate = 2; a missing point means that the release does not support the setting or the indicator."}
 vcol <- setNames(hcl.colors(max(3, length(runs)), "Dark 3")[seq_along(runs)], runs)
 vpch <- setNames(rep(c(16, 17, 15, 18, 1, 2), length.out = length(runs)), runs) # not by color only
 op <- par(mfrow = c(4, 2), mar = c(2.5, 0.5, 1.8, 0.5), oma = c(2, 13, 0, 0), cex = 0.7)
@@ -349,6 +349,33 @@ for (r in names(cmp)) {
 }
 ```
 
+## Runtime
+
+Release 0.3.2 is much faster than 0.3 where many species arise during a run,
+and up to about 20% slower in most other settings. The runtime is recorded but
+not tested, as it depends on the computer and its load (see Methods). The
+numbers here compare the replicate means of the same simulations in the release
+runs of 0.3 and 0.3.2, which were made on the same computer with 14 simulations
+in parallel.
+
+- At `specRate = 8`, 0.3.2 is 13 times faster in the neutral model with global
+  dispersal on 50 × 50 cells, more than 1,000 times faster on 20 × 20 cells,
+  and about 20 times faster with the Red Queen advantage. At each census, 0.3
+  writes the phylogeny of all species that ever existed, with a method whose
+  cost grows with the square of the length of the tree text; this was shown
+  for the Red Queen settings and is most likely the cause in the neutral model
+  as well. From 0.3.1 on, extinct lineages are removed during the run and only
+  the tree of the extant species is written
+  ([#140](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/140), [#147](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/147)).
+- In most other settings, 0.3.2 takes up to about 20% longer, in particular
+  with local dispersal (4–22% over whole blocks). Profiling attributes about 9%
+  to memory allocations at each death, introduced between 0.3 and 0.3.1
+  ([#149](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/149)); the rest is not explained. Some settings, mostly with global
+  dispersal, are up to 14% faster.
+
+The runtime of 0.3.1 is not compared, as its run used fewer simulations in
+parallel; that of 0.2 has not been analysed yet.
+
 # Releases in detail
 
 This section goes through the releases, newest first. For each release, a box
@@ -372,14 +399,20 @@ for (v in rev(rel$version)) {
     cat("**Changes of the model code since the previous release that alter simulation results.**\n\n")
     d$change <- paste0(d$change, " (", d$commit, ", ", d$reference, ")")
     print(knitr::kable(d[c("type", "change", "outputs")], row.names = FALSE,
-                       col.names = c("Type", "Change of the model", "Effect on the outputs")))
+                       col.names = c("Type", "Change of the model", "Effect on the outputs"),
+                       caption = paste0("Changes of the model code in release ", v,
+                                        " that alter simulation results, with their type (N, B, S, S+B; see above) and the outputs they affect.")))
     cat("\n\n<details><summary>Evidence for each change</summary>\n\n")
-    print(knitr::kable(d[c("reference", "evidence")], row.names = FALSE, col.names = c("Change", "Evidence")))
+    print(knitr::kable(d[c("reference", "evidence")], row.names = FALSE, col.names = c("Change", "Evidence"),
+                       caption = paste0("Evidence for each change of release ", v,
+                                        ": how its effect on the results was established.")))
     cat("\n\n</details>\n\n")
   }
   for (jj in which(vapply(runs, releaseOf, "") == v & runs %in% names(cmp))) {
     cat("<details><summary>Measured differences, ", runLabel(runs[jj - 1]), " → ", runLabel(runs[jj]), "</summary>\n\n", sep = "")
-    printComparison(cmp[[runs[jj]]])
+    printComparison(cmp[[runs[jj]]], paste0(
+      "Settings and indicators whose replicate means differ significantly (Older: ", runLabel(runs[jj - 1]),
+      "; Newer: ", runLabel(runs[jj]), "), at most 15, largest |d| first; d: difference in pooled standard deviations (see Methods)."))
     cat("\n\n</details>\n\n")
   }
 }
@@ -428,7 +461,7 @@ of replicates.
 
 Every release run uses the same design, as far as the release supports its
 parameters: blocks of settings, each varying a few parameters around a
-reference setting, with 30 replicates per setting (first table). The second
+reference setting, with 30 replicates per setting (table below). A second
 table defines the indicators computed for each simulation.
 
 ```{r design}
@@ -454,6 +487,8 @@ knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
 | CNDD (mortality) | logistic regression of death on the number of conspecifics within radius 2 over the last five generations, with a species effect |
 | MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities (runs made with `run.R`); such p-values depend on the plot size and the null model |
 | Runtime | of the core simulation, in seconds (machine-dependent, not tested) |
+
+Table: Indicators computed for each simulation of the design.
 
 ## Reproducing the data
 

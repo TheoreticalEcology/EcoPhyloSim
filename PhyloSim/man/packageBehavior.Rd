@@ -56,6 +56,6 @@ simulated and built with the scripts in the folder
 current release (archive named in \code{info$archive}); its \code{README.md} describes how to regenerate the data.
 }
 \description{
-Used in the vignette "EcoPhyloSim model" (chapters "Processes" and "Community patterns") to show
-how the outputs of the model respond to its parameters and how fast they reach equilibrium.
+Used in the vignette "EcoPhyloSim model" (chapters "Overview", "Processes" and "Community patterns") to show
+how the outputs of the model respond to its parameters, how fast they reach equilibrium and how long the simulations take.
 }
