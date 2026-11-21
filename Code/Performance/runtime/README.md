@@ -1,6 +1,6 @@
 # Runtime of the simulation model: diagnosis and prototypes
 
-Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and three prototype changes that make it 3.8 to 42 times faster without changing results. The prototypes are patches in `prototypes/`; none is part of the package. All tables can be recomputed from `results/` with `scripts/analyse.R`. Issue: #207.
+Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and three prototype changes that make it 3.8 to 42 times faster without changing results. The prototypes are patches in `prototypes/`; none is part of the package. The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
 
 ## Summary
 
