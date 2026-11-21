@@ -54,11 +54,14 @@ public:
     std::vector<double> m_dispersalWeights, m_cumDispersalWeights;
     std::vector<double> m_fitnessWeights, m_cumFitnessWeights, m_cumRecruit;
 
+    // offsets of the cells within the cutoff of negative [0] and positive [1] density dependence, with and
+    // without the focal cell (empty if the mechanism is off); callModel() guarantees 2 * cutoff + 1 <= min(x, y)
+    // for active mechanisms, so that no offset reaches the focal cell again
+    std::vector<std::pair<int, int> > m_densityOffsets[2], m_neighborOffsets[2];
+
     double m_AirTemperature;
     double m_Speciation_Rate;
 
-    double cellsWithinDensityCutoff;
-    double cellsWithinPosCutoff;
     double m_maxDeathRate;
     double m_nicheWidth;
     double m_envStrength;
@@ -109,9 +112,6 @@ public:
     // stored local densities are read only when fitness acts on mortality or reproduction
     bool needsDensity() const { return (m_DD || m_pDD) && (m_mortality || m_reproduction); }
 
-    // number of cells within the cutoff, including the focal cell
-    double cellsWithin(int cutoff);
-
     // offsets (dx, dy) of the cells within the cutoff, ordered by dx, then dy
     static std::vector<std::pair<int, int> > circleOffsets(int cutoff, bool withCenter);
 
@@ -122,6 +122,10 @@ public:
     // dissimilarity of ind to the neighbors of cell (x, y), without the cell itself, for negative or
     // positive density dependence
     double localDissimilarity(Individual &ind, int x, int y, bool positive);
+
+    // sum over the neighbors in localDissimilarity(), for kernel 1 (absolute), 2 (gaussian) or 3 (species)
+    template <int kernel>
+    double dissimilaritySum(const Individual &ind, int x, int y, bool positive, double width) const;
 
     // fitness of the offspring of the individual in parent cell p in the target cell (x, y)
     double recruitFitness(int p_x, int p_y, int x, int y);

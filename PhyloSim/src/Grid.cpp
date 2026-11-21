@@ -126,8 +126,12 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     // END Set up Environment
 
     // Grid Geometry calculations
-    cellsWithinDensityCutoff = cellsWithin(m_DensityCutoff);
-    cellsWithinPosCutoff = cellsWithin(m_posCutoff);
+    for (int positive = 0; positive <= 1; positive++) {
+        if (positive ? !m_pDD : !m_DD) continue;
+        int cutoff = positive ? m_posCutoff : m_DensityCutoff;
+        m_densityOffsets[positive] = circleOffsets(cutoff, true);
+        m_neighborOffsets[positive] = circleOffsets(cutoff, false);
+    }
     // END Grid Geometry calculations
 
     // largest product of the death rates of the mechanisms acting on mortality (Individual::deathProbability)
@@ -523,27 +527,15 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 // update the density around an individual with 
 void Landscape::densityUpdate(int x, int y) {
 
-    int focus_x, focus_y;
-
     for (int positive = 0; positive <= 1; positive++) { // negative, then positive density dependence
-        if (positive ? !m_pDD : !m_DD) continue;
-        int cutoff = positive ? m_posCutoff : m_DensityCutoff;
-        for (int X1 = -cutoff; X1 <= cutoff; X1++) {
-            int yLims = floor(sqrt(cutoff * cutoff - X1 * X1));
-            for (int Y1 = -yLims; Y1 <= yLims; Y1++) {
-                // get focus cell
-                focus_x = ((x + X1 + m_Xdimensions) % m_Xdimensions);
-                focus_y = ((y + Y1 + m_Ydimensions) % m_Ydimensions);
-                Individual &focus = m_Individuals[focus_x][focus_y];
-                if (positive) focus.m_LocalPositive = localDissimilarity(focus, focus_x, focus_y, true);
-                else focus.m_LocalDensity = localDissimilarity(focus, focus_x, focus_y, false);
-            }
+        for (const auto &o : m_densityOffsets[positive]) {
+            int focus_x = wrapX(x + o.first);
+            int focus_y = wrapY(y + o.second);
+            Individual &focus = m_Individuals[focus_x][focus_y];
+            if (positive) focus.m_LocalPositive = localDissimilarity(focus, focus_x, focus_y, true);
+            else focus.m_LocalDensity = localDissimilarity(focus, focus_x, focus_y, false);
         }
     }
-}
-
-double Landscape::cellsWithin(int cutoff) {
-    return circleOffsets(cutoff, true).size();
 }
 
 std::vector<std::pair<int, int> > Landscape::circleOffsets(int cutoff, bool withCenter) {
@@ -557,26 +549,27 @@ std::vector<std::pair<int, int> > Landscape::circleOffsets(int cutoff, bool with
     return offsets;
 }
 
+template <int kernel>
+double Landscape::dissimilaritySum(const Individual &ind, int x, int y, bool positive, double width) const {
+    double sum = 0.0;
+    for (const auto &o : m_neighborOffsets[positive]) {
+        const Individual &neighbor = m_Individuals[wrapX(x + o.first)][wrapY(y + o.second)];
+        double diff = std::abs(ind.m_CompetitionMarker - neighbor.m_CompetitionMarker);
+        if (kernel == 1) sum += diff;
+        else if (kernel == 2) sum += exp(-0.5 * pow(diff / width, 2.0));
+        else sum += (ind.m_Species == neighbor.m_Species); // each species ID has one Species object
+    }
+    return sum;
+}
+
 double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) {
-    int cutoff = positive ? m_posCutoff : m_DensityCutoff;
     int kernel = positive ? m_posKernel : m_ddKernel;
     double width = positive ? m_posWidth : m_ddWidth;
-    double cells = positive ? cellsWithinPosCutoff : cellsWithinDensityCutoff;
-    double sum = 0.0;
-    for (int X2 = -cutoff; X2 <= cutoff; X2++) {
-        int yLims2 = floor(sqrt(cutoff * cutoff - X2 * X2)); // avoid diagonal bias
-        for (int Y2 = -yLims2; Y2 <= yLims2; Y2++) {
-            int neighborX = ((x + X2 + m_Xdimensions) % m_Xdimensions);
-            int neighborY = ((y + Y2 + m_Ydimensions) % m_Ydimensions);
-            if (neighborX == x && neighborY == y) continue;
-            Individual &neighbor = m_Individuals[neighborX][neighborY];
-            double diff = std::abs(ind.m_CompetitionMarker - neighbor.m_CompetitionMarker);
-            if (kernel == 1) sum += diff;
-            else if (kernel == 2) sum += exp(-0.5 * pow(diff / width, 2.0));
-            else sum += (ind.m_Species->m_ID == neighbor.m_Species->m_ID);
-        }
-    }
-    double mean = sum / (cells - 1.0); // mean over the neighbors, without the focal cell
+    // fixes #207 (kernel as template parameter, so that the loop has no branch per neighbor)
+    double sum = kernel == 1 ? dissimilaritySum<1>(ind, x, y, positive, width)
+               : kernel == 2 ? dissimilaritySum<2>(ind, x, y, positive, width)
+               : dissimilaritySum<3>(ind, x, y, positive, width);
+    double mean = sum / m_neighborOffsets[positive].size(); // mean over the neighbors, without the focal cell
     return kernel == 1 ? mean : 1.0 - mean;
 }
 
