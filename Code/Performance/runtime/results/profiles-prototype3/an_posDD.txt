@@ -1,0 +1,54 @@
+samples in callModel: 20.12 s (260 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                           fun inclusive self
+          PhylSimModel::update     100.0  0.0
+   LocalEnvironment::reproduce      99.1  6.1
+      Landscape::ensureDensity      50.1  0.7
+   Landscape::recomputeDensity      49.4  0.4
+ Landscape::localDissimilarity      49.0  3.1
+      Landscape::densityUpdate      15.9 15.8
+          RandomGen::randomInt       8.9  3.1
+       RandomGen::randomDouble       7.3  0.5
+       Landscape::needsDensity       5.8  0.9
+            Individual::evolve       4.3  0.9
+    RandomGen::multinomialDraw       2.2  0.1
+  Individual::deathProbability       2.1  1.3
+       Individual::reportDeath       1.0  0.2
+     Species::removeIndividual       0.8  0.6
+         Landscape::speciation       0.8  0.3
+           Species::updateMean       0.7  0.7
+            Individual::ddTerm       0.7  0.7
+        Species::addIndividual       0.6  0.1
+         Individual::operator=       0.5  0.5
+
+Self time by function (>= 1%):
+                           fun self
+                  dissimSum<3> 28.2
+      Landscape::densityUpdate 15.8
+                           [R] 13.3
+                           abs  9.0
+                  dissimSum<1>  8.7
+   LocalEnvironment::reproduce  6.1
+ Landscape::localDissimilarity  3.1
+          RandomGen::randomInt  3.1
+                      operator  2.6
+  Individual::deathProbability  1.3
+
+Top source lines (self time):
+                                      line self
+                dissimSum<3> @Grid.cpp:649 19.7
+                                       [R] 13.3
+                    std::abs @std_abs.h:72  9.0
+    Landscape::densityUpdate @Grid.cpp:579  5.5
+    Landscape::densityUpdate @Grid.cpp:580  4.1
+                dissimSum<3> @Grid.cpp:650  3.3
+                dissimSum<1> @Grid.cpp:649  3.3
+ LocalEnvironment::reproduce @Grid.cpp:437  3.2
+    Landscape::densityUpdate @Grid.cpp:581  2.9
+                dissimSum<1> @Grid.cpp:653  2.8
+                dissimSum<3> @Grid.cpp:651  2.7
+                    operator @Grid.cpp:475  2.4
+                dissimSum<3> @Grid.cpp:655  2.3
+    Landscape::densityUpdate @Grid.cpp:583  1.8
+                dissimSum<1> @Grid.cpp:651  1.7

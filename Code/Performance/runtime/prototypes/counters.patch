@@ -1,0 +1,126 @@
+--- a/PhyloSim/src/Grid.cpp
++++ b/PhyloSim/src/Grid.cpp
+@@ -23,6 +23,8 @@
+ 
+ const int Landscape::maxRecruitTries; // definition, as it is passed by reference to std::min
+ 
++namespace instr { unsigned long long events = 0, deaths = 0, tries = 0, fallbacks = 0, densUpd = 0, locDiss = 0, recruitCalls = 0; }
++
+ 
+ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool env,
+                      bool mort, bool repro, unsigned int runs, double specRate, int dispersalCutoff,
+@@ -142,6 +144,7 @@
+ }
+ 
+ Landscape::~Landscape() {
++    Rcpp::Rcout << "INSTR events=" << instr::events << " deaths=" << instr::deaths << " tries=" << instr::tries << " fallbacks=" << instr::fallbacks << " densUpd=" << instr::densUpd << " locDiss=" << instr::locDiss << " recruitCalls=" << instr::recruitCalls << std::endl;
+     for (int i = 0; i < m_Xdimensions; i++) {
+         for (int j = 0; j < m_Ydimensions; j++) {
+             // TODO: FH 20.4.17 : I had suspected that the individuals need to be deleted here, but on reflection this seems fine?
+@@ -283,7 +286,7 @@
+         // TODO - seems to me the next for loop is not yet corrected if fitness goes on reproduction,
+ 
+         while (numberDeath < numberOfRuns) {
+-            event++;
++            event++; instr::events++;
+ 
+             int x_coordinate = m_RandomGenerator.randomInt(0, m_Xdimensions - 1);
+             int y_coordinate = m_RandomGenerator.randomInt(0, m_Ydimensions - 1);
+@@ -309,7 +312,7 @@
+             }
+ 
+             // continue with a real death here
+-            numberDeath++;
++            numberDeath++; instr::deaths++;
+ 
+             m_Individuals[x_coordinate][y_coordinate].reportDeath(generation);
+ 
+@@ -325,7 +328,7 @@
+                 } while (p == target);
+                 return p;
+             };
+-            new_parent = drawParent();
++            instr::tries++; new_parent = drawParent();
+ 
+             // rejection sampling: parent with probability ~ proposal * fitness of its recruit here;
+             // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
+@@ -333,10 +336,10 @@
+                     recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
+                  tries++) {
+                 if (tries < std::min(maxRecruitTries, (int) m_LandscapeSize - 1)) {
+-                    new_parent = drawParent();
++                    instr::tries++; new_parent = drawParent();
+                     continue;
+                 }
+-                std::vector<double> cumRecruit(m_LandscapeSize);
++                instr::fallbacks++; std::vector<double> cumRecruit(m_LandscapeSize);
+                 double sum = 0.0;
+                 for (unsigned int i = 0; i < m_LandscapeSize; i++) {
+                     if ((int) i != target) {
+@@ -423,7 +426,7 @@
+     unsigned int numberDeath = 0;
+ 
+     while (numberDeath < numberOfRuns) {
+-        event++;
++        event++; instr::events++;
+ 
+         // Take a new coordinate
+ 
+@@ -448,7 +451,7 @@
+ 
+         // If we continue, count up number of deaths and perform replacement
+ 
+-        numberDeath++;
++        numberDeath++; instr::deaths++;
+ 
+         m_Individuals[x_coordinate][y_coordinate].reportDeath(generation);
+ 
+@@ -490,7 +493,7 @@
+ 
+         std::vector<double> cumWeights(array_length);
+         std::partial_sum(weights.begin(), weights.begin() + array_length, cumWeights.begin());
+-        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
++        instr::tries++; new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
+ 
+         // fixes #165 (rejection sampling: parent with probability ~ weight * fitness of its recruit here);
+         // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
+@@ -498,10 +501,10 @@
+                 recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
+              tries++) {
+             if (tries < std::min(maxRecruitTries, (int) array_length)) {
+-                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
++                instr::tries++; new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
+                 continue;
+             }
+-            std::vector<double> cumRecruit(array_length);
++            instr::fallbacks++; std::vector<double> cumRecruit(array_length);
+             double sum = 0.0;
+             for (unsigned int i = 0; i < array_length; i++) {
+                 sum += weights[i] * (recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
+@@ -528,7 +531,7 @@
+ }
+ 
+ // update the density around an individual with 
+-void Landscape::densityUpdate(int x, int y) {
++void Landscape::densityUpdate(int x, int y) { instr::densUpd++;
+ 
+     int focus_x, focus_y;
+ 
+@@ -560,7 +563,7 @@
+     return cells;
+ }
+ 
+-double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) {
++double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) { instr::locDiss++;
+     int cutoff = positive ? m_posCutoff : m_DensityCutoff;
+     int kernel = positive ? m_posKernel : m_ddKernel;
+     double width = positive ? m_posWidth : m_ddWidth;
+@@ -583,7 +586,7 @@
+     return kernel == 1 ? mean : 1.0 - mean;
+ }
+ 
+-double Landscape::recruitFitness(int p_x, int p_y, int x, int y) {
++double Landscape::recruitFitness(int p_x, int p_y, int x, int y) { instr::recruitCalls++;
+     Individual &parent = m_Individuals[p_x][p_y];
+     double out = 1.0;
+     if (m_Env) out *= parent.envTerm(m_Environment[x * m_Ydimensions + y].first);

@@ -1,0 +1,54 @@
+samples in callModel: 24.94 s (767 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                            fun inclusive self
+           PhylSimModel::update     100.0  0.0
+    LocalEnvironment::reproduce      98.8 13.0
+          Individual::dispersal      21.3  0.4
+             Individual::kernel      20.9 20.9
+        RandomGen::randomDouble       4.0  0.6
+             Individual::evolve       4.0  0.9
+        Individual::reportDeath       3.4  2.6
+          Individual::operator=       2.7  2.7
+     RandomGen::multinomialDraw       2.5  1.7
+ Individual::euclidian_distance       1.8  1.8
+      Species::removeIndividual       0.8  0.4
+          Landscape::speciation       0.7  0.5
+            Species::updateMean       0.5  0.5
+         Landscape::increaseAge       0.5  0.5
+
+Self time by function (>= 1%):
+                                                                    fun self
+                                                        __expl_internal 27.9
+                                                     Individual::kernel 20.9
+                                            LocalEnvironment::reproduce 13.0
+                                                                [ntdll]  9.8
+ double generate_canonical<double, 53ull, linear_congruential_engine<un  3.2
+                                                  Individual::operator=  2.7
+                                                Individual::reportDeath  2.6
+                                                             [ucrtbase]  2.4
+                                                                     ??  2.3
+                            int uniform_int_distribution<int>::operator  2.1
+                                         Individual::euclidian_distance  1.8
+                                                                    exp  1.7
+                                             RandomGen::multinomialDraw  1.7
+                                                           __fpclassify  1.7
+ __detail::_Mod<unsigned int, 2147483647u, 16807u, 0u, false, true>::__  1.0
+
+Top source lines (self time):
+                                                                                       line self
+                                                              __expl_internal @exp.def.h:55 27.9
+                                                     Individual::kernel @Individual.cpp:108 20.9
+                                                                                    [ntdll]  9.8
+                                                  LocalEnvironment::reproduce @Grid.cpp:630  3.4
+                                                Individual::reportDeath @Individual.cpp:255  2.6
+                                                  LocalEnvironment::reproduce @Grid.cpp:656  2.5
+                                                                                 [ucrtbase]  2.4
+                                                   Individual::operator= @Individual.cpp:78  1.8
+                                                  LocalEnvironment::reproduce @Grid.cpp:657  1.5
+                                         Individual::euclidian_distance @Individual.cpp:168  1.2
+                                                                         exp @exp.def.h:137  1.2
+                                                  LocalEnvironment::reproduce @Grid.cpp:670  1.1
+ double std::generate_canonical<double, 53ull, std::linear_congruential_engine<unsigned int  1.1
+                   int std::uniform_int_distribution<int>::operator @uniform_int_dist.h:372  1.0
+ double std::generate_canonical<double, 53ull, std::linear_congruential_engine<unsigned int  0.9

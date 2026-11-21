@@ -1,0 +1,45 @@
+samples in callModel: 20.05 s (406 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                           fun inclusive self
+          PhylSimModel::update     100.0  0.0
+   LocalEnvironment::reproduce      99.8  2.1
+      Landscape::densityUpdate      80.9  1.9
+ Landscape::localDissimilarity      78.5 68.9
+         Individual::dispersal       2.2  0.0
+            Individual::kernel       2.2  2.2
+          RandomGen::randomInt       1.2  0.1
+       Landscape::needsDensity       0.6  0.0
+            Individual::evolve       0.6  0.1
+       RandomGen::randomDouble       0.6  0.0
+       Individual::reportDeath       0.5  0.2
+
+Self time by function (>= 1%):
+                           fun self
+ Landscape::localDissimilarity 68.9
+                            ?? 10.7
+               __expl_internal  5.0
+                       [ntdll]  3.5
+            Individual::kernel  2.2
+   LocalEnvironment::reproduce  2.1
+      Landscape::densityUpdate  1.9
+                           [R]  1.6
+                    [ucrtbase]  1.5
+
+Top source lines (self time):
+                                        line self
+ Landscape::localDissimilarity @Grid.cpp:574 21.8
+ Landscape::localDissimilarity @Grid.cpp:577 18.3
+ Landscape::localDissimilarity @Grid.cpp:571 11.3
+ Landscape::localDissimilarity @Grid.cpp:575  5.7
+               __expl_internal @exp.def.h:55  5.0
+ Landscape::localDissimilarity @Grid.cpp:570  4.1
+                                     [ntdll]  3.5
+ Landscape::localDissimilarity @Grid.cpp:576  2.6
+      Individual::kernel @Individual.cpp:103  2.2
+                              ?? @floor.S:25  1.9
+                                         [R]  1.6
+                                  [ucrtbase]  1.5
+ Landscape::localDissimilarity @Grid.cpp:572  1.4
+ Landscape::localDissimilarity @Grid.cpp:582  1.2
+                              ?? @floor.S:50  0.9

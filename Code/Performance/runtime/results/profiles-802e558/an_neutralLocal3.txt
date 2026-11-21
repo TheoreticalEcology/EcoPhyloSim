@@ -1,0 +1,45 @@
+samples in callModel: 19.99 s (529 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                            fun inclusive self
+    LocalEnvironment::reproduce     100.0 13.6
+           PhylSimModel::update     100.0  0.0
+          Individual::dispersal      14.4  0.5
+             Individual::kernel      13.9 13.9
+ Individual::euclidian_distance       2.8  2.8
+     RandomGen::multinomialDraw       1.2  0.0
+        Landscape::needsDensity       1.1  0.0
+             Individual::evolve       0.9  0.4
+        RandomGen::randomDouble       0.7  0.1
+
+Self time by function (>= 1%):
+                                                                    fun self
+                                                        __expl_internal 51.3
+                                                     Individual::kernel 13.9
+                                            LocalEnvironment::reproduce 13.6
+                                                                [ntdll]  3.3
+                                                                    exp  3.0
+                                         Individual::euclidian_distance  2.8
+                                                           __fpclassify  2.1
+                                                             [ucrtbase]  1.7
+ __gnu_cxx::__normal_iterator<double*, vector<double> > partial_sum<__g  1.6
+                                                                    [R]  1.5
+                                                                     ??  1.4
+
+Top source lines (self time):
+                                                                                       line self
+                                                              __expl_internal @exp.def.h:55 51.3
+                                                     Individual::kernel @Individual.cpp:103 13.9
+                                                  LocalEnvironment::reproduce @Grid.cpp:467  4.7
+                                                  LocalEnvironment::reproduce @Grid.cpp:468  3.9
+                                                                                    [ntdll]  3.3
+                                                                         exp @exp.def.h:137  2.3
+                                         Individual::euclidian_distance @Individual.cpp:214  1.8
+                                                  LocalEnvironment::reproduce @Grid.cpp:481  1.7
+                                                                                 [ucrtbase]  1.7
+                                                                                        [R]  1.5
+ __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > > std::  1.2
+                                         Individual::euclidian_distance @Individual.cpp:213  1.0
+ std::pair<int, int>* std::__uninitialized_default_n_1<false>::__uninit_default_n<std::pair  0.9
+                                                                   __fpclassify @math.h:440  0.9
+                                                  LocalEnvironment::reproduce @Grid.cpp:464  0.6

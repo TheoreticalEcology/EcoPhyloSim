@@ -1,0 +1,6 @@
+# raw profiles, libraries and simulation output are regenerated with the scripts (see README.md)
+*.sleepy
+*.rds
+lib*/
+# summaries of profiles and counters are kept (the root .gitignore excludes *.txt)
+!results/**/*.txt

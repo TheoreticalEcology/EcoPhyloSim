@@ -1,0 +1,56 @@
+samples in callModel: 19.99 s (819 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                            fun inclusive self
+           PhylSimModel::update     100.0  0.0
+    LocalEnvironment::reproduce      99.4 13.2
+          Individual::dispersal      12.5  0.5
+             Individual::kernel      12.0 12.0
+        Landscape::needsDensity       4.7  0.0
+             Individual::evolve       4.1  1.0
+     RandomGen::multinomialDraw       3.6  0.1
+        RandomGen::randomDouble       3.5  0.3
+        Individual::reportDeath       2.5  1.5
+           RandomGen::randomInt       2.0  0.3
+ Individual::euclidian_distance       1.9  1.9
+          Individual::operator=       1.0  1.0
+      Species::removeIndividual       1.0  0.7
+         Individual::getFitness       0.9  0.9
+         Species::addIndividual       0.6  0.3
+            Species::updateMean       0.6  0.6
+
+Self time by function (>= 1%):
+                                                                    fun self
+                                                        __expl_internal 32.8
+                                            LocalEnvironment::reproduce 13.2
+                                                                [ntdll] 12.4
+                                                     Individual::kernel 12.0
+                                                                    [R]  6.5
+                                                             [ucrtbase]  2.8
+                                                                     ??  2.6
+                                                                    exp  1.9
+                                         Individual::euclidian_distance  1.9
+                                                           __fpclassify  1.6
+                                                Individual::reportDeath  1.5
+ __gnu_cxx::__normal_iterator<double const*, vector<double> > __upper_b  1.4
+ __gnu_cxx::__normal_iterator<double*, vector<double> > partial_sum<__g  1.2
+                                                     Individual::evolve  1.0
+                                                  Individual::operator=  1.0
+
+Top source lines (self time):
+                                               line self
+                      __expl_internal @exp.def.h:55 32.8
+                                            [ntdll] 12.4
+             Individual::kernel @Individual.cpp:103 12.0
+                                                [R]  6.5
+          LocalEnvironment::reproduce @Grid.cpp:467  3.6
+                                         [ucrtbase]  2.8
+          LocalEnvironment::reproduce @Grid.cpp:468  2.2
+          LocalEnvironment::reproduce @Grid.cpp:464  2.1
+        Individual::reportDeath @Individual.cpp:299  1.4
+                                 exp @exp.def.h:137  1.2
+          LocalEnvironment::reproduce @Grid.cpp:442  1.2
+ Individual::euclidian_distance @Individual.cpp:214  1.0
+          LocalEnvironment::reproduce @Grid.cpp:481  1.0
+           Individual::operator= @Individual.cpp:75  0.9
+                                         ?? @fake:?  0.9

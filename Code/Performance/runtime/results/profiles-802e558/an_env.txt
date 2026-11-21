@@ -1,0 +1,56 @@
+samples in callModel: 20.04 s (882 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                            fun inclusive self
+           PhylSimModel::update     100.0  0.0
+    LocalEnvironment::reproduce      99.7 13.8
+          Individual::dispersal      11.4  0.4
+         Individual::getFitness      11.1  1.9
+             Individual::kernel      11.0 11.0
+           RandomGen::randomInt       5.2  1.1
+        RandomGen::randomDouble       4.2  0.5
+        Landscape::needsDensity       3.8  0.0
+             Individual::evolve       3.1  0.8
+        Individual::reportDeath       2.3  0.9
+     RandomGen::multinomialDraw       2.2  0.1
+      Species::removeIndividual       1.4  1.2
+ Individual::euclidian_distance       1.4  1.4
+            Individual::envTerm       1.3  1.3
+          Individual::operator=       0.9  0.9
+         Species::addIndividual       0.6  0.3
+            Species::updateMean       0.6  0.6
+
+Self time by function (>= 1%):
+                            fun self
+                __expl_internal 33.1
+    LocalEnvironment::reproduce 13.8
+                        [ntdll] 12.4
+             Individual::kernel 11.0
+                            [R]  8.9
+                     [ucrtbase]  2.0
+         Individual::getFitness  1.9
+                             ??  1.8
+                            exp  1.6
+ Individual::euclidian_distance  1.4
+                   __fpclassify  1.4
+            Individual::envTerm  1.3
+      Species::removeIndividual  1.2
+           RandomGen::randomInt  1.1
+
+Top source lines (self time):
+                                               line self
+                      __expl_internal @exp.def.h:55 33.1
+                                            [ntdll] 12.4
+             Individual::kernel @Individual.cpp:103 11.0
+                                                [R]  8.9
+          LocalEnvironment::reproduce @Grid.cpp:467  2.6
+          LocalEnvironment::reproduce @Grid.cpp:468  2.1
+                                         [ucrtbase]  2.0
+          LocalEnvironment::reproduce @Grid.cpp:442  1.7
+            Individual::envTerm @Individual.cpp:170  1.3
+         Individual::getFitness @Individual.cpp:139  1.0
+          LocalEnvironment::reproduce @Grid.cpp:464  1.0
+          LocalEnvironment::reproduce @Grid.cpp:441  1.0
+                                 exp @exp.def.h:137  0.9
+ Individual::euclidian_distance @Individual.cpp:214  0.9
+          LocalEnvironment::reproduce @Grid.cpp:481  0.9

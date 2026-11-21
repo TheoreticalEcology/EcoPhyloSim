@@ -1,0 +1,66 @@
+--- a/PhyloSim/src/Grid.h
++++ b/PhyloSim/src/Grid.h
+@@ -48,6 +48,8 @@
+     // The size of the landscape is defined as m_Xdimensions * m_Ydimensions
+     unsigned int m_LandscapeSize;
+     int m_KernelSize;
++    std::vector<std::pair<int, int> > m_kOff; // PROTOTYPE dispersal table
++    std::vector<double> m_kW, m_kCum, m_bufRecruit;
+ 
+     double m_AirTemperature;
+     double m_Speciation_Rate;
+--- a/PhyloSim/src/Grid.cpp
++++ b/PhyloSim/src/Grid.cpp
+@@ -455,6 +455,44 @@
+         ////////////////////////////////////////////
+         // DISPERSAL
+ 
++        // PROTOTYPE: dispersal weights depend only on the offset; precompute them once (same order, same values)
++        if (m_kOff.empty()) {
++            for (int rx = -m_Cutoff; rx <= m_Cutoff; rx++) {
++                int yl = floor(sqrt(m_Cutoff * m_Cutoff - rx * rx));
++                for (int ry = -yl; ry <= yl; ry++) {
++                    if (rx == 0 && ry == 0) continue;
++                    m_kOff.push_back(std::make_pair(rx, ry));
++                    m_kW.push_back(m_Individuals[0][0].dispersal(m_Dispersal_type, m_Individuals[0][0].euclidian_distance(rx, ry)));
++                }
++            }
++            m_kCum.resize(m_kW.size());
++            std::partial_sum(m_kW.begin(), m_kW.end(), m_kCum.begin());
++            m_bufRecruit.resize(m_kW.size());
++        }
++        if (!m_reproduction && m_Cutoff < m_Xdimensions && m_Cutoff < m_Ydimensions) {
++            int K = m_kOff.size();
++            auto px = [&](int i) { return (x_coordinate + m_kOff[i].first + m_Xdimensions) % m_Xdimensions; };
++            auto py = [&](int i) { return (y_coordinate + m_kOff[i].second + m_Ydimensions) % m_Ydimensions; };
++            new_parent = m_RandomGenerator.multinomialDraw(m_kCum, K);
++            for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
++                    recruitFitness(px(new_parent), py(new_parent), x_coordinate, y_coordinate);
++                 tries++) {
++                if (tries < std::min(maxRecruitTries, K)) {
++                    new_parent = m_RandomGenerator.multinomialDraw(m_kCum, K);
++                    continue;
++                }
++                double sum = 0.0;
++                for (int i = 0; i < K; i++) {
++                    sum += m_kW[i] * (recruitFitness(px(i), py(i), x_coordinate, y_coordinate) + DBL_MIN * 100.0);
++                    m_bufRecruit[i] = sum;
++                }
++                if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(m_bufRecruit, K);
++                break;
++            }
++            x_parent = px(new_parent);
++            y_parent = py(new_parent);
++        } else {
++
+         std::vector <std::pair<int, int> > parents(m_KernelSize);
+ 
+         std::vector<double> weights(m_KernelSize); // fixes #149 (heap instead of stack)
+@@ -514,6 +552,7 @@
+         }
+         x_parent = parents[new_parent].first;
+         y_parent = parents[new_parent].second;
++        } // END PROTOTYPE else
+ 
+         m_Individuals[x_coordinate][y_coordinate] = m_Individuals[x_parent][y_parent];  // overloaded operator, deep copy ! // report birth and evolve is automatic
+         m_Individuals[x_coordinate][y_coordinate].m_X_coordinate = x_coordinate;

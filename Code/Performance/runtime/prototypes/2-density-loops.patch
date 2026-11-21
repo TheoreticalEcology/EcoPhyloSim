@@ -1,0 +1,86 @@
+--- a/PhyloSim/src/Grid.h
++++ b/PhyloSim/src/Grid.h
+@@ -48,6 +48,7 @@
+     // The size of the landscape is defined as m_Xdimensions * m_Ydimensions
+     unsigned int m_LandscapeSize;
+     int m_KernelSize;
++    std::vector<std::pair<int, int> > m_offFull[2], m_offNoSelf[2]; bool m_offOK[2] = {false, false}; bool m_offBuilt = false; void buildOffsets(); // PROTOTYPE
+     std::vector<std::pair<int, int> > m_kOff; // PROTOTYPE dispersal table
+     std::vector<double> m_kW, m_kCum, m_bufRecruit;
+ 
+--- a/PhyloSim/src/Grid.cpp
++++ b/PhyloSim/src/Grid.cpp
+@@ -574,6 +574,17 @@
+     for (int positive = 0; positive <= 1; positive++) { // negative, then positive density dependence
+         if (positive ? !m_pDD : !m_DD) continue;
+         int cutoff = positive ? m_posCutoff : m_DensityCutoff;
++        if (!m_offBuilt) buildOffsets();
++        if (m_offOK[positive]) {
++            for (const auto &o : m_offFull[positive]) {
++                int fx = x + o.first;  if (fx < 0) fx += m_Xdimensions; else if (fx >= m_Xdimensions) fx -= m_Xdimensions;
++                int fy = y + o.second; if (fy < 0) fy += m_Ydimensions; else if (fy >= m_Ydimensions) fy -= m_Ydimensions;
++                Individual &focus = m_Individuals[fx][fy];
++                if (positive) focus.m_LocalPositive = localDissimilarity(focus, fx, fy, true);
++                else focus.m_LocalDensity = localDissimilarity(focus, fx, fy, false);
++            }
++            continue;
++        }
+         for (int X1 = -cutoff; X1 <= cutoff; X1++) {
+             int yLims = floor(sqrt(cutoff * cutoff - X1 * X1));
+             for (int Y1 = -yLims; Y1 <= yLims; Y1++) {
+@@ -599,11 +610,55 @@
+     return cells;
+ }
+ 
++// PROTOTYPE: disc offsets in the loop order used below; full includes (0, 0), noSelf excludes it
++void Landscape::buildOffsets() {
++    for (int positive = 0; positive <= 1; positive++) {
++        int cutoff = positive ? m_posCutoff : m_DensityCutoff;
++        m_offFull[positive].clear();
++        m_offNoSelf[positive].clear();
++        for (int X2 = -cutoff; X2 <= cutoff; X2++) {
++            int yl = floor(sqrt(cutoff * cutoff - X2 * X2));
++            for (int Y2 = -yl; Y2 <= yl; Y2++) {
++                m_offFull[positive].push_back(std::make_pair(X2, Y2));
++                if (X2 != 0 || Y2 != 0) m_offNoSelf[positive].push_back(std::make_pair(X2, Y2));
++            }
++        }
++        m_offOK[positive] = cutoff < m_Xdimensions && cutoff < m_Ydimensions;
++    }
++    m_offBuilt = true;
++}
++
++template <int KERNEL>
++static inline double dissimSum(Individual &ind, int x, int y, const std::vector<std::pair<int, int> > &off,
++                               Individual **grid, int X, int Y, double width) {
++    double sum = 0.0;
++    const double cm = ind.m_CompetitionMarker;
++    Species *sp = ind.m_Species;
++    for (const auto &o : off) {
++        int nx = x + o.first;  if (nx < 0) nx += X; else if (nx >= X) nx -= X;
++        int ny = y + o.second; if (ny < 0) ny += Y; else if (ny >= Y) ny -= Y;
++        Individual &neighbor = grid[nx][ny];
++        if (KERNEL == 1) sum += std::abs(cm - neighbor.m_CompetitionMarker);
++        else if (KERNEL == 2) sum += exp(-0.5 * pow(std::abs(cm - neighbor.m_CompetitionMarker) / width, 2.0));
++        else sum += (sp == neighbor.m_Species);
++    }
++    return sum;
++}
++
+ double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) {
+     int cutoff = positive ? m_posCutoff : m_DensityCutoff;
+     int kernel = positive ? m_posKernel : m_ddKernel;
+     double width = positive ? m_posWidth : m_ddWidth;
+     double cells = positive ? cellsWithinPosCutoff : cellsWithinDensityCutoff;
++    if (!m_offBuilt) buildOffsets();
++    if (m_offOK[positive]) {
++        const auto &off = m_offNoSelf[positive];
++        double s = kernel == 1 ? dissimSum<1>(ind, x, y, off, m_Individuals, m_Xdimensions, m_Ydimensions, width)
++                 : kernel == 2 ? dissimSum<2>(ind, x, y, off, m_Individuals, m_Xdimensions, m_Ydimensions, width)
++                 : dissimSum<3>(ind, x, y, off, m_Individuals, m_Xdimensions, m_Ydimensions, width);
++        double m = s / (cells - 1.0);
++        return kernel == 1 ? m : 1.0 - m;
++    }
+     double sum = 0.0;
+     for (int X2 = -cutoff; X2 <= cutoff; X2++) {
+         int yLims2 = floor(sqrt(cutoff * cutoff - X2 * X2)); // avoid diagonal bias

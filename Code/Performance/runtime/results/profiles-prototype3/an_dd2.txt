@@ -1,0 +1,62 @@
+samples in callModel: 20.09 s (359 stacks)
+
+Model functions (inclusive / self, % of callModel time):
+                           fun inclusive self
+          PhylSimModel::update     100.0  0.0
+   LocalEnvironment::reproduce      97.4  8.1
+      Landscape::ensureDensity      24.4  0.9
+   Landscape::recomputeDensity      23.5  0.8
+ Landscape::localDissimilarity      22.8  2.1
+       RandomGen::randomDouble      15.6  0.7
+       Landscape::needsDensity      14.7  0.1
+            Individual::evolve      13.8  3.1
+      Landscape::densityUpdate       8.5  8.4
+          RandomGen::randomInt       7.8  1.3
+    RandomGen::multinomialDraw       7.8  0.6
+        Individual::getFitness       6.8  5.8
+       Individual::reportDeath       4.7  1.2
+         Individual::operator=       4.0  4.0
+     Species::removeIndividual       3.5  2.1
+           Species::updateMean       1.8  1.8
+        Landscape::increaseAge       1.6  1.6
+         Landscape::speciation       1.0  0.8
+            Individual::ddTerm       1.0  1.0
+        Species::addIndividual       0.9  0.5
+
+Self time by function (>= 1%):
+                                                                    fun self
+                                                                    [R] 23.8
+                                                                    abs 11.2
+                                                           dissimSum<1>  9.5
+                                               Landscape::densityUpdate  8.4
+                                            LocalEnvironment::reproduce  8.1
+                                                 Individual::getFitness  5.8
+                                                               operator  5.5
+                                                  Individual::operator=  4.0
+ __gnu_cxx::__normal_iterator<double const*, vector<double> > __upper_b  3.6
+                                                     Individual::evolve  3.1
+                                          Landscape::localDissimilarity  2.1
+                                              Species::removeIndividual  2.1
+                                                    Species::updateMean  1.8
+                                                 Landscape::increaseAge  1.6
+                                                   RandomGen::randomInt  1.3
+                                                Individual::reportDeath  1.2
+                                                     Individual::ddTerm  1.0
+
+Top source lines (self time):
+                                                                                       line self
+                                                                                        [R] 23.8
+                                                                     std::abs @std_abs.h:72 11.2
+                                                                 dissimSum<1> @Grid.cpp:649  3.9
+                                                     Landscape::densityUpdate @Grid.cpp:579  3.8
+                                                  LocalEnvironment::reproduce @Grid.cpp:442  3.7
+                                                   Individual::operator= @Individual.cpp:75  2.9
+                                                                     operator @Grid.cpp:474  2.9
+                                                                     operator @Grid.cpp:475  2.6
+                                                                 dissimSum<1> @Grid.cpp:653  2.6
+                                                 Individual::getFitness @Individual.cpp:139  2.0
+                                                 Individual::getFitness @Individual.cpp:152  2.0
+                                                                 dissimSum<1> @Grid.cpp:651  1.8
+                                                  LocalEnvironment::reproduce @Grid.cpp:441  1.7
+ __gnu_cxx::__normal_iterator<double const*, std::vector<double, std::allocator<double> > >  1.6
+                                                       Landscape::increaseAge @Grid.cpp:166  1.5
