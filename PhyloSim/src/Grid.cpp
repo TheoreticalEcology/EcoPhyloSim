@@ -132,6 +132,7 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
         m_densityOffsets[positive] = circleOffsets(cutoff, true);
         m_neighborOffsets[positive] = circleOffsets(cutoff, false);
     }
+    m_densityOutdated.assign(m_LandscapeSize, 0);
     // END Grid Geometry calculations
 
     // largest product of the death rates of the mechanisms acting on mortality (Individual::deathProbability)
@@ -266,6 +267,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             array_length = 0;
             for (int kernel_x = 0; kernel_x < m_Xdimensions; kernel_x++) {
                 for (int kernel_y = 0; kernel_y < m_Ydimensions; kernel_y++) {
+                    ensureDensity(kernel_x, kernel_y);
                     weights[array_length] = m_Individuals[kernel_x][kernel_y].getFitness(
                             m_Environment[kernel_x * m_Ydimensions + kernel_y].first, m_Env, m_DD, generation,
                             m_redQueenStrength, m_redQueen);
@@ -296,6 +298,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             // every m_mortalityStrength'th step the randomly chosen individual dies, no matter its fitness
             // with one mechanism, the old algorithm below gives the same ratios of death rates and keeps
             // the results of earlier versions
+            if (m_mortality) ensureDensity(x_coordinate, y_coordinate);
             if (m_mortality && m_Env + m_DD + m_pDD > 1) { // proportional hazards, see Individual::deathProbability
                 double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
                         m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD,
@@ -448,6 +451,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         // If fitness acts on mortality, break here with a chance ~ fitness
 
         // important!! the frequency in relation to the base mortality controls the intensity of the mechanisms
+        if (m_mortality) ensureDensity(x_coordinate, y_coordinate);
         if (m_mortality && m_Env + m_DD + m_pDD > 1) { // proportional hazards, see Individual::deathProbability
             double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
                     m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD,
@@ -478,6 +482,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         if (m_reproduction) {
             for (int i = 0; i < nKernel; i++) {
                 int p_x = parentX(i), p_y = parentY(i);
+                ensureDensity(p_x, p_y);
                 m_fitnessWeights[i] = m_Individuals[p_x][p_y].getSeedsTo(m_dispersalOffsets[i].first,
                                                                          m_dispersalOffsets[i].second, m_Dispersal_type,
                                                                          m_Environment[p_x * m_Ydimensions + p_y].first,
@@ -524,18 +529,23 @@ void LocalEnvironment::reproduce(unsigned int generation) {
     } // END while (numberDeath < numberOfRuns)
 }
 
-// update the density around an individual with 
 void Landscape::densityUpdate(int x, int y) {
-
-    for (int positive = 0; positive <= 1; positive++) { // negative, then positive density dependence
+    for (int positive = 0; positive <= 1; positive++) {
         for (const auto &o : m_densityOffsets[positive]) {
-            int focus_x = wrapX(x + o.first);
-            int focus_y = wrapY(y + o.second);
-            Individual &focus = m_Individuals[focus_x][focus_y];
-            if (positive) focus.m_LocalPositive = localDissimilarity(focus, focus_x, focus_y, true);
-            else focus.m_LocalDensity = localDissimilarity(focus, focus_x, focus_y, false);
+            m_densityOutdated[wrapX(x + o.first) * m_Ydimensions + wrapY(y + o.second)] = 1;
         }
     }
+}
+
+// fixes #207 (densities recomputed only when read, not after every death): the stored value depends only on
+// the current neighborhood, and every change in it marks the cell, so the value read is the same as before
+void Landscape::ensureDensity(int x, int y) {
+    char &outdated = m_densityOutdated[x * m_Ydimensions + y];
+    if (!outdated) return;
+    Individual &ind = m_Individuals[x][y];
+    if (m_DD) ind.m_LocalDensity = localDissimilarity(ind, x, y, false);
+    if (m_pDD) ind.m_LocalPositive = localDissimilarity(ind, x, y, true);
+    outdated = 0;
 }
 
 std::vector<std::pair<int, int> > Landscape::circleOffsets(int cutoff, bool withCenter) {

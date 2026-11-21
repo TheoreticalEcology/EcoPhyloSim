@@ -58,6 +58,8 @@ public:
     // without the focal cell (empty if the mechanism is off); callModel() guarantees 2 * cutoff + 1 <= min(x, y)
     // for active mechanisms, so that no offset reaches the focal cell again
     std::vector<std::pair<int, int> > m_densityOffsets[2], m_neighborOffsets[2];
+    // cells whose stored densities may be outdated (index x * m_Ydimensions + y)
+    std::vector<char> m_densityOutdated;
 
     double m_AirTemperature;
     double m_Speciation_Rate;
@@ -107,7 +109,11 @@ public:
 
     void speciation(unsigned int generation);
 
+    // marks the stored densities around cell (x, y) as outdated, after the cell has changed
     void densityUpdate(int x, int y);
+
+    // recomputes the stored densities of cell (x, y) if they are outdated; call before reading them
+    void ensureDensity(int x, int y);
 
     // stored local densities are read only when fitness acts on mortality or reproduction
     bool needsDensity() const { return (m_DD || m_pDD) && (m_mortality || m_reproduction); }
