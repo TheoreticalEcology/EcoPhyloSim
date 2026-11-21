@@ -206,6 +206,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
         Rcpp::stop("callModel(): soilmatR must have length 1, or length x * y if airmatR has length x * y");
 
 
+    RNGSync rngSync; // random numbers from the copy of R's generator until the end of this function
     int nRuns = runs.length(); // number of consecutive simulations that are executed sequentially
     int prevNGen = 0;
 
@@ -323,6 +324,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 // Internal, for tests only: counts how often multinomialDraw() returns each index of weights.
 // [[Rcpp::export]]
 IntegerVector multinomialDrawCounts(NumericVector weights, int nDraws) {
+    RNGSync rngSync;
     RandomGen ran;
     std::vector<double> cumWeights(weights.size());
     std::partial_sum(weights.begin(), weights.end(), cumWeights.begin());

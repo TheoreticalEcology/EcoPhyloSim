@@ -20,6 +20,7 @@ Description: Simulates and analyzes species community
     which allows the user to identify biogeographic or phylogenetic patterns
     exclusively correlated with a certain mechanism or combination of mechanisms.
 License: GPL (>= 3)
+Copyright: See the file COPYRIGHTS for code adapted from R.
 URL: https://github.com/TheoreticalEcology/EcoPhyloSim
 BugReports: https://github.com/TheoreticalEcology/EcoPhyloSim/issues
 Depends:

@@ -1,0 +1,9 @@
+The functions toUnif() and nextBlock() in src/RandomGen.cpp are adapted from R's
+src/main/RNG.c (Mersenne-Twister), licensed under the GNU General Public License,
+version 2 or later:
+
+  Copyright (C) 1997--2026 The R Core Team
+  Copyright (C) 1995, 1996 Robert Gentleman and Ross Ihaka
+  MT19937: Copyright (C) 1997, 1999 Makoto Matsumoto and Takuji Nishimura
+
+All other files: Copyright the EcoPhyloSim authors (see DESCRIPTION), GPL (>= 3).
