@@ -3,6 +3,7 @@
 ## Bug fixes
 
 * `getAverageTraits(orderPhylo = FALSE)` returns one row per species instead of repeating species, usually once per grid cell (#200).
+* `plotSpatialPhylo()`, `plotTraitDistribution(type = "all")` and `localPlots(plot = TRUE)` draw the maps with the x-axis of the grid horizontally and in the aspect ratio of the grid; before, x and y were swapped and the maps were stretched to a square or to the plot panel (#211).
 * `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` work with a single parameter or a single summary statistic instead of stopping with an error (#201).
 
 # EcoPhyloSim 0.3.2

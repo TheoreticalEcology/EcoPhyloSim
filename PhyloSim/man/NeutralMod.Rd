@@ -47,7 +47,7 @@ The model is slow and only suitable for small landscapes. The output contains th
 \examples{
 ## Neutral model with global dispersal
 simu <- NeutralMod(x = 20, y = 20, runs = 100, specRate = 2, seed = 1)
-image(simu$Output[[1]]$specMat)
+image(t(simu$Output[[1]]$specMat)) # t(): x horizontally
 specRich(simu)
 
 ## Local dispersal with exponential distances (mean 2 cells), saving

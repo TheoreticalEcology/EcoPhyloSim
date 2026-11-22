@@ -30,3 +30,12 @@ test_that("plotPhylogeneticDispersion() fills all squares, also for NA p-values 
   expect_false(anyNA(squares))
   expect_equal(squares[3], "grey")
 })
+
+test_that(".imageGrid() draws x (columns) horizontally in the aspect ratio of the grid (#211)", {
+  pdf(NULL, width = 7, height = 7)
+  on.exit(dev.off())
+  EcoPhyloSim:::.imageGrid(matrix(1:300, nrow = 10, ncol = 30))
+  usr <- par("usr")
+  expect_equal(usr[1:2], c(0.5, 30.5))
+  expect_equal(diff(usr[1:2]) / diff(usr[3:4]), par("pin")[1] / par("pin")[2])
+})
