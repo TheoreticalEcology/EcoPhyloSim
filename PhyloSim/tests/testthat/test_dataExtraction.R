@@ -5,7 +5,7 @@ par <- createCompletePar(x = 20, y = 15, dispersal = 1, runs = c(10, 11, 13), # 
                          negativeDD = 1, negativeDDCut = 2, scenario = "test")
 simu <- runSimulation(par)
 
-# conspecific neighbors as in Landscape::densityUpdate (Grid.cpp), cell (x, y) = mat[y + 1, x + 1]
+# conspecific neighbors as in Landscape::localDissimilarity() (Grid.cpp), cell (x, y) = mat[y + 1, x + 1]
 bruteCon <- function(sp, r) {
   X <- ncol(sp); Y <- nrow(sp); con <- matrix(0, Y, X)
   for (x in 0:(X - 1)) for (y in 0:(Y - 1)) for (dx in -r:r) {
@@ -65,4 +65,13 @@ test_that("getMortalityData works with lists and needs two recorded generations"
   expect_error(getMortalityData(one), "two recorded generations")
   expect_error(getMortalityData(5), "PhyloSim object")
   expect_error(getMortalityData(list()), "PhyloSim object")
+})
+
+test_that("getAverageTraits gives one row per species for both orderings (#200)", {
+  s <- quietSimulation(x = 20, y = 20, dispersal = 1, runs = c(100, 200), specRate = 2, seed = 1)
+  species <- unique(as.vector(s$Output[[2]]$specMat))
+  tr <- getAverageTraits(s, orderPhylo = FALSE)
+  expect_equal(rownames(tr), as.character(species))
+  expect_equal(unname(tr[, "env trait"]), sapply(species, function(sp) mean(s$Output[[2]]$traitMat[s$Output[[2]]$specMat == sp])))
+  expect_equal(sort(rownames(getAverageTraits(s))), sort(rownames(tr)))
 })

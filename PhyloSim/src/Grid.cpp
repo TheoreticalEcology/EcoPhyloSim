@@ -126,8 +126,12 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     // END Set up Environment
 
     // Grid Geometry calculations
-    cellsWithinDensityCutoff = cellsWithin(m_DensityCutoff);
-    cellsWithinPosCutoff = cellsWithin(m_posCutoff);
+    for (int positive = 0; positive <= 1; positive++) {
+        if (positive ? !m_pDD : !m_DD) continue;
+        int cutoff = positive ? m_posCutoff : m_DensityCutoff;
+        m_neighborOffsets[positive] = circleOffsets(cutoff, false);
+    }
+    m_densityOutdated.assign(m_LandscapeSize, 0);
     // END Grid Geometry calculations
 
     // largest product of the death rates of the mechanisms acting on mortality (Individual::deathProbability)
@@ -180,6 +184,74 @@ GlobalEnvironment::GlobalEnvironment(int xsize, int ysize, int type, bool neutra
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
                   soilmat, nicheWidth, ddOptions) {
 
+    // fixes #207 (up to N fitness evaluations per death while few individuals fit): parents are proposed from bins
+    // of the environmental trait and accepted with fitness / bound, i.e. with the same probability as before;
+    // the bound needs fitness terms between 0 and 1 (envStrength, compStrength in [0, 1]; posTerm, ddTable <= 1)
+    if (m_recruitment && m_Env && !m_reproduction && envStrength >= 0 && envStrength <= 1 && compStrength >= 0 &&
+        compStrength <= 1) {
+        int nBins = (int) std::min(512.0, std::max(1.0, std::ceil(4.0 / nicheWidth)));
+        double binWidth = 1.0 / nBins;
+        for (int d = 0; d < nBins; d++) {
+            // smallest distance between a trait in a bin d bins away and the environment of the target cell,
+            // minus a margin for rounding in traitBin()
+            double distance = std::max(0.0, (d - 1.0 - 1e-6) * binWidth);
+            m_binBound.push_back((envStrength * exp(-0.5 * pow(distance / nicheWidth, 2.0)) + 1 - envStrength) *
+                                 (1 + 1e-9)); // the other fitness terms are at most 1
+        }
+        m_traitBins.resize(nBins);
+        m_cumBinWeights.resize(nBins);
+    }
+}
+
+int GlobalEnvironment::traitBin(double trait) const {
+    int nBins = m_traitBins.size();
+    return std::min(nBins - 1, std::max(0, (int) (trait * nBins)));
+}
+
+void GlobalEnvironment::binCell(int cell) {
+    if (m_binOfCell[cell] >= 0) { // remove it from its old bin
+        std::vector<int> &old = m_traitBins[m_binOfCell[cell]];
+        int last = old.back();
+        old[m_positionInBin[cell]] = last;
+        m_positionInBin[last] = m_positionInBin[cell];
+        old.pop_back();
+    }
+    int bin = traitBin(m_Individuals[cell / m_Ydimensions][cell % m_Ydimensions].m_Mean);
+    m_binOfCell[cell] = bin;
+    m_positionInBin[cell] = m_traitBins[bin].size();
+    m_traitBins[bin].push_back(cell);
+}
+
+void GlobalEnvironment::binAllCells() {
+    for (auto &bin : m_traitBins) bin.clear();
+    m_binOfCell.assign(m_LandscapeSize, -1);
+    m_positionInBin.resize(m_LandscapeSize);
+    for (unsigned int cell = 0; cell < m_LandscapeSize; cell++) binCell(cell);
+}
+
+int GlobalEnvironment::binnedParent(int target) {
+    int x = target / m_Ydimensions, y = target % m_Ydimensions;
+    int targetBin = traitBin(m_Environment[target].first);
+    int nBins = m_traitBins.size();
+    double sum = 0.0;
+    for (int b = 0; b < nBins; b++) {
+        sum += m_traitBins[b].size() * m_binBound[std::abs(b - targetBin)];
+        m_cumBinWeights[b] = sum;
+    }
+    if (!(sum > 0)) return -1;
+    for (int tries = 0; tries < maxRecruitTries; tries++) {
+        int b = m_RandomGenerator.multinomialDraw(m_cumBinWeights, nBins);
+        const std::vector<int> &cells = m_traitBins[b];
+        if (cells.empty()) continue; // possible only through rounding of the cumulative weights
+        int cell = cells[m_RandomGenerator.randomInt(0, cells.size() - 1)];
+        if (cell == target) continue; // fixes #81
+        double bound = m_binBound[std::abs(b - targetBin)];
+        double fitness = recruitFitness(cell / m_Ydimensions, cell % m_Ydimensions, x, y);
+        if (fitness > bound) Rcpp::stop("recruitment fitness above its bound in binnedParent(): fitness terms must "
+                                        "be between 0 and 1 (internal error, please report)");
+        if (m_RandomGenerator.randomDouble(0.0, 1.0) * bound < fitness) return cell;
+    }
+    return -1;
 }
 
 GlobalEnvironment::~GlobalEnvironment() {
@@ -262,6 +334,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             array_length = 0;
             for (int kernel_x = 0; kernel_x < m_Xdimensions; kernel_x++) {
                 for (int kernel_y = 0; kernel_y < m_Ydimensions; kernel_y++) {
+                    ensureDensity(kernel_x, kernel_y);
                     weights[array_length] = m_Individuals[kernel_x][kernel_y].getFitness(
                             m_Environment[kernel_x * m_Ydimensions + kernel_y].first, m_Env, m_DD, generation,
                             m_redQueenStrength, m_redQueen);
@@ -276,6 +349,9 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         // TODO could make numberofruns a parameter
 
         numberOfRuns = m_LandscapeSize;
+        // births re-bin their own cell; re-binning all cells once per generation would also pick up trait changes
+        // elsewhere, e.g. if speciation changes traits (#114)
+        if (!m_traitBins.empty()) binAllCells();
 
         int event = 0;
         unsigned int numberDeath = 0;
@@ -292,6 +368,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             // every m_mortalityStrength'th step the randomly chosen individual dies, no matter its fitness
             // with one mechanism, the old algorithm below gives the same ratios of death rates and keeps
             // the results of earlier versions
+            if (m_mortality) ensureDensity(x_coordinate, y_coordinate);
             if (m_mortality && m_Env + m_DD + m_pDD > 1) { // proportional hazards, see Individual::deathProbability
                 double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
                         m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD,
@@ -332,6 +409,13 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
                     recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
                  tries++) {
+                if (tries == uniformTriesBeforeBins && !m_traitBins.empty()) {
+                    int p = binnedParent(target);
+                    if (p >= 0) {
+                        new_parent = p;
+                        break;
+                    }
+                }
                 if (tries < std::min(maxRecruitTries, (int) m_LandscapeSize - 1)) {
                     new_parent = drawParent();
                     continue;
@@ -366,6 +450,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             m_Individuals[x_coordinate][y_coordinate].m_Y_coordinate = y_coordinate;
 
             m_Individuals[x_coordinate][y_coordinate].evolve();
+            if (!m_traitBins.empty()) binCell(target);
 
             parents[x_coordinate * m_Ydimensions + y_coordinate].first = x_coordinate;
             parents[x_coordinate * m_Ydimensions + y_coordinate].second = y_coordinate;
@@ -393,6 +478,18 @@ LocalEnvironment::LocalEnvironment(int xsize, int ysize, int type, bool neutral,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
                   soilmat, nicheWidth, ddOptions) {
 
+    // dispersal weights depend only on the offset; computed once instead of for every death
+    m_dispersalOffsets = circleOffsets(m_Cutoff, false);
+    for (const auto &o : m_dispersalOffsets) {
+        m_dispersalWeights.push_back(m_Individuals[0][0].dispersal(m_Dispersal_type,
+                                                                   m_Individuals[0][0].euclidian_distance(o.first, o.second)));
+    }
+    int nKernel = m_dispersalOffsets.size();
+    m_cumDispersalWeights.resize(nKernel);
+    std::partial_sum(m_dispersalWeights.begin(), m_dispersalWeights.end(), m_cumDispersalWeights.begin());
+    m_fitnessWeights.resize(nKernel);
+    m_cumFitnessWeights.resize(nKernel);
+    m_cumRecruit.resize(nKernel);
 }
 
 LocalEnvironment::~LocalEnvironment() {
@@ -407,12 +504,11 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 
     int x_coordinate;
     int y_coordinate;
-    int x_parent = 0, kernel_x = 0;
-    int y_parent = 0, kernel_y = 0;
-    unsigned int array_length;
+    int x_parent = 0;
+    int y_parent = 0;
     int new_parent;
     unsigned int numberOfRuns = 0;
-    m_KernelSize = ((2 * m_Cutoff + 1) * (2 * m_Cutoff + 1) - 1);
+    int nKernel = m_dispersalOffsets.size();
 
     numberOfRuns = m_LandscapeSize;
 
@@ -433,6 +529,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         // If fitness acts on mortality, break here with a chance ~ fitness
 
         // important!! the frequency in relation to the base mortality controls the intensity of the mechanisms
+        if (m_mortality) ensureDensity(x_coordinate, y_coordinate);
         if (m_mortality && m_Env + m_DD + m_pDD > 1) { // proportional hazards, see Individual::deathProbability
             double p = m_Individuals[x_coordinate][y_coordinate].deathProbability(
                     m_Environment[x_coordinate * m_Ydimensions + y_coordinate].first, m_Env, m_DD,
@@ -455,65 +552,48 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         ////////////////////////////////////////////
         // DISPERSAL
 
-        std::vector <std::pair<int, int> > parents(m_KernelSize);
+        // parent cells; callModel() and checkPar() guarantee 2 * m_Cutoff + 1 <= min(x, y), so that no offset reaches
+        // the target cell again
+        auto parentX = [&](int i) { return wrapX(x_coordinate + m_dispersalOffsets[i].first); };
+        auto parentY = [&](int i) { return wrapY(y_coordinate + m_dispersalOffsets[i].second); };
 
-        std::vector<double> weights(m_KernelSize); // fixes #149 (heap instead of stack)
-        array_length = 0;
-
-        for (int relativeX = -m_Cutoff; relativeX <= m_Cutoff; relativeX++) {
-            int yLims = floor(sqrt(m_Cutoff * m_Cutoff - relativeX * relativeX)); // avoid diagonal bias
-            for (int relativeY = -yLims; relativeY <= yLims; relativeY++) {
-                kernel_x = (x_coordinate + relativeX + m_Xdimensions) % m_Xdimensions;
-                kernel_y = (y_coordinate + relativeY + m_Ydimensions) % m_Ydimensions;
-                if (!(kernel_x == x_coordinate && kernel_y == y_coordinate)) {
-                    parents[array_length].first = kernel_x;
-                    parents[array_length].second = kernel_y;
-                    if (m_reproduction) {
-                        weights[array_length] = m_Individuals[kernel_x][kernel_y].getSeedsTo(relativeX, relativeY,
-                                                                                             m_Dispersal_type,
-                                                                                             m_Environment[kernel_x *
-                                                                                                           m_Ydimensions +
-                                                                                                           kernel_y].first,
-                                                                                             m_Env, m_DD, generation,
-                                                                                             m_redQueenStrength,
-                                                                                             m_redQueen);
-                    } else {
-                        weights[array_length] = m_Individuals[kernel_x][kernel_y].dispersal(m_Dispersal_type,
-                                                                                            m_Individuals[kernel_x][kernel_y].euclidian_distance(
-                                                                                                    relativeX,
-                                                                                                    relativeY));
-                    }
-                    array_length += 1;
-                }
+        if (m_reproduction) {
+            for (int i = 0; i < nKernel; i++) {
+                int p_x = parentX(i), p_y = parentY(i);
+                ensureDensity(p_x, p_y);
+                m_fitnessWeights[i] = m_Individuals[p_x][p_y].getSeedsTo(m_dispersalOffsets[i].first,
+                                                                         m_dispersalOffsets[i].second, m_Dispersal_type,
+                                                                         m_Environment[p_x * m_Ydimensions + p_y].first,
+                                                                         m_Env, m_DD, generation, m_redQueenStrength,
+                                                                         m_redQueen);
             }
+            std::partial_sum(m_fitnessWeights.begin(), m_fitnessWeights.end(), m_cumFitnessWeights.begin());
         }
-
-        std::vector<double> cumWeights(array_length);
-        std::partial_sum(weights.begin(), weights.begin() + array_length, cumWeights.begin());
-        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
+        const std::vector<double> &weights = m_reproduction ? m_fitnessWeights : m_dispersalWeights;
+        const std::vector<double> &cumWeights = m_reproduction ? m_cumFitnessWeights : m_cumDispersalWeights;
+        new_parent = m_RandomGenerator.multinomialDraw(cumWeights, nKernel);
 
         // fixes #165 (rejection sampling: parent with probability ~ weight * fitness of its recruit here);
         // after at most maxRecruitTries rejections, the same distribution is drawn from all weights
         for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
-                recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
+                recruitFitness(parentX(new_parent), parentY(new_parent), x_coordinate, y_coordinate);
              tries++) {
-            if (tries < std::min(maxRecruitTries, (int) array_length)) {
-                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, array_length);
+            if (tries < std::min(maxRecruitTries, nKernel)) {
+                new_parent = m_RandomGenerator.multinomialDraw(cumWeights, nKernel);
                 continue;
             }
-            std::vector<double> cumRecruit(array_length);
             double sum = 0.0;
-            for (unsigned int i = 0; i < array_length; i++) {
-                sum += weights[i] * (recruitFitness(parents[i].first, parents[i].second, x_coordinate, y_coordinate) +
+            for (int i = 0; i < nKernel; i++) {
+                sum += weights[i] * (recruitFitness(parentX(i), parentY(i), x_coordinate, y_coordinate) +
                                      DBL_MIN * 100.0);
-                cumRecruit[i] = sum;
+                m_cumRecruit[i] = sum;
             }
             // if all products underflow (fitness about 0 for reproduction and recruitment), keep the proposal
-            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(cumRecruit, array_length);
+            if (sum > 0) new_parent = m_RandomGenerator.multinomialDraw(m_cumRecruit, nKernel);
             break;
         }
-        x_parent = parents[new_parent].first;
-        y_parent = parents[new_parent].second;
+        x_parent = parentX(new_parent);
+        y_parent = parentY(new_parent);
 
         m_Individuals[x_coordinate][y_coordinate] = m_Individuals[x_parent][y_parent];  // overloaded operator, deep copy ! // report birth and evolve is automatic
         m_Individuals[x_coordinate][y_coordinate].m_X_coordinate = x_coordinate;
@@ -527,59 +607,65 @@ void LocalEnvironment::reproduce(unsigned int generation) {
     } // END while (numberDeath < numberOfRuns)
 }
 
-// update the density around an individual with 
 void Landscape::densityUpdate(int x, int y) {
-
-    int focus_x, focus_y;
-
-    for (int positive = 0; positive <= 1; positive++) { // negative, then positive density dependence
-        if (positive ? !m_pDD : !m_DD) continue;
-        int cutoff = positive ? m_posCutoff : m_DensityCutoff;
-        for (int X1 = -cutoff; X1 <= cutoff; X1++) {
-            int yLims = floor(sqrt(cutoff * cutoff - X1 * X1));
-            for (int Y1 = -yLims; Y1 <= yLims; Y1++) {
-                // get focus cell
-                focus_x = ((x + X1 + m_Xdimensions) % m_Xdimensions);
-                focus_y = ((y + Y1 + m_Ydimensions) % m_Ydimensions);
-                Individual &focus = m_Individuals[focus_x][focus_y];
-                if (positive) focus.m_LocalPositive = localDissimilarity(focus, focus_x, focus_y, true);
-                else focus.m_LocalDensity = localDissimilarity(focus, focus_x, focus_y, false);
-            }
+    m_densityOutdated[x * m_Ydimensions + y] = 1;
+    for (int positive = 0; positive <= 1; positive++) {
+        for (const auto &o : m_neighborOffsets[positive]) {
+            m_densityOutdated[wrapX(x + o.first) * m_Ydimensions + wrapY(y + o.second)] = 1;
         }
     }
 }
 
-double Landscape::cellsWithin(int cutoff) {
-    double cells = 0.0;
+// fixes #207 (densities recomputed only when read, not after every death): the stored value depends only on
+// the current neighborhood, and every change in it marks the cell, so the value read is the same as before
+void Landscape::ensureDensity(int x, int y) {
+    char &outdated = m_densityOutdated[x * m_Ydimensions + y];
+    Individual &ind = m_Individuals[x][y];
+#ifdef ECOPHYLOSIM_CHECK_DENSITY
+    // debug build (PKG_CPPFLAGS = -DECOPHYLOSIM_CHECK_DENSITY): a stored value that is not marked as outdated must
+    // equal a fresh computation, otherwise a change of the neighborhood was not passed to densityUpdate()
+    if (!outdated && ((m_DD && ind.m_LocalDensity != localDissimilarity(ind, x, y, false)) ||
+                      (m_pDD && ind.m_LocalPositive != localDissimilarity(ind, x, y, true))))
+        Rcpp::stop("stored density at cell (%d, %d) is outdated: densityUpdate() missing", x, y);
+#endif
+    if (!outdated) return;
+    if (m_DD) ind.m_LocalDensity = localDissimilarity(ind, x, y, false);
+    if (m_pDD) ind.m_LocalPositive = localDissimilarity(ind, x, y, true);
+    outdated = 0;
+}
+
+std::vector<std::pair<int, int> > Landscape::circleOffsets(int cutoff, bool withCenter) {
+    std::vector<std::pair<int, int> > offsets;
     for (int i = -cutoff; i <= cutoff; i++) {
         int yLim = floor(sqrt(cutoff * cutoff - i * i)); // avoid diagonal bias
         for (int j = -yLim; j <= yLim; j++) {
-            cells += 1.0;
+            if (withCenter || i != 0 || j != 0) offsets.push_back(std::make_pair(i, j));
         }
     }
-    return cells;
+    return offsets;
+}
+
+template <int kernel>
+double Landscape::dissimilaritySum(const Individual &ind, int x, int y, bool positive, double width) const {
+    double sum = 0.0;
+    for (const auto &o : m_neighborOffsets[positive]) {
+        const Individual &neighbor = m_Individuals[wrapX(x + o.first)][wrapY(y + o.second)];
+        double diff = std::abs(ind.m_CompetitionMarker - neighbor.m_CompetitionMarker);
+        if (kernel == 1) sum += diff;
+        else if (kernel == 2) sum += exp(-0.5 * pow(diff / width, 2.0));
+        else sum += (ind.m_Species == neighbor.m_Species); // each species ID has one Species object
+    }
+    return sum;
 }
 
 double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) {
-    int cutoff = positive ? m_posCutoff : m_DensityCutoff;
     int kernel = positive ? m_posKernel : m_ddKernel;
     double width = positive ? m_posWidth : m_ddWidth;
-    double cells = positive ? cellsWithinPosCutoff : cellsWithinDensityCutoff;
-    double sum = 0.0;
-    for (int X2 = -cutoff; X2 <= cutoff; X2++) {
-        int yLims2 = floor(sqrt(cutoff * cutoff - X2 * X2)); // avoid diagonal bias
-        for (int Y2 = -yLims2; Y2 <= yLims2; Y2++) {
-            int neighborX = ((x + X2 + m_Xdimensions) % m_Xdimensions);
-            int neighborY = ((y + Y2 + m_Ydimensions) % m_Ydimensions);
-            if (neighborX == x && neighborY == y) continue;
-            Individual &neighbor = m_Individuals[neighborX][neighborY];
-            double diff = std::abs(ind.m_CompetitionMarker - neighbor.m_CompetitionMarker);
-            if (kernel == 1) sum += diff;
-            else if (kernel == 2) sum += exp(-0.5 * pow(diff / width, 2.0));
-            else sum += (ind.m_Species->m_ID == neighbor.m_Species->m_ID);
-        }
-    }
-    double mean = sum / (cells - 1.0); // mean over the neighbors, without the focal cell
+    // kernel as template parameter, so that the loop has no branch per neighbor
+    double sum = kernel == 1 ? dissimilaritySum<1>(ind, x, y, positive, width)
+               : kernel == 2 ? dissimilaritySum<2>(ind, x, y, positive, width)
+               : dissimilaritySum<3>(ind, x, y, positive, width);
+    double mean = sum / m_neighborOffsets[positive].size(); // mean over the neighbors, without the focal cell
     return kernel == 1 ? mean : 1.0 - mean;
 }
 

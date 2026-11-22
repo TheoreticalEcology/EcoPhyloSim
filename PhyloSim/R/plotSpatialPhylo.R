@@ -54,7 +54,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
       par(mfrow=c(1,1),mar = c(1,1,1,1))
     }
     if(plot=="spatial"){
-      image(landscape, col = cols, yaxt='n', xaxt='n', asp=1, bty="n")
+      .imageGrid(landscape, col = cols, yaxt='n', xaxt='n', bty="n")
       mtext(outer =T ,"Spatial distribution", cex=1.2, at =at)
       
     }
@@ -80,7 +80,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
       size = dev.size()[2]/3
       plot(rep(1:4, each = nSpecies), rep(1:nSpecies, 4), cex = size*traits, pch = 16, frame = F, yaxt='n', xaxt='n', ann=FALSE, xlim = c(0,7))
       par(mar = c(1,1,1,1))
-      image(landscape, col = cols, yaxt='n', xaxt='n', bty="n", asp=1)
+      .imageGrid(landscape, col = cols, yaxt='n', xaxt='n', bty="n")
       mtext("Traits", at=0.48, outer=T, cex=1.2)
       mtext(outer =T ,"Spatial distribution",at =0.8, cex=1.2)
       mtext(outer =T ,"Phylogeny",at =0.2, cex=1.2)
@@ -88,7 +88,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
     else{
       par(mfrow=c(1,2))
       plot(extantPhylogeny, tip.color = cols, cex = tipCex)
-      image(landscape, col = cols, yaxt='n', xaxt='n')
+      .imageGrid(landscape, col = cols, yaxt='n', xaxt='n', bty="n")
       mtext(outer =T ,"Spatial distribution",at =0.75, cex=1.2)
       mtext(outer =T ,"Phylogeny",at =0.25, cex=1.2)
     }
@@ -109,4 +109,9 @@ speciesColors <- function(phylo, alpha = 1) {
   setNames(cols, phylo$tip.label)
 }
 
-
+# Draws a grid matrix (rows = y, columns = x) with x horizontally and the
+# aspect ratio of the grid; image(m) would put the rows on the x-axis and
+# stretch every grid to a square (#211).
+.imageGrid <- function(m, asp = 1, xlab = "", ylab = "", ...) {
+  image(x = seq_len(ncol(m)), y = seq_len(nrow(m)), z = t(m), asp = asp, xlab = xlab, ylab = ylab, ...)
+}

@@ -1003,9 +1003,12 @@ Fitness can also act on the replacement:
   evaluated with the traits of the parent and the neighbors of that cell;
   otherwise another parent is drawn. After as many rejections as there are
   possible parents (at most 1000), the parent is drawn directly with
-  probabilities proportional to dispersal weight times fitness. The parents
-  within dispersal range thus compete in a weighted lottery for the cell, so
-  recruitment has no effect if they all have the same fitness there.
+  probabilities proportional to dispersal weight times fitness. With global
+  dispersal and the environment, parents are proposed from bins of their
+  environmental trait after 10 rejections, which gives the same probabilities
+  with fewer rejections. The parents within dispersal range thus compete in a
+  weighted lottery for the cell, so recruitment has no effect if they all have
+  the same fitness there.
 
 The stages can be combined, e.g. `fitnessActsOn = c("mortality",
 "recruitment")`; `"both"` is short for mortality and reproduction. The fitness

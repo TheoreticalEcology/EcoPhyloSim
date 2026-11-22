@@ -34,17 +34,52 @@ test_that("results with only one fitness mechanism are numerically reproducible"
                         style = "deparse", tolerance = 1e-6)
 })
 
-# traits and the speciation paths fission and protracted, which the snapshots above do not cover;
-# with the default speciationTraitJump = 0 they must not change (#114)
-test_that("traits with fission and protracted speciation are numerically reproducible", {
+# MD5 hashes of the complete output of the C++ model, one per element (all censuses), written as bytes in a fixed
+# byte order; the phylogeny and the summaries are computed from these elements in R. The traits are rounded to 8
+# significant digits, as their last digits depend on whether the compiler fuses multiplications and additions (FMA;
+# in CI on Linux and macOS, not on Windows), while species, environment and phylogeny are identical (#207).
+outputHash <- function(...) {
+  simu <- suppressMessages(suppressWarnings(quietSimulation(x = 24, y = 16, runs = c(100, 200), seed = 1,
+                                                            specRate = 2, ...)))
+  sapply(c("specMat", "traitMat", "envMat", "compMat", "neutMat", "phyloTXT"), function(element) {
+    f <- tempfile()
+    on.exit(unlink(f))
+    con <- file(f, "wb")
+    for (o in simu$Output) {
+      if (element == "phyloTXT") writeBin(charToRaw(o$phyloTXT), con)
+      else {
+        values <- as.vector(o[[element]])
+        if (element %in% c("traitMat", "compMat", "neutMat")) values <- signif(values, 8)
+        writeBin(values, con, endian = "little")
+      }
+    }
+    close(con)
+    unname(tools::md5sum(f))
+  })
+}
+
+test_that("simulation results are identical to the stored ones", {
   skip_on_cran()
-  snapshotTraits <- function(...) {
-    out <- quietSimulation(x = 30, y = 30, runs = 200, seed = 1, specRate = 2, dispersal = 1, ...)$Output[[1]]
-    list(abundances = sort(as.vector(table(out$specMat)), decreasing = TRUE),
-         traitSums = c(sum(out$traitMat), sum(out$compMat), sum(out$neutMat)))
-  }
-  expect_snapshot_value(snapshotTraits(environment = 0.5), style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotTraits(fission = 1), style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotTraits(fission = 2), style = "deparse", tolerance = 1e-6)
-  expect_snapshot_value(snapshotTraits(protracted = 1), style = "deparse", tolerance = 1e-6)
+  # local and global dispersal, fitness on mortality, recruitment and reproduction, all density kernels (#207)
+  MR <- c("mortality", "recruitment")
+  hashes <- c(
+    global = outputHash(),
+    local2 = outputHash(dispersal = 2),
+    env = outputHash(dispersal = 1, environment = 1),
+    dd = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2),
+    ddGaussian = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2, negativeDDKernel = "gaussian"),
+    ddSpeciesResponse = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2, negativeDDKernel = "species",
+                                   negativeDDResponse = function(S) 1 - S^2),
+    posDD = outputHash(dispersal = 1, negativeDD = 1, negativeDDCut = 2, positiveDD = 0.1, positiveDDCut = 3),
+    envDDRecruitment = outputHash(dispersal = 1, environment = 1, negativeDD = 1, fitnessActsOn = MR),
+    envRecruitmentNarrow = outputHash(dispersal = 1, environment = 1, nicheWidth = 0.01, fitnessActsOn = "recruitment"),
+    envDDReproduction = outputHash(dispersal = 1, environment = 1, negativeDD = 1,
+                                   fitnessActsOn = c("reproduction", "mortality")),
+    globalDD = outputHash(negativeDD = 1, negativeDDCut = 2),
+    globalEnvRecruitment = outputHash(environment = 1, fitnessActsOn = "recruitment"),
+    fissionDD = outputHash(dispersal = 1, fission = 1, negativeDD = 1, negativeDDKernel = "species"),
+    # the other speciation paths, where a trait jump at speciation would act (#114)
+    fission2 = outputHash(dispersal = 1, fission = 2),
+    protracted = outputHash(dispersal = 1, protracted = 1))
+  expect_snapshot_value(hashes, style = "deparse")
 })

@@ -16,7 +16,7 @@ getAverageTraits <- function(simu,which.result =NULL,orderPhylo = T){
     extantPhylogeny <- .dropFossil(simu$phylogeny)
     species =  as.numeric(sapply(list(extantPhylogeny$tip.label), substring, 2))    
   }else{
-    species = unique(simu$specMat)
+    species = unique(as.vector(simu$specMat))
   }
   
   traits <- matrix(nrow = length(species), ncol = 4)

@@ -390,9 +390,10 @@ simulations in parallel.
   the tree of the extant species is written
   ([#140](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/140), [#147](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/147)).
 - In most other settings, 0.3.2 takes up to about 20% longer, in particular
-  with local dispersal (4–22% over whole blocks). Profiling attributes about 9%
-  to memory allocations at each death, introduced between 0.3 and 0.3.1
-  ([#149](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/149)); the rest is not explained. Some settings are faster, mostly with
+  with local dispersal (4–22% over whole blocks). A paired benchmark on one core
+  measured 12% with dispersal 1 and attributes it to memory allocations at each
+  death, introduced between 0.3 and 0.3.1
+  ([#149](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/149), [#207](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/207)); the differences in the release runs agree with this within their noise. Some settings are faster, mostly with
   global dispersal (up to about 25% on 20 × 20 cells), and the setting of the
   block speciation that was unusually slow in 0.3 (26%).
 
