@@ -20,7 +20,7 @@ Individual::Individual() {
     this->m_X_coordinate = -999;
     this->m_Y_coordinate = -999;
 
-    this->m_LocalDensity = 0.0; // density experienced around itself, will be updated automatically
+    this->m_LocalDensity = 0.0; // density experienced around itself; Grid recomputes it before it is read (ensureDensity)
     this->m_Age = 0;
     this->m_incip_Age = -99999999;
 

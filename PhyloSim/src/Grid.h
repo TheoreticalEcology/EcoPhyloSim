@@ -47,13 +47,23 @@ public:
 
     // The size of the landscape is defined as m_Xdimensions * m_Ydimensions
     unsigned int m_LandscapeSize;
-    int m_KernelSize;
+
+    // local dispersal: offsets of the cells within m_Cutoff (without the target cell), their dispersal weights
+    // and cumulative weights, computed once; buffers for weights that depend on fitness
+    std::vector<std::pair<int, int> > m_dispersalOffsets;
+    std::vector<double> m_dispersalWeights, m_cumDispersalWeights;
+    std::vector<double> m_fitnessWeights, m_cumFitnessWeights, m_cumRecruit;
+
+    // offsets of the cells within the cutoff of negative [0] and positive [1] density dependence, without the
+    // focal cell (empty if the mechanism is off); callModel() guarantees 2 * cutoff + 1 <= min(x, y)
+    // for active mechanisms, so that no offset reaches the focal cell again
+    std::vector<std::pair<int, int> > m_neighborOffsets[2];
+    // cells whose stored densities may be outdated (index x * m_Ydimensions + y)
+    std::vector<char> m_densityOutdated;
 
     double m_AirTemperature;
     double m_Speciation_Rate;
 
-    double cellsWithinDensityCutoff;
-    double cellsWithinPosCutoff;
     double m_maxDeathRate;
     double m_nicheWidth;
     double m_envStrength;
@@ -99,17 +109,30 @@ public:
 
     void speciation(unsigned int generation);
 
+    // marks the stored densities around cell (x, y) as outdated; must be called whenever the occupant, species or
+    // competition marker of a cell changes, otherwise stored densities stay outdated without any error
     void densityUpdate(int x, int y);
+
+    // recomputes the stored densities of cell (x, y) if they are outdated; call before reading them
+    void ensureDensity(int x, int y);
 
     // stored local densities are read only when fitness acts on mortality or reproduction
     bool needsDensity() const { return (m_DD || m_pDD) && (m_mortality || m_reproduction); }
 
-    // number of cells within the cutoff, including the focal cell
-    double cellsWithin(int cutoff);
+    // offsets (dx, dy) of the cells within the cutoff, ordered by dx, then dy
+    static std::vector<std::pair<int, int> > circleOffsets(int cutoff, bool withCenter);
+
+    // coordinate on the torus, for coordinates between -m_Xdimensions (-m_Ydimensions) and 2 * m_Xdimensions - 1
+    int wrapX(int x) const { return x < 0 ? x + m_Xdimensions : (x >= m_Xdimensions ? x - m_Xdimensions : x); }
+    int wrapY(int y) const { return y < 0 ? y + m_Ydimensions : (y >= m_Ydimensions ? y - m_Ydimensions : y); }
 
     // dissimilarity of ind to the neighbors of cell (x, y), without the cell itself, for negative or
     // positive density dependence
     double localDissimilarity(Individual &ind, int x, int y, bool positive);
+
+    // sum over the neighbors in localDissimilarity(), for kernel 1 (absolute), 2 (gaussian) or 3 (species)
+    template <int kernel>
+    double dissimilaritySum(const Individual &ind, int x, int y, bool positive, double width) const;
 
     // fitness of the offspring of the individual in parent cell p in the target cell (x, y)
     double recruitFitness(int p_x, int p_y, int x, int y);
@@ -128,6 +151,20 @@ public:
     virtual ~GlobalEnvironment();
 
     void reproduce(unsigned int generation);
+
+    // With the environment acting on recruitment, parents are also proposed from bins of their environmental
+    // trait (binnedParent()), after uniformTriesBeforeBins rejected uniform proposals; empty if not used.
+    static const int uniformTriesBeforeBins = 10;
+    std::vector<std::vector<int> > m_traitBins; // cells by bin of the environmental trait of their individual
+    std::vector<int> m_binOfCell, m_positionInBin;
+    std::vector<double> m_binBound;  // upper bound of recruitFitness() for a distance of d bins to the target
+    std::vector<double> m_cumBinWeights;
+
+    int traitBin(double trait) const;
+    void binCell(int cell); // moves the cell into the bin of the trait of its individual
+    void binAllCells();
+    // parent for the target cell with probability ~ recruitFitness(), or -1 after maxRecruitTries rejections
+    int binnedParent(int target);
 };
 
 class LocalEnvironment : public Landscape {

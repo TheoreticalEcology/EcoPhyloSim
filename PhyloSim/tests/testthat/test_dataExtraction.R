@@ -5,7 +5,7 @@ par <- createCompletePar(x = 20, y = 15, dispersal = 1, runs = c(10, 11, 13), # 
                          negativeDD = 1, negativeDDCut = 2, scenario = "test")
 simu <- runSimulation(par)
 
-# conspecific neighbors as in Landscape::densityUpdate (Grid.cpp), cell (x, y) = mat[y + 1, x + 1]
+# conspecific neighbors as in Landscape::localDissimilarity() (Grid.cpp), cell (x, y) = mat[y + 1, x + 1]
 bruteCon <- function(sp, r) {
   X <- ncol(sp); Y <- nrow(sp); con <- matrix(0, Y, X)
   for (x in 0:(X - 1)) for (y in 0:(Y - 1)) for (dx in -r:r) {
