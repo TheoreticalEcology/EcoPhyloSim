@@ -1,6 +1,6 @@
 # Runtime of the simulation model: diagnosis and improvements
 
-Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and five changes that make it up to 60 times faster, part of the package since #207 (see [Implementation](#implementation)); the first three were measured as prototypes before (patches not kept, identity checks in `results/identity.txt`); results are unchanged except with global dispersal and the environment acting on recruitment, where only the random numbers change. The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
+Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and five changes that make it up to 60 times faster, part of the package since #207 (see [Implementation](#implementation)); the first three were measured as prototypes before (patches not kept; their identity checks are in `results/identity.txt`, where prototypes 1, 2 and 3 are the dispersal table, the density loops and the lazy densities); results are unchanged except with global dispersal and the environment acting on recruitment, where only the random numbers change. The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
 
 ## Summary
 
