@@ -54,10 +54,10 @@ public:
     std::vector<double> m_dispersalWeights, m_cumDispersalWeights;
     std::vector<double> m_fitnessWeights, m_cumFitnessWeights, m_cumRecruit;
 
-    // offsets of the cells within the cutoff of negative [0] and positive [1] density dependence, with and
-    // without the focal cell (empty if the mechanism is off); callModel() guarantees 2 * cutoff + 1 <= min(x, y)
+    // offsets of the cells within the cutoff of negative [0] and positive [1] density dependence, without the
+    // focal cell (empty if the mechanism is off); callModel() guarantees 2 * cutoff + 1 <= min(x, y)
     // for active mechanisms, so that no offset reaches the focal cell again
-    std::vector<std::pair<int, int> > m_densityOffsets[2], m_neighborOffsets[2];
+    std::vector<std::pair<int, int> > m_neighborOffsets[2];
     // cells whose stored densities may be outdated (index x * m_Ydimensions + y)
     std::vector<char> m_densityOutdated;
 

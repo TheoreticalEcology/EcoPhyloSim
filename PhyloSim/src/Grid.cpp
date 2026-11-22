@@ -129,7 +129,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
     for (int positive = 0; positive <= 1; positive++) {
         if (positive ? !m_pDD : !m_DD) continue;
         int cutoff = positive ? m_posCutoff : m_DensityCutoff;
-        m_densityOffsets[positive] = circleOffsets(cutoff, true);
         m_neighborOffsets[positive] = circleOffsets(cutoff, false);
     }
     m_densityOutdated.assign(m_LandscapeSize, 0);
@@ -609,8 +608,9 @@ void LocalEnvironment::reproduce(unsigned int generation) {
 }
 
 void Landscape::densityUpdate(int x, int y) {
+    m_densityOutdated[x * m_Ydimensions + y] = 1;
     for (int positive = 0; positive <= 1; positive++) {
-        for (const auto &o : m_densityOffsets[positive]) {
+        for (const auto &o : m_neighborOffsets[positive]) {
             m_densityOutdated[wrapX(x + o.first) * m_Ydimensions + wrapY(y + o.second)] = 1;
         }
     }

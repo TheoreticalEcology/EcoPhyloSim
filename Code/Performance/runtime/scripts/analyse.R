@@ -37,7 +37,6 @@ cat("\nProduct of the step medians, 0.3 -> master:\n"); print(round(tapply(h$rat
 cat("\n== Bisection 0.3 -> 0.3.1 (pairs-bisect.csv)\n")
 print(steps("pairs-bisect.csv", c("v0.3", "46a21df", "0919b9b", "v0.3.1"))[, c("step", "parameters", "n", "ratio", "min", "max")], row.names = FALSE)
 
-cat("\n== Prototypes against master (prototypes.csv): speed-up = 1 / median ratio; cpuA = median CPU s of the paired master runs\n")
 speedups <- function(file, tags, window = 30) {
   d <- rd(file)
   for (tg in tags) {
@@ -45,8 +44,7 @@ speedups <- function(file, tags, window = 30) {
     cat("\n", tg, "\n"); print(s[, c("parameters", "n", "cpuA", "speedup", "min", "max")], row.names = FALSE)
   }
 }
-speedups("prototypes.csv", c("proto1", "proto2", "proto3"))
-cat("\n== Implementation in the package against master (implementation.csv), after each commit of #207\n")
+cat("\n== Implementation in the package against master (implementation.csv), after each commit of #207: speed-up = 1 / median ratio; cpuA = median CPU s of the paired master runs\n")
 # window 600 s: in the global recruitment settings, master ends minutes after the other side of a pair
 speedups("implementation.csv", c("i207-c2", "i207-c3", "i207-c4", "i207-c5", "i207-c6"), window = 600)
 

@@ -15,7 +15,7 @@
 // Copy of R's Mersenne-Twister (unif_rand() with RNGkind("Mersenne-Twister")): the same numbers, but inline
 // (half of the time of global neutral runs went into unif_rand()). The state is shared by all
 // RandomGen objects and synchronized with R's .Random.seed by RNGSync; RandomGen draws give R's numbers only
-// while an RNGSync object exists (in callModel(), multinomialDrawCounts() and binnedParentCounts()).
+// while an RNGSync object exists; every exported function that draws random numbers must create one (as callModel()).
 namespace mersenneTwister {
     extern uint32_t state[625]; // as R's dummy[]: state[0] = position in the block, state[1..624] = block
     extern double block[624];   // numbers of the current block

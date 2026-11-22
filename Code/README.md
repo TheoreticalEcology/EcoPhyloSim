@@ -4,7 +4,7 @@ Scripts and material that are not part of the package. They are not updated when
 
 | Folder | Content |
 |---|---|
-| `Issues/` | reprexes and simulations for GitHub issues (created with its first file) |
+| `Issues/` | reprexes and simulations for GitHub issues |
 | `Performance/` | runtime diagnosis and benchmarks of the simulation model |
 
 ## Adding files
