@@ -246,8 +246,11 @@ int GlobalEnvironment::binnedParent(int target) {
         if (cells.empty()) continue; // possible only through rounding of the cumulative weights
         int cell = cells[m_RandomGenerator.randomInt(0, cells.size() - 1)];
         if (cell == target) continue; // fixes #81
-        if (m_RandomGenerator.randomDouble(0.0, 1.0) * m_binBound[std::abs(b - targetBin)] <
-            recruitFitness(cell / m_Ydimensions, cell % m_Ydimensions, x, y)) return cell;
+        double bound = m_binBound[std::abs(b - targetBin)];
+        double fitness = recruitFitness(cell / m_Ydimensions, cell % m_Ydimensions, x, y);
+        if (fitness > bound) Rcpp::stop("recruitment fitness above its bound in binnedParent(): fitness terms must "
+                                        "be between 0 and 1 (internal error, please report)");
+        if (m_RandomGenerator.randomDouble(0.0, 1.0) * bound < fitness) return cell;
     }
     return -1;
 }
@@ -347,6 +350,8 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         // TODO could make numberofruns a parameter
 
         numberOfRuns = m_LandscapeSize;
+        // births re-bin their own cell; re-binning all cells once per generation would also pick up trait changes
+        // elsewhere, e.g. if speciation changes traits (#114)
         if (!m_traitBins.empty()) binAllCells();
 
         int event = 0;
@@ -615,8 +620,15 @@ void Landscape::densityUpdate(int x, int y) {
 // the current neighborhood, and every change in it marks the cell, so the value read is the same as before
 void Landscape::ensureDensity(int x, int y) {
     char &outdated = m_densityOutdated[x * m_Ydimensions + y];
-    if (!outdated) return;
     Individual &ind = m_Individuals[x][y];
+#ifdef ECOPHYLOSIM_CHECK_DENSITY
+    // debug build (PKG_CPPFLAGS = -DECOPHYLOSIM_CHECK_DENSITY): a stored value that is not marked as outdated must
+    // equal a fresh computation, otherwise a change of the neighborhood was not passed to densityUpdate()
+    if (!outdated && ((m_DD && ind.m_LocalDensity != localDissimilarity(ind, x, y, false)) ||
+                      (m_pDD && ind.m_LocalPositive != localDissimilarity(ind, x, y, true))))
+        Rcpp::stop("stored density at cell (%d, %d) is outdated: densityUpdate() missing", x, y);
+#endif
+    if (!outdated) return;
     if (m_DD) ind.m_LocalDensity = localDissimilarity(ind, x, y, false);
     if (m_pDD) ind.m_LocalPositive = localDissimilarity(ind, x, y, true);
     outdated = 0;
