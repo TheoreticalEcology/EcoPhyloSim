@@ -109,7 +109,8 @@ public:
 
     void speciation(unsigned int generation);
 
-    // marks the stored densities around cell (x, y) as outdated, after the cell has changed
+    // marks the stored densities around cell (x, y) as outdated; must be called whenever the occupant, species or
+    // competition marker of a cell changes, otherwise stored densities stay outdated without any error
     void densityUpdate(int x, int y);
 
     // recomputes the stored densities of cell (x, y) if they are outdated; call before reading them
