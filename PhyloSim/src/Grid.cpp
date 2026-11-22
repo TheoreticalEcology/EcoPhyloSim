@@ -185,6 +185,71 @@ GlobalEnvironment::GlobalEnvironment(int xsize, int ysize, int type, bool neutra
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
                   soilmat, nicheWidth, ddOptions) {
 
+    // fixes #207 (up to N fitness evaluations per death while few individuals fit): parents are proposed from bins
+    // of the environmental trait and accepted with fitness / bound, i.e. with the same probability as before;
+    // the bound needs fitness terms between 0 and 1 (envStrength, compStrength in [0, 1]; posTerm, ddTable <= 1)
+    if (m_recruitment && m_Env && !m_reproduction && envStrength >= 0 && envStrength <= 1 && compStrength >= 0 &&
+        compStrength <= 1) {
+        int nBins = (int) std::min(512.0, std::max(1.0, std::ceil(4.0 / nicheWidth)));
+        double binWidth = 1.0 / nBins;
+        for (int d = 0; d < nBins; d++) {
+            // smallest distance between a trait in a bin d bins away and the environment of the target cell,
+            // minus a margin for rounding in traitBin()
+            double distance = std::max(0.0, (d - 1.0 - 1e-6) * binWidth);
+            m_binBound.push_back((envStrength * exp(-0.5 * pow(distance / nicheWidth, 2.0)) + 1 - envStrength) *
+                                 (1 + 1e-9)); // the other fitness terms are at most 1
+        }
+        m_traitBins.resize(nBins);
+        m_cumBinWeights.resize(nBins);
+    }
+}
+
+int GlobalEnvironment::traitBin(double trait) const {
+    int nBins = m_traitBins.size();
+    return std::min(nBins - 1, std::max(0, (int) (trait * nBins)));
+}
+
+void GlobalEnvironment::binCell(int cell) {
+    if (m_binOfCell[cell] >= 0) { // remove it from its old bin
+        std::vector<int> &old = m_traitBins[m_binOfCell[cell]];
+        int last = old.back();
+        old[m_positionInBin[cell]] = last;
+        m_positionInBin[last] = m_positionInBin[cell];
+        old.pop_back();
+    }
+    int bin = traitBin(m_Individuals[cell / m_Ydimensions][cell % m_Ydimensions].m_Mean);
+    m_binOfCell[cell] = bin;
+    m_positionInBin[cell] = m_traitBins[bin].size();
+    m_traitBins[bin].push_back(cell);
+}
+
+void GlobalEnvironment::binAllCells() {
+    for (auto &bin : m_traitBins) bin.clear();
+    m_binOfCell.assign(m_LandscapeSize, -1);
+    m_positionInBin.resize(m_LandscapeSize);
+    for (unsigned int cell = 0; cell < m_LandscapeSize; cell++) binCell(cell);
+}
+
+int GlobalEnvironment::binnedParent(int target) {
+    int x = target / m_Ydimensions, y = target % m_Ydimensions;
+    int targetBin = traitBin(m_Environment[target].first);
+    int nBins = m_traitBins.size();
+    double sum = 0.0;
+    for (int b = 0; b < nBins; b++) {
+        sum += m_traitBins[b].size() * m_binBound[std::abs(b - targetBin)];
+        m_cumBinWeights[b] = sum;
+    }
+    if (!(sum > 0)) return -1;
+    for (int tries = 0; tries < maxRecruitTries; tries++) {
+        int b = m_RandomGenerator.multinomialDraw(m_cumBinWeights, nBins);
+        const std::vector<int> &cells = m_traitBins[b];
+        if (cells.empty()) continue; // possible only through rounding of the cumulative weights
+        int cell = cells[m_RandomGenerator.randomInt(0, cells.size() - 1)];
+        if (cell == target) continue; // fixes #81
+        if (m_RandomGenerator.randomDouble(0.0, 1.0) * m_binBound[std::abs(b - targetBin)] <
+            recruitFitness(cell / m_Ydimensions, cell % m_Ydimensions, x, y)) return cell;
+    }
+    return -1;
 }
 
 GlobalEnvironment::~GlobalEnvironment() {
@@ -282,6 +347,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
         // TODO could make numberofruns a parameter
 
         numberOfRuns = m_LandscapeSize;
+        if (!m_traitBins.empty()) binAllCells();
 
         int event = 0;
         unsigned int numberDeath = 0;
@@ -339,6 +405,13 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             for (int tries = 1; m_recruitment && m_RandomGenerator.randomDouble(0.0, 1.0) >=
                     recruitFitness(parents[new_parent].first, parents[new_parent].second, x_coordinate, y_coordinate);
                  tries++) {
+                if (tries == uniformTriesBeforeBins && !m_traitBins.empty()) {
+                    int p = binnedParent(target);
+                    if (p >= 0) {
+                        new_parent = p;
+                        break;
+                    }
+                }
                 if (tries < std::min(maxRecruitTries, (int) m_LandscapeSize - 1)) {
                     new_parent = drawParent();
                     continue;
@@ -373,6 +446,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             m_Individuals[x_coordinate][y_coordinate].m_Y_coordinate = y_coordinate;
 
             m_Individuals[x_coordinate][y_coordinate].evolve();
+            if (!m_traitBins.empty()) binCell(target);
 
             parents[x_coordinate * m_Ydimensions + y_coordinate].first = x_coordinate;
             parents[x_coordinate * m_Ydimensions + y_coordinate].second = y_coordinate;

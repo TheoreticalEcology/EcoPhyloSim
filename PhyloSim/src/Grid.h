@@ -150,6 +150,20 @@ public:
     virtual ~GlobalEnvironment();
 
     void reproduce(unsigned int generation);
+
+    // With the environment acting on recruitment, parents are also proposed from bins of their environmental
+    // trait (binnedParent()), after uniformTriesBeforeBins rejected uniform proposals; empty if not used.
+    static const int uniformTriesBeforeBins = 10;
+    std::vector<std::vector<int> > m_traitBins; // cells by bin of the environmental trait of their individual
+    std::vector<int> m_binOfCell, m_positionInBin;
+    std::vector<double> m_binBound;  // upper bound of recruitFitness() for a distance of d bins to the target
+    std::vector<double> m_cumBinWeights;
+
+    int traitBin(double trait) const;
+    void binCell(int cell); // moves the cell into the bin of the trait of its individual
+    void binAllCells();
+    // parent for the target cell with probability ~ recruitFitness(), or -1 after maxRecruitTries rejections
+    int binnedParent(int target);
 };
 
 class LocalEnvironment : public Landscape {

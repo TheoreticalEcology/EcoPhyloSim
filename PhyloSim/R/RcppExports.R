@@ -122,3 +122,7 @@ multinomialDrawCounts <- function(weights, nDraws) {
     .Call(`_EcoPhyloSim_multinomialDrawCounts`, weights, nDraws)
 }
 
+binnedParentCounts <- function(x, y, environment, traits, markers, envStrength, compStrength, nicheWidth, target, nDraws) {
+    .Call(`_EcoPhyloSim_binnedParentCounts`, x, y, environment, traits, markers, envStrength, compStrength, nicheWidth, target, nDraws)
+}
+

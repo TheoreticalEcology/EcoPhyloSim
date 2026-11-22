@@ -63,3 +63,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// binnedParentCounts
+List binnedParentCounts(int x, int y, NumericVector environment, NumericVector traits, NumericVector markers, double envStrength, double compStrength, double nicheWidth, int target, int nDraws);
+RcppExport SEXP _EcoPhyloSim_binnedParentCounts(SEXP xSEXP, SEXP ySEXP, SEXP environmentSEXP, SEXP traitsSEXP, SEXP markersSEXP, SEXP envStrengthSEXP, SEXP compStrengthSEXP, SEXP nicheWidthSEXP, SEXP targetSEXP, SEXP nDrawsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type traits(traitsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type markers(markersSEXP);
+    Rcpp::traits::input_parameter< double >::type envStrength(envStrengthSEXP);
+    Rcpp::traits::input_parameter< double >::type compStrength(compStrengthSEXP);
+    Rcpp::traits::input_parameter< double >::type nicheWidth(nicheWidthSEXP);
+    Rcpp::traits::input_parameter< int >::type target(targetSEXP);
+    Rcpp::traits::input_parameter< int >::type nDraws(nDrawsSEXP);
+    rcpp_result_gen = Rcpp::wrap(binnedParentCounts(x, y, environment, traits, markers, envStrength, compStrength, nicheWidth, target, nDraws));
+    return rcpp_result_gen;
+END_RCPP
+}

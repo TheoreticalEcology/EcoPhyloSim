@@ -332,3 +332,35 @@ IntegerVector multinomialDrawCounts(NumericVector weights, int nDraws) {
     for (int i = 0; i < nDraws; i++) counts[ran.multinomialDraw(cumWeights, weights.size())]++;
     return counts;
 }
+
+// Internal, for tests only: on an x * y grid with the given environment, environmental traits and competition
+// markers of the individuals, draws the parent for the target cell (0-based index x_i * y + y_i) nDraws times
+// with GlobalEnvironment::binnedParent() and returns the counts per cell, the number of failed draws, and
+// recruitFitness() of each cell for the target cell (0 for the target), to which the counts are proportional.
+// [[Rcpp::export]]
+List binnedParentCounts(int x, int y, NumericVector environment, NumericVector traits, NumericVector markers,
+                        double envStrength, double compStrength, double nicheWidth, int target, int nDraws) {
+    DensityOptions ddOptions;
+    ddOptions.recruitment = true;
+    GlobalEnvironment grid(x, y, 1, false, compStrength > 0, true, false, false, 1, 0.0, 1, 1, 10, envStrength,
+                           compStrength, 0, 0, 0, 0, std::vector<double>(environment.begin(), environment.end()),
+                           std::vector<double>(1, 1.0), nicheWidth, ddOptions);
+    for (int i = 0; i < x * y; i++) {
+        grid.m_Individuals[i / y][i % y].m_Mean = traits[i];
+        grid.m_Individuals[i / y][i % y].m_CompetitionMarker = markers[i];
+    }
+    grid.binAllCells();
+    RNGSync rngSync;
+    IntegerVector counts(x * y);
+    int failed = 0;
+    for (int i = 0; i < nDraws; i++) {
+        int p = grid.binnedParent(target);
+        if (p < 0) failed++;
+        else counts[p]++;
+    }
+    NumericVector fitness(x * y);
+    for (int i = 0; i < x * y; i++) {
+        if (i != target) fitness[i] = grid.recruitFitness(i / y, i % y, target / y, target % y);
+    }
+    return List::create(Named("counts") = counts, Named("failed") = failed, Named("fitness") = fitness);
+}
