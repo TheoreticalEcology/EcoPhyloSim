@@ -33,3 +33,18 @@ test_that("results with only one fitness mechanism are numerically reproducible"
   expect_snapshot_value(snapshotSimulation(specRate = 2, dispersal = 1, positiveDD = 0.05),
                         style = "deparse", tolerance = 1e-6)
 })
+
+# traits and the speciation paths fission and protracted, which the snapshots above do not cover;
+# with the default speciationTraitJump = 0 they must not change (#114)
+test_that("traits with fission and protracted speciation are numerically reproducible", {
+  skip_on_cran()
+  snapshotTraits <- function(...) {
+    out <- quietSimulation(x = 30, y = 30, runs = 200, seed = 1, specRate = 2, dispersal = 1, ...)$Output[[1]]
+    list(abundances = sort(as.vector(table(out$specMat)), decreasing = TRUE),
+         traitSums = c(sum(out$traitMat), sum(out$compMat), sum(out$neutMat)))
+  }
+  expect_snapshot_value(snapshotTraits(environment = 0.5), style = "deparse", tolerance = 1e-6)
+  expect_snapshot_value(snapshotTraits(fission = 1), style = "deparse", tolerance = 1e-6)
+  expect_snapshot_value(snapshotTraits(fission = 2), style = "deparse", tolerance = 1e-6)
+  expect_snapshot_value(snapshotTraits(protracted = 1), style = "deparse", tolerance = 1e-6)
+})

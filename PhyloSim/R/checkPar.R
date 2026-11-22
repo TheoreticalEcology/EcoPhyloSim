@@ -10,7 +10,7 @@ checkPar <- function(par) {
     par[[old]] <- NULL
   }
   defaults <- formals(createCompletePar)[c("negativeDDKernel", "negativeDDWidth", "negativeDDResponse", "positiveDD",
-                                           "positiveDDCut", "positiveDDKernel", "positiveDDWidth")]
+                                           "positiveDDCut", "positiveDDKernel", "positiveDDWidth", "speciationTraitJump")]
   for (n in names(defaults)) if (is.null(par[[n]])) par[[n]] <- defaults[[n]]
   coll <- checkmate::makeAssertCollection()
   checkmate::assert_count(par[["x"]], positive = TRUE, .var.name = "x", add = coll)
@@ -46,6 +46,10 @@ checkPar <- function(par) {
   checkmate::assert_int(par[["seed"]], .var.name = "seed", add = coll)
   checkmate::assert_choice(par[["fission"]], 0:2, .var.name = "fission", add = coll)
   checkmate::assert_count(par[["protracted"]], .var.name = "protracted", add = coll)
+  if (!checkmate::test_numeric(par[["speciationTraitJump"]], lower = 0, upper = 1, any.missing = FALSE) ||
+      !length(par[["speciationTraitJump"]]) %in% c(1, 3)) {
+    coll$push("Variable 'speciationTraitJump': Must be 1 or 3 values between 0 and 1.")
+  }
   checkmate::assert_number(par[["redQueen"]], lower = 0, finite = TRUE, .var.name = "redQueen", add = coll)
   checkmate::assert_number(par[["redQueenStrength"]], lower = 0, finite = TRUE,
                            .var.name = "redQueenStrength", add = coll)

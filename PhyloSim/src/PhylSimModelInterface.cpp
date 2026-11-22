@@ -125,6 +125,9 @@ using namespace Rcpp;
 //'   \code{2 * positiveCutoff + 1} must not exceed \code{min(x, y)} if \code{positiveStrength > 0}.
 //' @param positiveKernel Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.
 //' @param positiveWidth Numeric > 0, width of the Gaussian kernel for positive density dependence.
+//' @param speciationTraitJump Numeric vector of length 3 with values between 0 and 1, half-widths of the
+//'   uniform trait jump of a new species (environment, competition, neutral); 0 = no jump.
+//'   Corresponds to \code{speciationTraitJump} in \code{\link{createCompletePar}}.
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -142,7 +145,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth,
                bool recruit = false, int densityKernel = 1, double densityWidth = 0.1,
                NumericVector densityTable = NumericVector::create(), double positiveStrength = 0,
-               int positiveCutoff = 1, int positiveKernel = 3, double positiveWidth = 0.1) {
+               int positiveCutoff = 1, int positiveKernel = 3, double positiveWidth = 0.1,
+               NumericVector speciationTraitJump = NumericVector::create(0, 0, 0)) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -193,6 +197,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     if (!(positiveWidth > 0 && std::isfinite(positiveWidth))) Rcpp::stop("callModel(): positiveWidth must be finite and > 0");
     if (positiveCutoff < 1 || (positiveStrength > 0 && positiveCutoff > (std::min(x, y) - 1) / 2))
         Rcpp::stop("callModel(): positiveCutoff must be >= 1, and 2 * positiveCutoff + 1 must not exceed min(x, y) if positiveStrength > 0");
+    if (speciationTraitJump.length() != 3) Rcpp::stop("callModel(): speciationTraitJump must have length 3");
+    for (double a : speciationTraitJump) if (!(a >= 0 && a <= 1)) Rcpp::stop("callModel(): speciationTraitJump values must be between 0 and 1");
     if (runs.length() < 1 || runs[0] < 0) Rcpp::stop("callModel(): runs must have at least one value >= 0");
     for (int i = 1; i < runs.length(); i++) {
         if (runs[i] < runs[i - 1]) Rcpp::stop("callModel(): runs must not decrease");
@@ -229,6 +235,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                               redQueenStrength, protracted, airmat, soilmat, nicheWidth, ddOptions);
     if (dispersal == 1) phylSimModel.m_Global->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
     else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
+    Landscape *landscape = dispersal == 1 ? static_cast<Landscape *>(phylSimModel.m_Global) : phylSimModel.m_Local;
+    for (int t = 0; t < 3; t++) landscape->m_specJump[t] = speciationTraitJump[t];
 
 
     for (int step = 0; step < nRuns; step++) {

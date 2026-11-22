@@ -10,7 +10,7 @@ callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
   soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE,
   densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric(c()),
   positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L,
-  positiveWidth = 0.1)
+  positiveWidth = 0.1, speciationTraitJump = as.numeric(c(0, 0, 0)))
 }
 \arguments{
 \item{x}{Integer, dimension of the model landscape in x-direction.}
@@ -137,6 +137,10 @@ the linear term \code{1 - compStrength * S}. It is \code{negativeDDResponse} of
 \item{positiveKernel}{Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.}
 
 \item{positiveWidth}{Numeric > 0, width of the Gaussian kernel for positive density dependence.}
+
+\item{speciationTraitJump}{Numeric vector of length 3 with values between 0 and 1, half-widths of the
+uniform trait jump of a new species (environment, competition, neutral); 0 = no jump.
+Corresponds to \code{speciationTraitJump} in \code{\link{createCompletePar}}.}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

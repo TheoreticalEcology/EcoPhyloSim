@@ -1,5 +1,9 @@
 # EcoPhyloSim (development version)
 
+## New features
+
+* `createCompletePar()`: new argument `speciationTraitJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
+
 # EcoPhyloSim 0.3.2
 
 Results differ from 0.3.1 for the same parameters and seed, because the C++ model uses R's random number generator (#14); with `negativeDD > 0`, the distributions of results also change (#144, #165).

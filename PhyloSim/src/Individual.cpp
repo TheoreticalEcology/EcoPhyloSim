@@ -247,40 +247,19 @@ void Individual::evolve() {
 }
 
 
-void Individual::evolveDuringSpeciation() {
+// trait jump at speciation (#114): jump[] is drawn once per new species in Landscape::speciation()
+// and is 0 for traits without a jump; the result is reflected at 0 and 1 as in evolve()
+void Individual::evolveDuringSpeciation(const double jump[3]) {
 
     m_Age = 0;
 
-    // EVOLUTION DURING SPECIATION
-    
-//    if (false) {
-//
-//        double width = 0.01;
-//
-//        double upperBound = 1.0;
-//        double lowerBound = 0.0;
-//
-//        // Environment
-//
-//        m_Mean += m_RandomGenerator.randomDouble(-width, width);
-//        if (m_Mean > upperBound) m_Mean = upperBound - (m_Mean - upperBound);
-//        else if (m_Mean < lowerBound) m_Mean = lowerBound + std::abs(m_Mean);
-//
-//        // Competition
-//
-//        m_CompetitionMarker += m_RandomGenerator.randomDouble(-width, width);
-//        if (m_CompetitionMarker > upperBound) m_CompetitionMarker = upperBound - (m_CompetitionMarker - upperBound);
-//        else if (m_CompetitionMarker < lowerBound) m_CompetitionMarker = lowerBound + std::abs(m_CompetitionMarker);
-//
-//        //Neutral
-//
-//        m_NeutralMarker += m_RandomGenerator.randomDouble(-width, width);
-//        if (m_NeutralMarker > upperBound) m_NeutralMarker = upperBound - (m_NeutralMarker - upperBound);
-//        else if (m_NeutralMarker < lowerBound) m_NeutralMarker = lowerBound + std::abs(m_NeutralMarker);
-//
-//    }
-
-    // END EVOLUTION
+    double *traits[3] = {&m_Mean, &m_CompetitionMarker, &m_NeutralMarker};
+    for (int t = 0; t < 3; t++) {
+        double &trait = *traits[t];
+        trait += jump[t];
+        if (trait > 1.0) trait = 1.0 - (trait - 1.0);
+        else if (trait < 0.0) trait = std::abs(trait);
+    }
 
     m_Species->m_Mean = m_Mean;
     m_Species->m_CompetitionMean = m_CompetitionMarker;
