@@ -6,6 +6,22 @@ test_that("summaryRedsaABC works if no weight is NA", {
   expect_equal(dim(summaryRedsaABC(p, s)), c(200, 2)) # #129
 })
 
+test_that("rejectionSample works with a single parameter or summary (#201)", {
+  set.seed(2)
+  p <- data.frame(a = runif(50), b = runif(50))
+  s <- matrix(rnorm(100), 50)
+  out <- rejectionSample(p[, "a", drop = FALSE], s, nDraws = 2, nCores = 1)
+  expect_equal(colnames(out), c("a_true", "a_estimated"))
+  expect_equal(nrow(out), 2)
+  out <- rejectionSample(p, s[, 1, drop = FALSE], nDraws = 2, nCores = 1)
+  expect_equal(colnames(out), c("a_true", "b_true", "a_estimated", "b_estimated"))
+  out <- rejectionSamplePhylosimAnalysis(p[, "a", drop = FALSE], s, nDraws = 2, nCores = 1, which = "none")
+  expect_equal(colnames(out$none), c("a_true", "a_estimated"))
+  skip_if_not_installed("ranger")
+  out <- rejectionSamplePhylosimAnalysis(p[, "a", drop = FALSE], s, nDraws = 2, nCores = 1, which = "rf")
+  expect_equal(colnames(out$rf), c("a_true", "a_estimated"))
+})
+
 test_that("runPhylosimAnalysis saves only the summaries with summariesOnly = TRUE", {
   dir <- tempfile()
   on.exit(unlink(dir, recursive = TRUE))

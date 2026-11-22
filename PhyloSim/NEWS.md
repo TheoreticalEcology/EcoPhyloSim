@@ -1,5 +1,9 @@
 # EcoPhyloSim (development version)
 
+## Bug fixes
+
+* `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` work with a single parameter or a single summary statistic instead of stopping with an error (#201).
+
 # EcoPhyloSim 0.3.2
 
 Results differ from 0.3.1 for the same parameters and seed, because the C++ model uses R's random number generator (#14); with `negativeDD > 0`, the distributions of results also change (#144, #165).

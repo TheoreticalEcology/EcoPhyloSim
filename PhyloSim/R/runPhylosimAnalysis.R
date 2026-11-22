@@ -511,13 +511,13 @@ rejectionSample <- function(params, summaries, nDraws = 10, eQuantile = 0.025, n
     obsSummaries <- summaries[drawIndex,]
     obsParams <- params[drawIndex,]
     
-    simSummaries <- summaries[-drawIndex,]
-    simParams <- params[-drawIndex,]
+    simSummaries <- summaries[-drawIndex, , drop = FALSE]
+    simParams <- params[-drawIndex, , drop = FALSE]
     
     distances <- apply(simSummaries, MARGIN = 1, function(x) return(sqrt(sum((x-obsSummaries)^2))))
     selection <- distances <= quantile(distances, probs = eQuantile)
     
-    acceptedParams <- simParams[selection,]
+    acceptedParams <- simParams[selection, , drop = FALSE]
     estimatedParams <- apply(acceptedParams, 2, sumFun)
     
     out <- c(obsParams, estimatedParams)
@@ -570,7 +570,7 @@ summaryRedRF <- function (p, s, nCores="auto", nTrees=500, scale = TRUE, ...) {
     pPredicted <- scale(pPredicted, scale = pPredSd, center = F)
   }
   
-  return(list(pTrue = as.matrix(d[,(nSum + 1):(nSum+nPar)]),
+  return(list(pTrue = as.matrix(d[,(nSum + 1):(nSum+nPar), drop = FALSE]),
               pPred = as.matrix(pPredicted)))
 }
 
