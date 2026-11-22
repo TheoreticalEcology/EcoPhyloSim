@@ -29,6 +29,9 @@
 runPhylosimAnalysis <- function(variableParams, fixedParams, nRuns, outDir, summariesOnly=FALSE, nCores="auto", chunkSize="auto") {
   # Get available parameters
   arguments <- formals(EcoPhyloSim::createCompletePar)
+  # deprecated names (#144) are renamed, so that the defaults and the stored parameters use the current names
+  variableParams <- renameDeprecated(variableParams)
+  fixedParams <- renameDeprecated(fixedParams)
   
   # Validate input
   validateParams(names(variableParams), names(arguments))
@@ -276,7 +279,7 @@ prepareForAnalysis <- function(dir=".", variableParams) {
   pars <- loadLocal(joinPath(c(cleanedDir, "combined_param_clean")))
   
   # extract variable parameters' values
-  pars_df <- EcoPhyloSim::extractParams(pars, names(variableParams))
+  pars_df <- EcoPhyloSim::extractParams(pars, names(renameDeprecated(variableParams)))
   
   # scale summaries
   summaries_df <- as.data.frame(data.table::rbindlist(summaries))

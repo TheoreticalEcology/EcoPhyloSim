@@ -6,11 +6,12 @@
 #' @param n The number of local communities. For each community a new plot is created.
 #' @param subplot if no simu object is given, a community table of a local community can be given here
 #' @param phylogeny if no simu object is given, an object of the class 'phylo' can be given here to describe the community's phylogeny
+#' @param title string, the title of each plot; by default (NULL), the size and number of the local community.
 #' @details This function works with a single simu object (class "PhyloSim"). If no simu object is given, it is also possible to calculate the clades from a given phylogeny and local plots. Here the phylogeny represents the metacommunity within which the local plots create the clades
 #' @return None; the function is called for its plots.
 #' @example /inst/examples/plotHighlightLocalPhylo-help.R
 #' @export
-highlightLocalPhylo <- function(simu,which.result=NULL, size, n, subplot = NULL, phylogeny=NULL){
+highlightLocalPhylo <- function(simu,which.result=NULL, size, n, subplot = NULL, phylogeny=NULL, title = NULL){
   
   
   if(is.null(subplot)){
@@ -37,15 +38,15 @@ highlightLocalPhylo <- function(simu,which.result=NULL, size, n, subplot = NULL,
     cladewidth<-rep(1, dim(phylo$edge)[1])
     cladewidth[group]<-2
     
-    title <- paste("Local Plots (size =",size,")","Within Metacommunity \n Local Community", i,"/",n)
-    plot(phylo,  direction="downwards", show.tip.label=F, show.node.label=F, edge.color=cladecolor, edge.width=cladewidth, main = title)
+    main <- if (is.null(title)) paste("Local Plots (size =",size,")","Within Metacommunity \n Local Community", i,"/",n) else title
+    plot(phylo,  direction="downwards", show.tip.label=F, show.node.label=F, edge.color=cladecolor, edge.width=cladewidth, main = main)
     
     place<- numeric(length(x))
     for(k in 1:length(x)){
       place[k] <- which(phylo$tip.label==x[k])
     }
     
-    ape::tiplabels(text = x,tip = place, frame ="none", srt = 270, adj=0)
+    ape::tiplabels(text = x,tip = place, frame ="none", srt = 270, adj=0, cex = min(1, 40 / length(phylo$tip.label)), xpd = NA)
     ape::add.scale.bar()
   }
 }

@@ -126,6 +126,9 @@ getSpeciesIndices <- function (sim, speciesID, whichRun=1) {
 # distances in linear time; drop.fossil() builds the matrix of all node distances,
 # which crashes R on Windows above 23170 tips (fixes #168)
 .dropFossil <- function(phy, tol = 1e-8) {
+  if (!inherits(phy, "phylo")) # phylogeny is 0 for a single species and NULL for NeutralMod()
+    stop("The result has no phylogeny: it contains only one species (see ?runSimulation) or comes from NeutralMod().",
+         call. = FALSE)
   x <- ape::node.depth.edgelength(phy)[seq_len(ape::Ntip(phy))]
   ape::drop.tip(phy, which(x < max(x) - tol))
 }

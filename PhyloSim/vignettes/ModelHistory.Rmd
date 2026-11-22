@@ -1,0 +1,550 @@
+---
+title: "Model history: how simulation results changed between releases"
+author: "Florian Hartig"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    fig_caption: true
+vignette: >
+  %\VignetteIndexEntry{Model history: how simulation results changed between releases}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r data, echo = FALSE, results = "asis"}
+# the data set is built with PhyloSim/data-raw/model-behavior/makeData.R and committed with new runs of releases
+if (!exists("modelHistory") &&
+    !"modelHistory" %in% utils::data(package = "EcoPhyloSim")$results[, "Item"]) {
+  cat("The data set `modelHistory` is not available in this installation; it is",
+      "built with `PhyloSim/data-raw/model-behavior/makeData.R` of the package repository.\n")
+  knitr::knit_exit()
+}
+```
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.width = 7, fig.height = 4, fig.retina = 2)
+if (!exists("modelHistory")) data("modelHistory", package = "EcoPhyloSim")
+s <- modelHistory$summary
+ch <- modelHistory$changes
+ch <- ch[order(is.na(ch$date), ch$date), ] # planned release last
+rel <- ch[ch$kind == "release", ]
+runs <- unique(paste(s$version, s$commit))
+runs <- runs[order(numeric_version(sub(" .*", "", runs)))] # oldest first
+params <- setdiff(names(s), c("version", "commit", "setting", "indicator", "mean", "sd", "n"))
+typeCol <- c(N = "grey55", B = "#D55E00", S = "#0072B2", "S+B" = "#CC79A7")
+# release that a run belongs to: the first release with a version number >= that of the run
+releaseOf <- function(run) {
+  v <- numeric_version(sub(" .*", "", run))
+  rel$version[which(numeric_version(rel$version) >= v)[1]]
+}
+# replicate mean of an indicator in the run of a version, for the setting of a block with
+# the given parameter values (several settings: the largest mean)
+val <- function(version, block, indicator, ..., digits = 2) {
+  d <- s[s$version == version & s$block == block & s$indicator == indicator, ]
+  v <- list(...)
+  for (n in names(v)) d <- d[d[[n]] == v[[n]], ]
+  if (!nrow(d)) NA else signif(max(d$mean), digits)
+}
+# expected richness of the neutral model (Ewens sampling formula)
+ewens <- function(J, specRate) {
+  nu <- specRate / J
+  theta <- (J - 1) * nu / (1 - nu)
+  sum(theta / (theta + 0:(J - 1)))
+}
+n0 <- s[s$version == "0.3.1" & s$block == "neutral" & s$indicator == "richness", ]
+# failed simulations of 0.3 with redQueen = 0.01 at specRate 0.5, 1, 2, 4, 8 (2: block speciation)
+rq03 <- vapply(c(0.5, 1, 2, 4, 8), function(r) round(30 * if (r == 2)
+  val("0.3", "speciation", "failed", redQueen = 0.01) else
+  val("0.3", "speciationRate", "failed", redQueen = 0.01, specRate = r)), 0)
+# observations on the behavior of a release (problems of the code are issues)
+notes <- list("0.3.2" = c(
+  "The run of this release used commit dbdf3fc of pull request #209, whose model code equals that of the tag v0.3.2.",
+  sprintf("Density dependence combined with environmental filtering now increases richness (at `environment = 0.5`, from about %s species without density dependence to %s with `negativeDD = 0.5`); in 0.3.1, it reduced richness (from %s to %s).",
+          val("0.3.2", "envDensity", "richness", density = 0, environment = 0.5, digits = 3),
+          val("0.3.2", "envDensity", "richness", density = 0.5, environment = 0.5, digits = 3),
+          val("0.3.1", "envDensity", "richness", density = 0, environment = 0.5, digits = 3),
+          val("0.3.1", "envDensity", "richness", density = 0.5, environment = 0.5, digits = 3))),
+  "0.3.1" = c(
+  "With local dispersal, the indicators of the communities equal those of 0.3 (same seeds), except on the grid with an odd number of columns (#173) and in the settings with the Red Queen advantage, in which many simulations of 0.3 failed; the indicators of the phylogeny differ (census half a generation later, #147, #160; #174). With global dispersal, all differ slightly (#154), none significantly. The simulations with the Red Queen advantage no longer fail (see 0.3).",
+  sprintf("Neutral model: richness up to about %s%% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
+          round(100 * max(n0$mean / mapply(ewens, n0$x * n0$y, n0$specRate) - 1))),
+  sprintf("Density dependence is weak: richness increases only from about %s to %s species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
+          val("0.3.1", "density", "richness", density = 0, densityCut = 1, digits = 2),
+          val("0.3.1", "density", "richness", densityCut = 1, digits = 2)),
+  "The model is neutral if environment and density are both > 0 and their sum is ≤ 1 (#144).",
+  sprintf("Environmental filtering with global dispersal stays weak (correlation of trait and environment %s at `environment = 1`); with local dispersal, traits match the environment almost perfectly (%s). Narrow niches make filtering with global dispersal even weaker.",
+          val("0.3.1", "environment", "corTraitEnv", dispersal = "global", environment = 1),
+          val("0.3.1", "environment", "corTraitEnv", dispersal = "1", environment = 1)),
+  "Filtering does not increase spatial aggregation; it makes trees more balanced (Colless index < 0) and increases the gamma statistic.",
+  "Protracted speciation acts like a speciation rate reduced by exp(-p).",
+  "CNDD estimated from mortality: about 0 in the neutral model, positive with density dependence, negative with environmental filtering (strongest with global dispersal).",
+  sprintf("A Red Queen advantage of 0.01 with strength 100 increases richness from about %s to %s species and reduces the mean species age from about %s to %s generations.",
+          val("0.3.1", "speciation", "richness", protracted = 0, redQueen = 0),
+          val("0.3.1", "speciation", "richness", redQueen = 0.01),
+          val("0.3.1", "speciation", "meanSpeciesAge", protracted = 0, redQueen = 0),
+          val("0.3.1", "speciation", "meanSpeciesAge", redQueen = 0.01))),
+  "0.3" = c(
+  "Replicate means differ from those of 0.2 only in settings in which a simulation of 0.2 failed and in the Colless index and the MPD of local plots, which depend on the random resolution of polytomies before #174.",
+  sprintf("With the Red Queen advantage, many simulations stop with an error in the phylogeny (Newick string with unequal parentheses): all with `redQueen = 0.1` and, with `redQueen = 0.01`, %s and %s of 30 at `specRate` = 0.5, 1, 2, 4 and 8. The means of the other settings come from the remaining runs.",
+          paste(rq03[1:4], collapse = ", "), rq03[5]),
+  "Settings with fission were not run, as fission assigns the wrong individuals to the new species (#85) and its runs did not finish within 3 hours."),
+  "0.2" = c(
+  sprintf("In the neutral model on 20 × 20 cells, simulations crash at high speciation rates without an error message (%s of 30 at `specRate = 8`, %s at `specRate = 4`); in 16 other settings, 1 to 4 of 30 simulations crashed. The cause was not examined.",
+          round(30 * val("0.2", "neutral", "failed", x = 20, specRate = 8)),
+          round(30 * val("0.2", "neutral", "failed", x = 20, specRate = 4)))))
+compareRuns <- function(o, w) {
+  # a parameter of only one run: keep only its most frequent value there (the default)
+  p <- params[vapply(params, function(x) any(!is.na(o[[x]])) && any(!is.na(w[[x]])), logical(1))]
+  for (x in setdiff(params, p)) {
+    if (any(!is.na(o[[x]]))) o <- o[o[[x]] %in% names(which.max(table(o[[x]]))), ]
+    if (any(!is.na(w[[x]]))) w <- w[w[[x]] %in% names(which.max(table(w[[x]]))), ]
+  }
+  k <- function(d) do.call(paste, c(lapply(d[c(p, "indicator")], as.character), sep = "|"))
+  m <- merge(cbind(key = k(o), o), cbind(key = k(w), w[c("mean", "sd", "n")]), by = "key",
+             suffixes = c(".old", ".new"))
+  # share of failed simulations (mean of `failed` over all simulations of a setting)
+  f <- m[m$indicator == "failed", ]
+  f$p.adj <- p.adjust(unlist(Map(function(a, n1, b, n2) fisher.test(matrix(c(a, n1 - a, b, n2 - b), 2))$p.value,
+                                 round(f$mean.old * f$n.old), f$n.old, round(f$mean.new * f$n.new), f$n.new)), "BH")
+  # runtime is machine-dependent; the species age is estimated from the species IDs,
+  # whose numbering and pruning differ between versions
+  m <- m[!m$indicator %in% c("failed", "runtime", "meanSpeciesAge", "corAgeAbundance"), ]
+  se2 <- m$sd.old^2 / m$n.old + m$sd.new^2 / m$n.new
+  df <- se2^2 / ((m$sd.old^2 / m$n.old)^2 / (m$n.old - 1) + (m$sd.new^2 / m$n.new)^2 / (m$n.new - 1))
+  m$p.adj <- p.adjust(2 * pt(-abs(m$mean.new - m$mean.old) / sqrt(se2), df), "BH")
+  m$d <- (m$mean.new - m$mean.old) / sqrt((m$sd.old^2 + m$sd.new^2) / 2)
+  se.d <- sqrt((m$n.old + m$n.new) / (m$n.old * m$n.new) + m$d^2 / (2 * (m$n.old + m$n.new)))
+  m$"95% CI of d" <- sprintf("%.2f to %.2f", m$d - 1.96 * se.d, m$d + 1.96 * se.d)
+  rel <- m[!is.na(m$p.adj) & m$p.adj < 0.05, ]
+  rel <- rel[order(-abs(rel$d)), ]
+  # one column for the setting: block and the parameters that differ from the reference setting
+  ref <- m[m$block == "dispersal" & m$dispersal == "1", ][1, ]
+  q <- setdiff(p, c("block", "generations"))
+  rel$setting <- vapply(seq_len(nrow(rel)), function(i) {
+    d <- q[vapply(q, function(x) !identical(as.character(rel[[x]][i]), as.character(ref[[x]])), logical(1))]
+    if (length(d)) paste0(lab(rel$block[i]), ": ", paste(d, vapply(d, function(x) as.character(rel[[x]][i]), ""), collapse = ", "))
+    else lab(rel$block[i])
+  }, "")
+  list(m = m, rel = rel, f = f)
+}
+# readable names of the blocks of the design (design.R)
+blockLabel <- c(neutral = "neutral model", dispersal = "dispersal distance", specRateLocal = "speciation rate",
+                environment = "environmental filtering", selection = "strength of selection",
+                fitnessActsOn = "life stage of selection", density = "density dependence",
+                densityDispersal = "density dependence and dispersal", densityKernel = "density kernels",
+                positiveDD = "positive density dependence", envDensity = "environment and density dependence",
+                assembly = "environment, density dependence and dispersal", nicheWidth = "niche width",
+                speciation = "protracted speciation and Red Queen", fission = "fission",
+                speciationRate = "speciation mechanisms and rates", gridSize = "grid size", gridShape = "grid shape")
+lab <- function(b) ifelse(b %in% names(blockLabel), blockLabel[b], b)
+# a run as release (or development version of a release) and commit
+runLabel <- function(r) {
+  v <- sub(" .*", "", r)
+  rv <- releaseOf(r)
+  paste0(if (!is.na(rv) && v != rv) paste(rv, "in development") else v, " (", sub(".* ", "", r), ")")
+}
+# table of the largest measured differences of a comparison
+printComparison <- function(x, caption) {
+  m <- x$m; rel <- x$rel; f <- x$f
+  cat(nrow(rel), " of ", sum(!is.na(m$p.adj)), " comparisons differ significantly; comparisons with fewer than 20 ",
+      "replicates in a run: ", sum(m$n.old < 20 | m$n.new < 20), ". The share of failed simulations differs in ",
+      sum(f$p.adj < 0.05, na.rm = TRUE), " of ", nrow(f), " settings.\n\n", sep = "")
+  rel$p.adj <- format.pval(rel$p.adj, digits = 2, eps = 0.001)
+  rel$indicator <- ifelse(rel$indicator %in% names(indicators), indicators[rel$indicator], rel$indicator)
+  if (nrow(rel)) print(knitr::kable(head(rel, 15)[c("setting", "indicator", "mean.old", "mean.new", "d", "95% CI of d", "p.adj")],
+                                    digits = 3, row.names = FALSE, caption = caption,
+                                    col.names = c("Setting", "Indicator", "Older", "Newer", "d", "95% CI of d", "p (adjusted)")))
+  if (nrow(rel) > 15) cat("\n\nThe table shows the 15 largest of the", nrow(rel), "differences;",
+                          "all are in `modelHistory` (see Using the data).\n\n")
+}
+byRun <- split(s, paste(s$version, s$commit))[runs]
+# comparison of each run with the previous one, named by the later run
+cmp <- if (length(runs) > 1) setNames(Map(compareRuns, byRun[-length(byRun)], byRun[-1]), runs[-1]) else list()
+# changes of the model code of a release that alter results
+count <- function(v) {
+  t <- table(factor(ch$type[ch$kind == "change" & ch$version == v], names(typeCol)))
+  t <- t[t > 0]
+  if (!length(t)) "none" else paste(t, names(t), collapse = ", ")
+}
+changesText <- function(v) {
+  if (v == rel$version[1]) return("First release in this record.")
+  n <- count(v)
+  if (n == "none") "No changes of the model code that alter results." else
+    paste0("Changes of the model code that alter results: ", n, ".")
+}
+# measured differences of the runs of a release, one sentence per run
+measured <- function(v) {
+  j <- runs[which(vapply(runs, releaseOf, "") == v)]
+  if (!length(j)) return("No run of the design yet.")
+  paste(vapply(j, function(r) {
+    x <- cmp[[r]]
+    if (is.null(x)) return(paste0("Run ", runLabel(r), ": first run, reference for the later runs."))
+    d <- x$rel
+    nTest <- sum(!is.na(x$m$p.adj))
+    prev <- runLabel(runs[match(r, runs) - 1])
+    if (!nrow(d)) return(sprintf("Run %s compared with %s: none of %d tested results differs significantly.",
+                                 runLabel(r), prev, nTest))
+    b <- sort(table(d$block), decreasing = TRUE)
+    same <- setdiff(unique(x$m$block), names(b))
+    paste0("Run ", runLabel(r), " compared with ", prev, ": ", nrow(d), " of ", nTest,
+           " tested results differ significantly, in ", paste0(lab(names(b)), " (", b, ")", collapse = ", "),
+           if (length(same)) paste0("; no differences in the other ", length(same), " groups of settings"), ".")
+  }, ""), collapse = " ")
+}
+# what a release means for users, in short, written after its run (first element: overview at the top)
+inShort <- list(
+  "0.3.2" = "Density dependence was redefined (#172): results with `negativeDD > 0` change, most strongly in combination with environmental filtering; the other results keep their distributions, apart from two borderline differences.",
+  "0.3.1" = "Fixes of fission, of the environment (user-defined matrices, default gradient on odd grid widths) and of global dispersal, and a smaller phylogeny in the output; the other patterns of the design are unchanged (fission could not be compared).",
+  "0.3" = "New speciation options (fission, protracted speciation, Red Queen) and user-defined environments; with the default options, simulations give the same communities as 0.2. Simulations with the Red Queen advantage often fail.")
+```
+
+```{css, echo = FALSE, file = "ecophylosim.css"}
+```
+
+```{js, echo = FALSE, file = "ecophylosim.js"}
+```
+
+<div class="abstract">
+**Abstract.** This vignette records, for each release of EcoPhyloSim, which
+changes of the model code alter simulation results and how. Every release is
+run with the same design (as far as it supports its parameters), and differences between releases are attributed to
+single changes (see Methods). Use it before reusing code or results of an
+earlier release, and to check whether the patterns described in the vignette
+"EcoPhyloSim model" (`vignette("ModelDescription", package = "EcoPhyloSim")`)
+changed. To check a setting of your own, see
+[Rerunning a setting with an earlier release](#rerunning-a-setting-with-an-earlier-release).
+</div>
+
+
+# Releases at a glance
+
+Between releases, the model code has changed. Some changes only fix errors or
+make the code faster; others change what the model simulates. The figure shows
+the releases and, between them, each change that alters simulation results. The
+box below it summarizes each release in one line.
+
+The color of a change says what it means when you rerun a simulation with
+another release:
+
+- **N** (numeric): the same seed gives other numbers, but no change of their
+  distributions was detected. Conclusions hold; exact values are not reproduced.
+- **B** (behavior): patterns change in the affected settings. Rerun these
+  settings before comparing with results of the other release.
+- **S** (semantics): parameters were renamed or redefined. An old script may
+  fail, or run but mean a different model (see
+  [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).
+- **S+B**: both.
+
+```{r timeline, fig.height = 3, fig.cap = paste0("Timeline of the releases (diamonds with version and year", if (anyNA(ch$date[ch$kind == "release"])) "; open: planned release", ") and of the changes of the model code that alter simulation results (circles, labeled with their issue or commit and colored by type), in their order, not to scale in time.")}
+op <- par(mar = c(0, 0.5, 0, 0.5))
+n <- nrow(ch)
+isRel <- ch$kind == "release"
+plot(NA, xlim = c(0.5, n + 0.5), ylim = c(-0.9, 2.6), axes = FALSE, xlab = "", ylab = "")
+segments(1, 0, n, 0, col = "grey40", lwd = 2)
+k <- which(!isRel)
+segments(k, 0, k, 0.35, col = "grey70")
+points(k, rep(0.35, length(k)), pch = 21, cex = 1.8, bg = typeCol[ch$type[k]], col = "white")
+text(k, 0.6, sub("^branch | [(].*", "", ch$reference[k]), srt = 60, adj = 0, cex = 0.7, col = "grey20")
+k <- which(isRel)
+points(k, rep(0, length(k)), pch = 23, cex = 3, bg = ifelse(is.na(ch$date[k]), "white", "black"))
+text(k, -0.45, ch$version[k], font = 2)
+text(k, -0.8, ifelse(is.na(ch$date[k]), "planned", format(ch$date[k], "%Y")), cex = 0.8, col = "grey30")
+legend("topright", legend = names(typeCol), pt.bg = typeCol, pch = 21, col = "white", pt.cex = 1.6,
+       horiz = TRUE, bty = "n", cex = 0.8, title = "Type")
+par(op)
+```
+
+```{r inshort, results = "asis"}
+cat("::: {.result}\n**What changed, in short.**\n\n",
+    paste0("- **", rev(rel$version), "**: ", vapply(rev(rel$version), function(v)
+      paste(c(inShort[[v]][1], changesText(v)), collapse = " "), ""), collapse = "\n"),
+    "\n\nChanges of type S may break old scripts (see",
+    " [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).\n:::\n\n", sep = "")
+```
+
+
+# Upgrading from an earlier release
+
+Most changes alter only the results of a simulation. Changes of type S also
+change what a call means: code written for an earlier release may stop with an
+error, or run but simulate a different model. Check this list before you reuse
+code or results of an earlier release.
+
+```{r upgrading, results = "asis"}
+u <- ch[ch$kind == "change" & ch$type %in% c("S", "S+B"), ]
+u <- u[rev(seq_len(nrow(u))), ]
+cat("::: {.limitation}\n**Changes of type S or S+B.**\n\n",
+    if (!nrow(u)) "None so far." else
+      paste0("- **", u$version, "** (", u$reference, ", type ", u$type, "): ", u$change, collapse = "\n"),
+    "\n:::\n", sep = "")
+```
+
+## Rerunning a setting with an earlier release
+
+To check a result of your own, run its setting with both releases and compare
+the outputs. Releases from 0.3.1 on can be installed directly, e.g.
+`remotes::install_github("TheoreticalEcology/EcoPhyloSim@v0.3.1", subdir = "PhyloSim")`;
+install them into a separate library (argument `lib` of `install.packages()` or
+`remotes::install_github()`), so that the current version stays installed.
+Releases 0.2 and 0.3 (package name PhyloSim) need build fixes and archived
+dependencies; the script `installVersion.R` in `PhyloSim/data-raw/model-behavior` of the
+package repository installs any
+release or commit with them. Check the changes of type S and S+B listed above before comparing.
+
+# Patterns across releases
+
+Every release is run with the same set of simulations, as far as it supports
+their parameters (see Methods). The figure compares their results for nine
+settings that show the main patterns of the vignette "EcoPhyloSim model"
+(50 × 50 cells, `specRate = 2`, other parameters at their defaults unless
+stated). `r if (length(runs) > 1)
+"Each panel is one indicator, each row one setting, each color one run. If a point lies outside the interval of another run, the result may have changed; the box below the figure lists the differences that are significant after correction for multiple tests." else
+paste("So far it shows only the run of", runs, "for reference; the comparison follows with the runs of further releases.")`
+
+```{r keys}
+key <- list(
+  "Neutral, global dispersal" = list(block = "neutral", x = 50, specRate = 2),
+  "Neutral, dispersal 1 (reference)" = list(block = "dispersal", dispersal = "1"),
+  "Environment 1, global" = list(block = "environment", dispersal = "global", environment = 1),
+  "Environment 1, dispersal 1" = list(block = "environment", dispersal = "1", environment = 1),
+  "negativeDD 1, dispersal 1" = list(block = "density", density = 1, densityCut = 1),
+  "Environment 0.5 + negativeDD 0.5" = list(block = "envDensity", environment = 0.5, density = 0.5),
+  "Environment 1 + negativeDD 1" = list(block = "assembly", dispersal = "1", environment = 1, density = 1),
+  "Protracted 1" = list(block = "speciation", protracted = 1, redQueen = 0),
+  "Red Queen 0.01 (strength 100)" = list(block = "speciation", redQueen = 0.01))
+indicators <- c(richness = "Richness", conspecificNeighbors = "Conspecific neighbors",
+                corTraitEnv = "Cor(trait, environment)", sdCompetitionTrait = "SD competition trait",
+                colless = "Colless index", gamma = "Gamma statistic",
+                shannon = "Shannon index", cndd = "CNDD (mortality)")
+stat <- function(d, k, i) {
+  d <- d[d$indicator == i, ]
+  for (p in names(k)) if (p %in% names(d)) d <- d[d[[p]] == k[[p]], ]
+  if (nrow(d) != 1) return(c(NA, NA))
+  c(d$mean, qt(0.975, pmax(d$n - 1, 1)) * d$sd / sqrt(d$n))
+}
+```
+
+```{r patterns, fig.height = 8, fig.cap = "Indicators (panels) of nine settings (rows) in the runs of each release (colors and symbols): means of the replicate runs at the last census with 95% confidence intervals (CNDD: estimated over the last five generations). All settings on 50 × 50 cells with specRate = 2; a missing point means that the release does not support the setting or the indicator."}
+vcol <- setNames(hcl.colors(max(3, length(runs)), "Dark 3")[seq_along(runs)], runs)
+vpch <- setNames(rep(c(16, 17, 15, 18, 1, 2), length.out = length(runs)), runs) # not by color only
+op <- par(mfrow = c(4, 2), mar = c(2.5, 0.5, 1.8, 0.5), oma = c(2, 14.5, 0, 0), cex = 0.7)
+yy <- rev(seq_along(key))
+for (j in seq_along(indicators)) {
+  i <- names(indicators)[j]
+  m <- lapply(byRun, function(d) t(sapply(key, stat, d = d, i = i)))
+  rng <- range(unlist(lapply(m, function(x) c(x[, 1] - x[, 2], x[, 1] + x[, 2]))), na.rm = TRUE)
+  plot(NA, xlim = rng, ylim = c(0.5, length(key) + 0.5), yaxt = "n", xlab = "", ylab = "",
+       main = indicators[j], font.main = 1)
+  abline(h = yy, col = "grey92")
+  if (j %% 2 == 1) axis(2, at = yy, labels = names(key), las = 1, outer = TRUE, tick = FALSE)
+  off <- if (length(runs) > 1) seq(0.2, -0.2, length.out = length(runs)) else 0
+  for (v in seq_along(m)) {
+    segments(m[[v]][, 1] - m[[v]][, 2], yy + off[v], m[[v]][, 1] + m[[v]][, 2], yy + off[v], col = vcol[v])
+    points(m[[v]][, 1], yy + off[v], pch = vpch[v], col = vcol[v])
+  }
+}
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot.new()
+legend("bottom", legend = vapply(runs, runLabel, ""), col = vcol, pch = vpch, horiz = TRUE, bty = "n")
+par(op)
+```
+
+```{r keydiffs, results = "asis"}
+# rows of the figure that differ significantly between consecutive runs
+keyDiffs <- function(x) {
+  out <- vapply(names(key), function(nm) {
+    d <- x$rel[x$rel$indicator %in% names(indicators), ]
+    for (p in names(key[[nm]])) if (p %in% names(d)) d <- d[d[[p]] %in% key[[nm]][[p]], ]
+    if (nrow(d)) paste0(nm, " (", paste(indicators[intersect(names(indicators), d$indicator)], collapse = ", "), ")") else ""
+  }, "")
+  out[out != ""]
+}
+for (r in names(cmp)) {
+  k <- keyDiffs(cmp[[r]])
+  cat("::: {.result}\n**", runLabel(r), " compared with ", runLabel(runs[match(r, runs) - 1]), ":** ",
+      if (length(k)) paste0("significant differences in ", paste(k, collapse = "; "),
+                            ". The other rows of the figure do not differ significantly.")
+      else "no row of the figure differs significantly.", "\n:::\n\n", sep = "")
+}
+```
+
+## Runtime
+
+Release 0.3.2 is much faster than 0.3 where many species arise during a run,
+and up to about 20% slower in most other settings; 0.3 is up to about 30%
+faster than 0.2 in most settings. The runtime is recorded but
+not tested, as it depends on the computer and its load (see Methods). The
+numbers here compare the replicate means of the same simulations in the release
+runs of 0.2, 0.3 and 0.3.2, which were made on the same computer with 14
+simulations in parallel.
+
+- At `specRate = 8`, 0.3.2 is 13 times faster in the neutral model with global
+  dispersal on 50 × 50 cells, more than 1,000 times faster on 20 × 20 cells,
+  and about 20 times faster with the Red Queen advantage. At each census, 0.3
+  writes the phylogeny of all species that ever existed, with a method whose
+  cost grows with the square of the length of the tree text; this was shown
+  for the Red Queen settings and is most likely the cause in the neutral model
+  as well. From 0.3.1 on, extinct lineages are removed during the run and only
+  the tree of the extant species is written
+  ([#140](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/140), [#147](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/147)).
+- In most other settings, 0.3.2 takes up to about 20% longer, in particular
+  with local dispersal (4–22% over whole blocks). Profiling attributes about 9%
+  to memory allocations at each death, introduced between 0.3 and 0.3.1
+  ([#149](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/149)); the rest is not explained. Some settings are faster, mostly with
+  global dispersal (up to about 25% on 20 × 20 cells), and the setting of the
+  block speciation that was unusually slow in 0.3 (26%).
+
+Release 0.3, run in the same way, is up to about 30% faster than 0.2 in most
+settings (block totals from 18% faster to 7% slower); single settings vary more
+(e.g. 39% slower in a setting identical to the reference setting). The neutral
+model on 20 × 20 cells at `specRate = 8` is not compared, as only 1 of 30
+simulations of 0.2 finished. The runtime of 0.3.1 is not compared, as its run used fewer simulations in parallel.
+
+# Releases in detail
+
+This section goes through the releases, newest first. For each release, a box
+says in short what changed and what this means for results. Below it follow
+notes on the behavior of the release, a table of the code changes that alter
+results (evidence folded), and the differences measured against the previous
+run (folded). Methods describes how they are compared.
+
+In the tables of measured differences, *d* is the difference of the means in
+standard deviations (see Methods); read large values together with the columns
+Older and Newer.
+
+```{r detail, results = "asis"}
+for (v in rev(rel$version)) {
+  r <- rel[rel$version == v, ]
+  cat("\n## ", v, if (is.na(r$date)) " (planned)" else paste0(" (", format(r$date), ", ", r$commit, ")"), "\n\n", sep = "")
+  cat("::: {.result}\n**In short.** ", paste(c(inShort[[v]], measured(v)), collapse = " "), "\n:::\n\n", sep = "")
+  if (!is.null(notes[[v]])) cat("**Behavior of this release.**\n\n", paste("-", notes[[v]], collapse = "\n"), "\n\n", sep = "")
+  d <- ch[ch$kind == "change" & ch$version == v, ]
+  if (nrow(d)) {
+    cat("**Changes of the model code since the previous release that alter simulation results.**\n\n")
+    d$change <- paste0(d$change, " (", d$commit, ", ", d$reference, ")")
+    print(knitr::kable(d[c("type", "change", "outputs")], row.names = FALSE,
+                       col.names = c("Type", "Change of the model", "Effect on the outputs"),
+                       caption = paste0("Changes of the model code in release ", v,
+                                        " that alter simulation results, with their type (N, B, S, S+B; see above) and the outputs they affect.")))
+    cat("\n\n<details><summary>Evidence for each change</summary>\n\n")
+    print(knitr::kable(d[c("reference", "evidence")], row.names = FALSE, col.names = c("Change", "Evidence"),
+                       caption = paste0("Evidence for each change of release ", v,
+                                        ": how its effect on the results was established.")))
+    cat("\n\n</details>\n\n")
+  }
+  for (jj in which(vapply(runs, releaseOf, "") == v & runs %in% names(cmp))) {
+    cat("<details><summary>Measured differences, ", runLabel(runs[jj - 1]), " → ", runLabel(runs[jj]), "</summary>\n\n", sep = "")
+    printComparison(cmp[[runs[jj]]], paste0(
+      "Settings and indicators whose replicate means differ significantly (Older: ", runLabel(runs[jj - 1]),
+      "; Newer: ", runLabel(runs[jj]), "), at most 15, largest |d| first; d: difference in pooled standard deviations (see Methods)."))
+    cat("\n\n</details>\n\n")
+  }
+}
+```
+
+# Methods
+
+## Comparisons
+
+Two kinds of comparisons are made. Each change of the model code is compared
+with the commit just before it, so that a difference can be attributed to this
+change. This is done in two stages: stage 1 runs the whole design briefly (2
+replicates, 300 generations) with the same seeds and shows whether the results
+are identical; stage 2 runs the blocks that differ with 30 replicates and tests
+whether their distributions differ. Each run of a release is compared with the
+run of the previous release; these are the measured differences shown per
+release.
+
+Measured differences are settings where the replicate means of two consecutive
+runs differ significantly (Welch test from mean, sd and number of replicates,
+false discovery rate of 5% over all comparisons of the pair [Benjamini–Hochberg];
+runtime and the species age not tested, as the
+age is estimated from the species IDs, whose numbering and pruning differ between
+versions); d is the difference (newer minus older) in units of the
+pooled standard deviation, with an approximate 95% confidence interval, so that
+the size of a difference can be judged: at |d| = 2 the replicate distributions
+of the two runs still overlap by about a third, at |d| = 3 by about 13%, and
+very large values arise where replicates hardly vary.
+
+With 30 replicates per run, a significant difference has |d| of at least about
+0.5, and a single test
+detects d =
+`r round(power.t.test(n = 30, power = 0.8)$delta, 2)` with a probability of 80%,
+but as a pair of runs is compared in hundreds to over a thousand tests, a difference needs
+to be larger to be found reliably (d =
+`r round(power.t.test(n = 30, power = 0.8, sig.level = 0.05 / 1000)$delta, 2)` at
+the Bonferroni level for 1,000 tests; the false discovery rate lies in between). Smaller changes,
+and changes of the variance or shape of a distribution, can remain undetected, so
+"no difference" does not prove that a pattern is unchanged. The share of failed
+simulations per setting is compared with Fisher's exact test, and comparisons in
+which a run has fewer than 20 replicates with a value (failed simulations,
+undefined indicators) are counted, as their means may refer to a different subset
+of replicates.
+
+## Design and indicators
+
+Every release run uses the same design, as far as the release supports its
+parameters: blocks of settings, each varying a few parameters around a
+reference setting, with 30 replicates per setting (table below). A second
+table defines the indicators computed for each simulation.
+
+```{r design}
+d <- unique(s[c("version", "block", "setting", params[params != "block"])])
+d <- d[d$version == tail(s$version, 1), ]
+ref <- d[d$block == "dispersal" & d$dispersal == "1", ][1, ]
+q <- setdiff(params, c("block", "generations"))
+knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
+  varied <- q[vapply(b[q], function(x) length(unique(x)) > 1, logical(1))]
+  # parameters constant within the block but different from the reference setting
+  fixed <- setdiff(q[vapply(q, function(x) length(unique(b[[x]])) == 1 &&
+                              !identical(as.character(b[[x]][1]), as.character(ref[[x]])), logical(1))], varied)
+  data.frame(Block = b$block[1], Settings = nrow(b),
+             Varied = paste(vapply(varied, function(p) paste0(p, " (", paste(sort(unique(b[[p]])), collapse = ", "), ")"), ""),
+                            collapse = "; "),
+             Fixed = paste(vapply(fixed, function(p) paste(p, b[[p]][1]), ""), collapse = "; "),
+             Generations = format(max(b$generations), scientific = FALSE, big.mark = ","))
+})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting and parameters fixed at other values (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1 (`density` and `densityCut` are now `negativeDD` and `negativeDDCut`), and current names for parameters added later).")
+```
+
+| Indicator | Definition |
+|---|---|
+| Richness, Shannon, evenness, dominance | number of species; Shannon index; Shannon index / log(richness); share of the most abundant species |
+| Conspecific neighbors | share of the four neighbors of a cell with the same species |
+| Cor(trait, environment) | correlation of the environmental trait and the environment over all cells |
+| SD competition trait, SD neutral trait | standard deviation of the traits over all cells |
+| Colless index, gamma statistic, tree height | of the phylogeny of the extant species (Colless index normalized against the Yule model) |
+| Mean species age, cor(age, abundance) | age of a species from its ID (IDs are counted up at each speciation); Spearman correlation with abundance; not compared between versions, whose numbering of species and pruning of the phylogeny differ |
+| CNDD (mortality) | logistic regression of death on the number of conspecifics within radius 2 over the last five generations, with a species effect |
+| MPD of local plots | mean p-value of the mean phylogenetic distance of 20 plots of 10 × 10 cells against random communities; such p-values depend on the plot size and the null model |
+| Runtime | of the core simulation, in seconds (machine-dependent, not tested) |
+
+Table: Indicators computed for each simulation of the design.
+
+## Reproducing the data
+
+The simulations are run with the scripts in the folder
+`PhyloSim/data-raw/model-behavior` of the package repository
+(<https://github.com/TheoreticalEcology/EcoPhyloSim>); its `README.md` describes
+every step. Each simulation has its own seed, which depends only on the mode (main or test), the block,
+the parameters that differ from the reference setting and the replicate, so
+results do not depend on the number of cores; since #175, they no longer depend
+on the random number library of the compiler. All releases are evaluated with the
+same version of EcoPhyloSim, so differences come from the simulations, not
+from the analysis code. Each run records the command,
+the platform and the versions of all packages; the archives of the release runs,
+with the results per replicate (without the raw outputs), are attached to the
+GitHub releases.
+
+## Using the data
+
+The results are in the data set `modelHistory` (see `?modelHistory`):
+
+```{r, echo = TRUE, eval = FALSE}
+data(modelHistory)
+s <- modelHistory$summary
+# richness at the last census in the neutral model with global dispersal, per release
+s[s$block == "neutral" & s$x == 50 & s$specRate == 2 & s$indicator == "richness",
+  c("version", "mean", "sd", "n")]
+```

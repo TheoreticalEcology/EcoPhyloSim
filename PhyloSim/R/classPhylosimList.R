@@ -1,7 +1,7 @@
 #' @title Class PhyloSimList
 #' @name PhyloSimList
 #' @aliases PhylosimList
-#' @description An object of class "PhyloSimList" is a list of simulation outputs of class "PhyloSim" (see \code{\link{runSimulation}}), one for each parameter set. It is returned by \code{\link{runSimulationBatch}} and created from a list of "PhyloSim" objects by \code{\link{createPhyloSimList}}. Before version 0.3.2, the class was called "PhylosimList"; such objects keep working. Its elements are accessed by indexing, e.g. \code{simuList[[2]]}, and can be passed to all functions for "PhyloSim" objects; with \code{onError = "NA"} in \code{\link{runSimulationBatch}}, failed simulations are NA.
+#' @description An object of class "PhyloSimList" is a list of simulation outputs of class "PhyloSim" (see \code{\link{runSimulation}}). It is returned by \code{\link{runSimulationBatch}} and created from a list of "PhyloSim" objects by \code{\link{createPhyloSimList}}. Before version 0.3.3, the class was called "PhylosimList"; such objects keep working. Its elements are accessed by indexing, e.g. \code{simuList[[2]]}, and can be passed to all functions for "PhyloSim" objects.
 #' @details Methods for "PhyloSimList" objects: \code{\link[=plot.PhyloSimList]{plot}}, \code{\link[=print.PhyloSimList]{print}} and \code{\link[=summary.PhyloSimList]{summary}}.
 NULL
 
@@ -67,7 +67,7 @@ summary.PhyloSimList <- function(object, ...){
   }
 }
 
-# objects created before version 0.3.2 have class PhylosimList (#92)
+# objects created before version 0.3.3 have class PhylosimList (#92)
 #' @rawNamespace S3method(plot, PhylosimList, plot.PhyloSimList)
 #' @rawNamespace S3method(print, PhylosimList, print.PhyloSimList)
 #' @rawNamespace S3method(summary, PhylosimList, summary.PhyloSimList)

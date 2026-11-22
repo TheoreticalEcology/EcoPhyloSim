@@ -1,0 +1,48 @@
+/* Style of the EcoPhyloSim vignettes, added to the default style of
+   rmarkdown::html_vignette by a css chunk. Colors: Okabe-Ito, as in the figures. */
+
+/* boxes: ::: {.expectation}, ::: {.result}, ::: {.limitation}, <div class="abstract"> */
+.expectation, .result, .limitation, .abstract {
+  border-left: 4px solid #0072B2;
+  background-color: #f2f6fa;
+  padding: 0.3em 1em;
+  margin: 1em 0;
+}
+.result     { border-color: #009E73; background-color: #f1f8f5; }
+.limitation { border-color: #D55E00; background-color: #fbf3ec; }
+
+/* figures and tables: more space to the text; captions left-aligned and numbered
+   ("Fig. 1:", "Table 1:"), counted by CSS, so only captioned figures and tables count */
+body { counter-reset: figure table; }
+div.figure { margin: 2em 0; }
+p.caption, caption { font-size: 0.88em; color: #555; text-align: left; }
+p.caption { counter-increment: figure; }
+p.caption::before { content: "Fig. " counter(figure) ": "; font-weight: bold; color: #333; }
+caption { counter-increment: table; caption-side: top; padding-bottom: 0.4em; }
+caption::before { content: "Table " counter(table) ": "; font-weight: bold; color: #333; }
+table { font-size: 0.88em; margin-top: 2em; margin-bottom: 2em; }
+/* tables in folded blocks are not numbered: a closed block does not count, so
+   opening it would renumber the tables after it */
+details caption { counter-increment: none; }
+details caption::before { content: none; }
+th { text-align: left; }
+td { vertical-align: top; }
+table tr.even { background-color: transparent; } /* no alternating row colors */
+
+/* ::: {.grouped} around a table whose first cell is empty in the further rows of a
+   group: lines only between groups, stronger than the others */
+.grouped tbody tr + tr > td { border-top: 2px solid #999; }
+.grouped td:first-child:empty, .grouped td:first-child:empty ~ td { border-top-style: hidden; }
+
+/* table of contents (after the abstract, see ecophylosim.js): light, full width, two columns */
+#TOC { width: auto; margin: 1em 0 1.5em; padding: 0.2em 0 0.2em 1em; border: none;
+       border-left: 4px solid #ddd; border-radius: 0; background: none; font-size: 0.9em;
+       column-count: 2; column-gap: 2em; }
+#TOC::before { content: "Contents"; display: block; font-weight: bold; margin-bottom: 0.3em;
+               column-span: all; }
+#TOC ul { list-style: none; margin: 0; padding-left: 0; }
+#TOC ul ul { margin: 0; padding-left: 1em; }
+#TOC > ul > li { break-inside: avoid; margin-bottom: 0.3em; }
+#TOC > ul > li > a { font-weight: bold; }
+#TOC li { list-style: none; line-height: 1.35; }
+@media (max-width: 600px) { #TOC { column-count: 1; } }

@@ -5,7 +5,7 @@
 \title{Phylogenetic clades}
 \usage{
 highlightLocalPhylo(simu, which.result = NULL, size, n, subplot = NULL,
-  phylogeny = NULL)
+  phylogeny = NULL, title = NULL)
 }
 \arguments{
 \item{simu}{Simulation output of the class "PhyloSim", usually consisting of several lists. Needs to contain at least the phylogeny ($phylogeny) and species matrix ($specMat). The species matrix is used as metacommunity}
@@ -19,6 +19,8 @@ highlightLocalPhylo(simu, which.result = NULL, size, n, subplot = NULL,
 \item{subplot}{if no simu object is given, a community table of a local community can be given here}
 
 \item{phylogeny}{if no simu object is given, an object of the class 'phylo' can be given here to describe the community's phylogeny}
+
+\item{title}{string, the title of each plot; by default (NULL), the size and number of the local community.}
 }
 \value{
 None; the function is called for its plots.

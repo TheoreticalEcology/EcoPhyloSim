@@ -22,3 +22,10 @@ test_that("collessImbalance() uses only extant species by default", {
   expect_equal(collessImbalance(simu),
                EcoPhyloSim:::.collessIndex(ape::drop.fossil(phylo)))
 })
+
+test_that("phylogeny functions stop with a clear message for a single species", {
+  expect_warning(simu <- runSimulation(createCompletePar(x = 4, y = 4, generations = 1, specRate = 0.001, seed = 1)),
+                 "Only one species")
+  expect_equal(length(unique(as.vector(simu$Output[[1]]$specMat))), 1)
+  expect_error(collessImbalance(simu), "no phylogeny")
+})

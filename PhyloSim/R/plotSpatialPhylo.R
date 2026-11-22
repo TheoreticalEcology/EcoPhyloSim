@@ -21,6 +21,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
   extantPhylogeny <- .dropFossil(phylogeny)
   
   nSpecies = length(extantPhylogeny$tip.label)
+  tipCex <- min(1.3, 40 / nSpecies) # smaller tip labels for many species, so that they do not overlap
   
   landscape = simu$specMat
   
@@ -59,7 +60,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
     }
     else{
       if(plot=="phylogeny"){
-        plot(extantPhylogeny, tip.color = cols, cex = 1.3)
+        plot(extantPhylogeny, tip.color = cols, cex = tipCex)
         mtext(outer =T ,"Phylogeny", cex=1.2, at = at)
         
         
@@ -75,7 +76,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
       plot(NULL,frame = F, yaxt='n', xaxt='n', ann=FALSE, xlim = c(0,7), ylim = c(0,3))
       text(1:4 - 0.5, 0, colnames(traits), srt = 60, pos = 4, cex = 0.8)
       plot.new()
-      plot(extantPhylogeny, tip.color = cols, cex = 1.3)
+      plot(extantPhylogeny, tip.color = cols, cex = tipCex)
       size = dev.size()[2]/3
       plot(rep(1:4, each = nSpecies), rep(1:nSpecies, 4), cex = size*traits, pch = 16, frame = F, yaxt='n', xaxt='n', ann=FALSE, xlim = c(0,7))
       par(mar = c(1,1,1,1))
@@ -86,7 +87,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
     }
     else{
       par(mfrow=c(1,2))
-      plot(extantPhylogeny, tip.color = cols, cex = 1.3)
+      plot(extantPhylogeny, tip.color = cols, cex = tipCex)
       image(landscape, col = cols, yaxt='n', xaxt='n')
       mtext(outer =T ,"Spatial distribution",at =0.75, cex=1.2)
       mtext(outer =T ,"Phylogeny",at =0.25, cex=1.2)

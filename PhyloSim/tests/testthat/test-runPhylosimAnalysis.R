@@ -21,6 +21,20 @@ test_that("runPhylosimAnalysis saves only the summaries with summariesOnly = TRU
   expect_true("racAuc" %in% names(summaries[[1]]))
 })
 
+test_that("runPhylosimAnalysis renames the deprecated density and densityCut (#144)", {
+  dir <- tempfile()
+  on.exit(unlink(dir, recursive = TRUE))
+  skip_on_cran() # starts a cluster
+  expect_warning(capture.output(runPhylosimAnalysis(variableParams = list(density = function() 0.5),
+                                                    fixedParams = list(x = 10, y = 10, generations = 10, densityCut = 2),
+                                                    nRuns = 1, outDir = dir, nCores = 1, chunkSize = 1)),
+                 "'density' is deprecated")
+  pars <- get(load(file.path(dir, "param_1-1")))
+  expect_equal(pars[[1]]$negativeDD, 0.5)
+  expect_equal(pars[[1]]$negativeDDCut, 2)
+  expect_null(pars[[1]]$density)
+})
+
 test_that("runSimulationBatch(onError = \"NA\") keeps the other simulations if one fails (#158)", {
   p <- createCompletePar(x = 10, y = 10, generations = 10, seed = 1)
   bad <- p
