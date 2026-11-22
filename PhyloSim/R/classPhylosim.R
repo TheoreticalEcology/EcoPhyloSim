@@ -39,7 +39,7 @@ summary.PhyloSim <- function(object, ...){
   
   cat("Summary for class PhyloSim",  "\n")
   cat("# Call: runSimulation(x = ", object$Model$x, ", y = ", object$Model$y, ", dispersal = '", 
-      object$Model$dispersal,"'", ", runs =", runsarg,"\n", ", negativeDD = ", c(object$Model$negativeDD, object$Model$density)[1], 
+      object$Model$dispersal,"'", ", runs = ", runsarg, ", negativeDD = ", c(object$Model$negativeDD, object$Model$density)[1], 
       ", environment = ", object$Model$environment, ", specRate = ",object$Model$specRate,")", "\n", sep="")
   cat("------------------------------------", "\n", sep="")
   cat("Number of Species in Metacommunity: ", specRich(object), "\n", sep="")

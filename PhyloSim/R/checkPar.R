@@ -140,6 +140,17 @@ renamedArg <- function(new, old, newMissing, oldMissing, newName, oldName) {
   old
 }
 
+# Parameter list with the deprecated names density and densityCut renamed, with the warnings of
+# createCompletePar() (#144)
+renameDeprecated <- function(params) {
+  for (old in intersect(names(params), c("density", "densityCut"))) {
+    new <- sub("density", "negativeDD", old)
+    params[[new]] <- renamedArg(params[[new]], params[[old]], is.null(params[[new]]), FALSE, new, old)
+    params[[old]] <- NULL
+  }
+  params
+}
+
 # fitnessActsOn as a set of stages; "both" means mortality and reproduction
 fitnessStages <- function(fitnessActsOn) {
   unique(unlist(lapply(fitnessActsOn, function(f) if (f == "both") c("mortality", "reproduction") else f)))
