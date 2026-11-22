@@ -20,6 +20,13 @@ versions <- list(
                             "protracted", "redQueen", "redQueenStrength")),
   # since #172: density, densityCut are the arguments negativeDD, negativeDDCut;
   # fitness can act on recruitment; kernels and positive density dependence
+  "0.3.2" = list(
+                 params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
+                            "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
+                            "protracted", "redQueen", "redQueenStrength", "negativeDDKernel",
+                            "positiveDD", "positiveDDCut"),
+                 rename = c(density = "negativeDD", densityCut = "negativeDDCut"),
+                 fitnessActsOn = c("mortality", "reproduction", "both", "recruitment")),
   current = list(
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",

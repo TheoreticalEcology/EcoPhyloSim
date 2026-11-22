@@ -31,6 +31,14 @@ par <- createCompletePar(x = 50, y = 50, dispersal = "global",
 new.simulation <- runSimulation(par)
 plotSpatialPhylo(new.simulation)
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/TheoreticalEcology/EcoPhyloSim}
+  \item Report bugs at \url{https://github.com/TheoreticalEcology/EcoPhyloSim/issues}
+}
+
+}
 \author{
 Florian Hartig, Paul Bauche, Bingxue Wu
 }

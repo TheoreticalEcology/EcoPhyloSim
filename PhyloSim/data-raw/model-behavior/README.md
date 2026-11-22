@@ -16,7 +16,7 @@ Scripts that document how the behavior of EcoPhyloSim changes between versions
   not depend on the number of cores, and seeds do not change when a parameter is
   added to `base`. `design.R` also sets the censuses and `indicatorCommit`.
 - **Versions** (`versions` in `adapters.R`, whose names are called adapters):
-  the releases 0.2, 0.3 and 0.3.1, and `current`, any commit since #172
+  the releases 0.2, 0.3, 0.3.1 and 0.3.2, and `current`, any commit since #172
   (2331720); earlier commits run with `0.3.1`. The indicators of all runs are computed with
   one fixed installation of EcoPhyloSim (`indicatorCommit` in `design.R`), so
   that they differ between versions only through the model.
@@ -125,13 +125,12 @@ automatically; `archive.R` names their archive `test-<version>_<commit>`.
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3 v0.3
     Rscript PhyloSim/data-raw/model-behavior/archive.R PhyloSim/data-raw/model-behavior/cache/main_0.3_73ebaa3
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3.1 v0.3.1
-    Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> current v0.3.2
+    Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3.2 v0.3.2
     Rscript PhyloSim/data-raw/model-behavior/pPD.R <cores>
     Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior 0.3.2_<commit of v0.3.2>
 
 Runs with failed simulations (0.2, 0.3) are not archived automatically, hence
-the `archive.R` lines; for 0.3.2, `current` uses the adapter of the current
-version until 0.3.2 is in `versions` of `adapters.R`. The run of record of
+the `archive.R` lines. The run of record of
 0.3.2 used commit dbdf3fc of #209 (scripts at 8c23d06, data sets built at
 3905334), whose model code equals that of the tag v0.3.2 (archive
 `0.3.2_dbdf3fc`); these commits are not on `master` (`git fetch origin
