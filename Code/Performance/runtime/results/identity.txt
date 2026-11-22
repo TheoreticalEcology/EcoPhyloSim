@@ -1,9 +1,0 @@
-Identity checks against master 802e558 (identical() of all output elements; scripts/identity.R, identity-compare.R)
-
-short (16 settings x 2 seeds, censuses 150 and 300):  prototype 1: 32 of 32, prototype 2: 32 of 32, prototype 3: 32 of 32
-long (7 density-dependence settings, seed 3, censuses 1000 and 2000):  prototype 1: 7 of 7, prototype 2: 7 of 7, prototype 3: 7 of 7
-additional (prototype 3, seed 7, 300 generations, 30x30 unless stated): 13 of 13
-  positiveDD cutoff 3 with negativeDD cutoff 1; positiveDD only, "species" kernel; "gaussian" kernel for both;
-  5x5 grid with recruitment; 5x9 grid with "species" kernel and environment; dispersal = 0.5; dispersal = 0.75;
-  global dispersal with environment and recruitment; global with negative and positive DD and recruitment;
-  fission with "species" kernel; protracted speciation with "species" kernel; reproduction with DD; Red Queen with DD

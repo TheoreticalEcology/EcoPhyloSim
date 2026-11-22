@@ -1,6 +1,0 @@
-# usage: Rscript identity-compare.R <reference.rds> <new.rds>  (files written by identity.R)
-a <- commandArgs(TRUE)
-ref <- readRDS(a[1]); new <- readRDS(a[2])
-same <- mapply(identical, ref, new[names(ref)])
-cat("identical:", sum(same), "of", length(same), "\n")
-if (any(!same)) print(names(same)[!same])
