@@ -36,8 +36,8 @@ test_that("results with only one fitness mechanism are numerically reproducible"
 
 # MD5 hashes of the complete output of the C++ model, one per element (all censuses), written as bytes in a fixed
 # byte order; the phylogeny and the summaries are computed from these elements in R. The traits are rounded to 8
-# significant digits, as their values differ between Windows and Linux / macOS (cause not known), while species,
-# environment and phylogeny are identical (#207).
+# significant digits, as their last digits depend on whether the compiler fuses multiplications and additions (FMA;
+# in CI on Linux and macOS, not on Windows), while species, environment and phylogeny are identical (#207).
 outputHash <- function(...) {
   simu <- suppressMessages(suppressWarnings(quietSimulation(x = 24, y = 16, runs = c(100, 200), seed = 1,
                                                             specRate = 2, ...)))

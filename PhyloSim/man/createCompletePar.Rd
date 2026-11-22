@@ -39,7 +39,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{negativeDDCut}{Integer >= 1, radius of the neighborhood for negative density dependence (formerly \code{densityCut}; no effect if negativeDD = 0); must not exceed min(x, y), and 2 * negativeDDCut + 1 must not exceed min(x, y) if negativeDD > 0. The neighborhood contains the cells with \code{dx^2 + dy^2 <= negativeDDCut^2} except the focal cell (on a torus): 4, 12 and 28 cells for 1, 2 and 3.}
 
-\item{seed}{Integer, the seed of R's random number generator for the simulation (see \code{\link{runSimulation}}). If NULL (default), a seed is drawn from R's random number stream, so that \code{set.seed()} before \code{createCompletePar()} also gives reproducible results.}
+\item{seed}{Integer, the seed of R's random number generator for the simulation (see \code{\link{runSimulation}}). If NULL (default), a seed is drawn from R's random number stream, so that \code{set.seed()} before \code{createCompletePar()} also gives reproducible results. Results for a seed are reproducible on the same platform with the same compiler settings; on other platforms, trait values can differ in the last digits (compilers may fuse multiplications and additions), which could in principle change the course of a simulation.}
 
 \item{type}{Character, determining which model should be used. Currently only "base" (the default) is available. For a simple neutral model in R, see \code{\link{NeutralMod}}.}
 
