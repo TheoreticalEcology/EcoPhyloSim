@@ -1,5 +1,9 @@
 # EcoPhyloSim (development version)
 
+## Bug fixes
+
+* `plotSpatialPhylo()`, `plotTraitDistribution(type = "all")` and `localPlots(plot = TRUE)` draw the maps with the x-axis of the grid horizontally and in the aspect ratio of the grid; before, x and y were swapped and the maps were stretched to a square or to the plot panel (#211).
+
 # EcoPhyloSim 0.3.2
 
 Results differ from 0.3.1 for the same parameters and seed, because the C++ model uses R's random number generator (#14); with `negativeDD > 0`, the distributions of results also change (#144, #165).
