@@ -1,5 +1,9 @@
 # EcoPhyloSim (development version)
 
+## Bug fixes
+
+* `getAverageTraits(orderPhylo = FALSE)` returns one row per species instead of repeating species, usually once per grid cell (#200).
+
 # EcoPhyloSim 0.3.2
 
 Results differ from 0.3.1 for the same parameters and seed, because the C++ model uses R's random number generator (#14); with `negativeDD > 0`, the distributions of results also change (#144, #165).

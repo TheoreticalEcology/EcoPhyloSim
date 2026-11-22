@@ -66,3 +66,12 @@ test_that("getMortalityData works with lists and needs two recorded generations"
   expect_error(getMortalityData(5), "PhyloSim object")
   expect_error(getMortalityData(list()), "PhyloSim object")
 })
+
+test_that("getAverageTraits gives one row per species for both orderings (#200)", {
+  s <- quietSimulation(x = 20, y = 20, dispersal = 1, runs = c(100, 200), specRate = 2, seed = 1)
+  species <- unique(as.vector(s$Output[[2]]$specMat))
+  tr <- getAverageTraits(s, orderPhylo = FALSE)
+  expect_equal(rownames(tr), as.character(species))
+  expect_equal(unname(tr[, "env trait"]), sapply(species, function(sp) mean(s$Output[[2]]$traitMat[s$Output[[2]]$specMat == sp])))
+  expect_equal(sort(rownames(getAverageTraits(s))), sort(rownames(tr)))
+})
