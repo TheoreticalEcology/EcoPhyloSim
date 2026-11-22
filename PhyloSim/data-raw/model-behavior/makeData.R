@@ -2,15 +2,13 @@
 # - modelHistory (vignette "Model history"): the summaries in runs/ (archive.R) of
 #   all versions and the table of changes, changes.csv; all runs must have computed
 #   the indicators with `indicatorCommit` of design.R, one run per version;
-# - packageBehavior (chapter "Emerging patterns" of the main vignette), only if
+# - packageBehavior (vignette "EcoPhyloSim model"), only if
 #   asked for with the archive of the run of the current version (a folder name in
 #   archives/ or a path): replicate mean, sd and n of the indicators at all
 #   censuses, of the curves and of the CNDD coefficient, and the runtime.
 #
 # Run from the repository root:
 #   Rscript PhyloSim/data-raw/model-behavior/makeData.R [packageBehavior <archive>]
-# Until the run of 0.3.2, build only modelHistory, from new runs of the releases (see
-# "Transition" in README.md).
 
 source("PhyloSim/data-raw/model-behavior/common.R")
 source(file.path(mb, "design.R"))

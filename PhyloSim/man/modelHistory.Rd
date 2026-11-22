@@ -17,11 +17,8 @@ last census. Indicators as in \code{\link{packageBehavior}} (richness,
 shannon, conspecificNeighbors, corTraitEnv, sdCompetitionTrait, colless,
 gamma, meanSpeciesAge, corAgeAbundance, cndd) and the
 \code{runtime} of the core simulation in seconds, the share of failed
-simulations (\code{failed}); runs made with
-\code{PhyloSim/data-raw/model-behavior/run.R} also treeHeight, evenness, dominance,
-sdNeutralTrait and mpdLocal (see the vignette "Model history"). The run of 0.3.1 is the run of
-\code{\link{packageBehavior}} (at the pre-release commit 852c61e, without
-#173 and #174).}
+simulations (\code{failed}), treeHeight, evenness, dominance,
+sdNeutralTrait and mpdLocal (see the vignette "Model history").}
 \item{changes}{data frame of the releases and the changes of the model code
 that alter results: \code{date}, \code{kind} (release or change), release
 \code{version}, \code{commit}, issue \code{reference}, \code{type} (N: results
@@ -29,8 +26,7 @@ per seed change, but no change of their distributions was detected; B: patterns 
 S+B: both), the \code{change}, its effect on the \code{outputs} and the
 \code{evidence}.}
 \item{info}{the runs used, the commit of the EcoPhyloSim that computed the
-indicators of all runs (\code{indicators}; missing for the runs made with the
-earlier script), the version of the scripts and of R.}
+indicators of all runs (\code{indicators}), the version of the scripts and of R.}
 }
 }
 \source{

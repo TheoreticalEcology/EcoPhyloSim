@@ -88,7 +88,7 @@ invisible(file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*)\\.txt|\\.R)$", f
 writeLines(c(
   paste0("# Model behavior of EcoPhyloSim ", sub("_", " (commit ", name), ")"), "",
   "Per-replicate results of the simulations that document the behavior of the model (vignettes",
-  "\"The EcoPhyloSim R Package\", chapter \"Emerging patterns\", and \"Model history\"), created with",
+  "\"EcoPhyloSim model\" and \"Model history\"), created with",
   "`PhyloSim/data-raw/model-behavior/run.R` and `archive.R` of the package repository, whose README.md",
   "describes how to regenerate it. `RUNINFO.txt` and the copies of the scripts (`*.R`) record the",
   "versions used; the indicators are defined in `indicators.R`. `SESSION-*.txt` record the command,",

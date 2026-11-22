@@ -1,5 +1,5 @@
-# Design of the simulations that document the behavior of the model (vignette
-# chapter "Emerging patterns", vignette "Model history"): blocks of settings in which
+# Design of the simulations that document the behavior of the model (vignettes
+# "EcoPhyloSim model" and "Model history"): blocks of settings in which
 # one or two parameters are varied around a reference setting, with replicates.
 # Parameter names are those of EcoPhyloSim 0.3.1 (density, densityCut are the
 # arguments negativeDD, negativeDDCut since #172), and the current names for

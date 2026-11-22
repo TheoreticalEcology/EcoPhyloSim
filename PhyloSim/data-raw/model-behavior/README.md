@@ -1,7 +1,7 @@
 # Model behavior across versions
 
 Scripts that document how the behavior of EcoPhyloSim changes between versions
-(#180, #181). Until the runs of #180 are complete, see Transition at the end.
+(#180, #181).
 
 ## Overview
 
@@ -126,9 +126,8 @@ automatically; `archive.R` names their archive `test-<version>_<commit>`.
     Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior <archive of current>
 
 `makeData.R` reads every file in `runs/` and accepts one run per version, all
-with `indicatorCommit`; first remove the summaries of other runs (see
-Transition). `makeData.R packageBehavior <archive>` also builds
-`packageBehavior`. `pPD.R` does not resume; it reruns failed scenarios once
+with `indicatorCommit` (see Release, step 3). `makeData.R packageBehavior
+<archive>` also builds `packageBehavior`. `pPD.R` does not resume; it reruns failed scenarios once
 with another seed, and if some still fail, it writes no data sets and keeps the
 results of the others in `cache/pPD-partial.rds`.
 
@@ -152,10 +151,9 @@ results of the others in `cache/pPD-partial.rds`.
    `pPD.R` (`Rscript PhyloSim/data-raw/model-behavior/pPD.R <cores>`).
 3. Delete the summaries of development runs from `runs/` (`makeData.R` reads all
    files there), and run `makeData.R packageBehavior <archive>`.
-4. Update the notes per release in `PhyloSim/vignettes/ModelHistory.Rmd` and the
+4. Update `notes` and `inShort` per release in `PhyloSim/vignettes/ModelHistory.Rmd` and the
    description of the runs in the section Simulation design of
-   `PhyloSim/vignettes/ModelDescription.Rmd` (for 0.3.2, see
-   Transition below).
+   `PhyloSim/vignettes/ModelDescription.Rmd`.
 5. Commit `runs/` and the data sets, tag the release, add the release to
    `versions` in `adapters.R` (a copy of `current`), fill in `date` and `commit`
    of its row in `changes.csv` and add a row for the next release, and attach the
@@ -232,27 +230,3 @@ Each run records in its cache, and `archive.R` copies to the archive:
 Since #175 (R's random number generator), results for a given seed no longer
 depend on the random number library of the compiler; for older versions they may
 depend on platform and compiler.
-
-## Transition (until the runs of #180)
-
-The runs in `runs/` and the current `packageBehavior` were made with the earlier script
-`PhyloSim/data-raw/packageBehavior.R` (see tag v0.3.1), whose indicators were
-computed with the simulated version; `makeData.R` therefore does not accept them
-(they have no column `indicators`), and they are replaced by new runs of all
-versions: first the releases 0.2, 0.3 and 0.3.1, then the frozen release 0.3.2.
-These earlier runs (`0.3.1_852c61e`, `0.3.1.9000_2331720`, `legacy/`) are kept
-only by the maintainer; of these, only the summary `runs/0.3.1_852c61e.csv` and
-`packageBehavior` are in the repository.
-
-- With the runs of 0.2, 0.3 and 0.3.1: delete `runs/0.3.1_852c61e.csv` from git
-  and the local `runs/0.3.1.9000_2331720.csv`, commit `modelHistory` built from
-  the new runs, state their runtime under Runtime above, and update the
-  documentation of `modelHistory` (`PhyloSim/R/data-documentation.R`) and the
-  notes of 0.3.1 and 0.3.2 in `PhyloSim/vignettes/ModelHistory.Rmd`.
-- With the run of 0.3.2: commit `packageBehavior` in its new format (all
-  censuses in `main`, no `pilot` and `cnddSpecies`, generations per block, CNDD
-  and runtime as separate tables; until then, `makeData.R` builds only `modelHistory`;
-  `PhyloSim/vignettes/ModelDescription.Rmd` and the documentation of
-  `packageBehavior` already expect it), write the results in
-  `ModelDescription.Rmd`, and update the indicator table of `ModelHistory.Rmd` ("runs made
-  with `run.R`") and this section.
