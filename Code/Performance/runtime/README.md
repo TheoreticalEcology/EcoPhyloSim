@@ -1,15 +1,15 @@
 # Runtime of the simulation model: diagnosis and prototypes
 
-Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and three changes that make it 4 to 44 times faster without changing results: prototyped as patches in `prototypes/`, and since #207 part of the package (see [Implementation](#implementation)). The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
+Where the C++ model (`PhyloSim/src/`, master 802e558, November 2026) spends its time, how past changes affected it, and five changes that make it up to 60 times faster: three prototyped as patches in `prototypes/`, all five part of the package since #207 (see [Implementation](#implementation)); results are unchanged except with global dispersal and the environment acting on recruitment, where only the random numbers change. The benchmark tables can be recomputed from `results/` with `scripts/analyse.R`; profile shares and counters are taken from the summaries in `results/`. Issue: #207.
 
 ## Summary
 
 - **Local dispersal**: for every death, the weights of all K_c cells of the dispersal kernel are recomputed with `exp()` and stored in newly allocated vectors, although they depend only on the offset and never change during a run.
 - **Density dependence**: after every death, the densities of all K cells within the cutoff are recomputed, each over its K neighbours; only 1-4 of them are read before they change again.
-- **Global dispersal with `fitnessActsOn = "recruitment"`**: a fallback that evaluates all N cells dominates when many parents are rejected; its cost per generation grows with N².
+- **Global dispersal with `fitnessActsOn = "recruitment"`**: a fallback that evaluates all N cells dominates when many parents are rejected; its cost per generation grows with N² (addressed by commit 5, see [Implementation](#implementation)).
 - **History**: master is 12 % slower than 0.3 with local dispersal and 3 % faster with global dispersal; the local slowdown between 0.3 and 0.3.1 comes entirely from the #149 fix (0919b9b).
 - **Prototypes**: a dispersal table computed once per run, an exact rewrite of the density loops, and densities recomputed only when read. Output identical to master in all 39 test simulations (52 for the third); 6.6x faster with `dispersal = 1`, 42x with `dispersal = 3`, 3.8-19x with density dependence.
-- **Implementation** (#207): the three prototypes without their fallbacks to the old code; output identical to master, 4.0-44x faster in the benchmark settings.
+- **Implementation** (#207): the three prototypes without their fallbacks to the old code, an inline copy of R's Mersenne-Twister, and binned parent proposals for global dispersal with recruitment; 1.2-60x faster in the benchmark settings, output identical to master except in the last setting (same distribution, other random numbers).
 
 ## Methods
 
@@ -122,40 +122,47 @@ Speed-up against master (1 / median ratio of 4-8 pairs, `results/prototypes.csv`
 
 The three prototypes are implemented in the package, one commit each (#207), without the fallbacks to the old loops: `callModel()` (`PhylSimModelInterface.cpp`) and `checkPar()` guarantee `2 * cutoff + 1 <= min(x, y)` for the dispersal kernel and for active density dependence, so that no offset reaches the focal cell again and one addition or subtraction wraps a coordinate. The dispersal table is also used with `fitnessActsOn = "reproduction"`, with the weights of each death stored in buffers allocated once. After each commit, the output was identical to master in the identity checks (32 short and 7 long runs), in the reference test in `test-reproducibility.R` and in 54 further runs on small and non-square grids with the largest allowed cutoffs.
 
-Speed-up against master after each commit (1 / median ratio of 4 pairs, `results/implementation.csv`, tags `i207-c2`, `i207-c3` and `i207-c4` for the three commits; "master CPU s" is the median of the master runs paired with the first commit; the second commit was measured before a small cleanup outside the loops):
+Two further commits (#207) address the remaining hot spots: (4) the random numbers come from an inline copy of R's Mersenne-Twister (`RandomGen.h`, `RandomGen.cpp`; same numbers, the state is taken from and written back to `.Random.seed`, `rpois()` still uses R's generator), and (5) with global dispersal and the environment acting on recruitment, parents are proposed from bins of their environmental trait after 10 rejected uniform proposals (`GlobalEnvironment::binnedParent()`). Without (5), early in a run, when few individuals fit the environment of a cell, many deaths needed 1000 rejected proposals and a fallback over all N cells, so that the cost per generation grew with N^2. (5) draws each parent with the same probability as before (~ fitness of its recruit), but with other random numbers, so that results for a given seed change in this setting only (one hash of the reference test). Checks of (5): the frequencies of drawn parents equal the exact probabilities in a test (`test-randomGen.R`, which detects a bound that is too small and a missing exclusion of the target cell); all other settings stay identical; and summary statistics agree (200 runs per build in one setting, 40 in two others; `scripts/recruitment-check.R`, `results/recruitment-check.csv`; e.g. species richness 20.6 and 20.7, all Wilcoxon p >= 0.11).
 
-| Setting | Master CPU s | 1 | 1+2 | 1+2+3 |
-|---|---|---|---|---|
-| `dispersal = 1`, 2000 generations | 6.76 | 6.7x | 7.0x | 6.6x |
-| `dispersal = 3`, 300 generations | 6.61 | 39x | 42x | 44x |
-| `environment = 1`, 1000 generations | 3.87 | 4.1x | 4.1x | 4.0x |
-| `negativeDD = 1`, cutoff 2, 500 generations | 4.40 | 1.5x | 3.6x | 11x |
-| `negativeDD = 1`, cutoff 3, 200 generations | 4.74 | 1.2x | 2.6x | 21x |
-| cutoff 2, `"gaussian"`, 200 generations | 7.64 | 1.1x | 1.2x | 13x |
-| cutoff 2, `"species"`, 500 generations | 5.55 | 1.4x | 3.0x | 5.6x |
-| `positiveDD` (cutoff 3) and `negativeDD` (cutoff 2), 150 generations | 4.74 | 1.2x | 2.8x | 16x |
-| `negativeDD`, cutoff 2, mortality and recruitment, 300 generations | 4.20 | 1.3x | 2.8x | 4.1x |
+Speed-up against master after each commit (1 / median ratio of 4 pairs, `results/implementation.csv`, tags `i207-c2` to `i207-c6` for commits 1 to 5; "master CPU s" is the median of the master runs paired with the first commit in which the setting was measured; commit 2 was measured before a small cleanup outside the loops):
+
+| Setting | Master CPU s | 1 | 1+2 | 1+2+3 | +4 | +5 |
+|---|---|---|---|---|---|---|
+| `dispersal = 1`, 2000 generations | 6.76 | 6.7x | 7.0x | 6.6x | 10x | 10x |
+| `dispersal = 3`, 300 generations | 6.61 | 39x | 42x | 44x | 56x | 60x |
+| `environment = 1`, 1000 generations | 3.87 | 4.1x | 4.1x | 4.0x | 5.4x | 5.2x |
+| `negativeDD = 1`, cutoff 2, 500 generations | 4.40 | 1.5x | 3.6x | 11x | 12x | 12x |
+| `negativeDD = 1`, cutoff 3, 200 generations | 4.74 | 1.2x | 2.6x | 21x | 27x | 25x |
+| cutoff 2, `"gaussian"`, 200 generations | 7.64 | 1.1x | 1.2x | 13x | 13x | 13x |
+| cutoff 2, `"species"`, 500 generations | 5.55 | 1.4x | 3.0x | 5.6x | 6.8x | 6.9x |
+| `positiveDD` (cutoff 3) and `negativeDD` (cutoff 2), 150 generations | 4.74 | 1.2x | 2.8x | 16x | 17x | 18x |
+| `negativeDD`, cutoff 2, mortality and recruitment, 300 generations | 4.20 | 1.3x | 2.8x | 4.1x | 4.8x | 4.8x |
+| global, neutral, 100x100, 2000 generations | 3.56 | | | | 2.0x | 1.9x |
+| global, `environment = 1`, recruitment, 300 generations | 15.39 | | | | | 4.5x |
+| global, `environment = 1` and `negativeDD = 1`, mortality and recruitment, 200 generations | 78.10 | | | | | 6.9x |
+| global, `environment = 1`, recruitment, 100x100, 30 generations | 107.92 | | | | | 5.8x |
+| global, `environment = 0.5`, recruitment, 300 generations | 0.30 | | | | | 1.2x |
 
 ## Further options (not prototyped)
 
 From three independent design reviews of the code and profiles; all would keep results unchanged unless noted.
 
-- **Recruitment**: compute the neighbourhood of the target cell once per death instead of once per tried parent; with global dispersal, replace or cap the O(N) fallback (a cap changes results).
+- **Recruitment**: compute the neighbourhood of the target cell once per death instead of once per tried parent (the O(N) fallback with global dispersal is now mostly avoided by binned proposals, see [Implementation](#implementation)).
 - **Incremental density sums**: update the stored sums of the K neighbours by the change of one cell, without recomputation. Exact for the `"species"` kernel (integer counts); for `"absolute"` and `"gaussian"` the summation order changes, so results change in the last bits and trajectories diverge. For `"gaussian"`, caching the K kernel values of each cell would save most `exp()` calls and keep results.
 - **Memory layout for large grids**: one contiguous allocation for the grid; per-run constants (`m_nicheWidth`, `m_dispersalDistance`, `m_envStrength`, `m_compStrength`, `m_ddTable`, `m_posStrength`) moved out of `Individual`; species means computed when read instead of after every birth and death.
-- **Global neutral runs**: one random index per cell instead of x and y changes results; an inline copy of R's Mersenne-Twister would keep them but is error-prone.
+- **Global neutral runs**: one random index per cell instead of x and y changes results (an inline copy of R's Mersenne-Twister, which keeps them, is implemented, see [Implementation](#implementation)).
 - Not worth it: alias tables or Gillespie-type sampling (changes results, little gain after prototype 1), threads within a run (the death-replacement chain is sequential), `-ffast-math` or `-march=native` (results would depend on the machine).
 
 ## Testing future changes
 
-`tests/testthat/test-reproducibility.R` compares, besides summaries with a tolerance, an MD5 hash of the complete output of the C++ model for 13 short simulations (24x16, 200 generations, skipped on CRAN) with a snapshot; changes meant to keep results must pass it unchanged (the snapshot was made on Windows, x86-64). For more settings and longer runs, compare the full output of two builds with `scripts/identity.R` and `identity-compare.R`, and measure with `scripts/pair.ps1`.
+`tests/testthat/test-reproducibility.R` compares, besides summaries with a tolerance, an MD5 hash of the complete output of the C++ model for 13 short simulations (24x16, 200 generations, skipped on CRAN) with a snapshot; changes meant to keep results must pass it unchanged (the snapshot was made on Windows, x86-64). For more settings and longer runs, compare the full output of two builds with `scripts/identity.R` and `identity-compare.R`, and measure with `scripts/pair.ps1`. A change that is meant to change only the random numbers, not their distribution, needs a test of the distribution (as `test-randomGen.R` for the parents drawn) and a comparison of summary statistics over many seeds (as `scripts/recruitment-check.R`).
 
 ## Files
 
 | Path | Content |
 |---|---|
 | `prototypes/` | the three prototypes and the counter instrumentation (patches against 802e558) |
-| `scripts/` | `settings.R` (named settings), `run-one.R` and `pair.ps1` (paired benchmark; adjust `-cpus` and `-Rscript` to the machine), `identity.R` and `identity-compare.R`, `count-run.R`, `profile.ps1`, `profile-run.R` and `profile-analyse.R` (needs Very Sleepy and Rtools), `analyse.R` (tables) |
-| `results/` | `pairs-aa.csv`, `pairs-history.csv`, `pairs-bisect.csv`, `prototypes.csv`, `implementation.csv`, `scaling.csv` (one row per run: tag, parameters, seed, CPU, CPU s, elapsed s, deaths, time), `counters.txt`, `identity.txt`, profile summaries |
+| `scripts/` | `settings.R` (named settings), `run-one.R` and `pair.ps1` (paired benchmark; adjust `-cpus` and `-Rscript` to the machine), `identity.R` and `identity-compare.R`, `count-run.R`, `profile.ps1`, `profile-run.R` and `profile-analyse.R` (needs Very Sleepy and Rtools), `recruitment-check.R` (summary statistics for global recruitment), `analyse.R` (tables) |
+| `results/` | `pairs-aa.csv`, `pairs-history.csv`, `pairs-bisect.csv`, `prototypes.csv`, `implementation.csv`, `scaling.csv` (one row per run: tag, parameters, seed, CPU, CPU s, elapsed s, deaths, time), `recruitment-check.csv` (one row per run: tag, setting, seed, statistics, CPU s), `counters.txt`, `identity.txt`, profile summaries |
 
 The pair scripts of the history and bisection used named settings; `results/pairs-*.csv` give the equivalent `run-one.R` parameters. Raw profiles (`*.sleepy`), libraries and simulation output are not kept.
