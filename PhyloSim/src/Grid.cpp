@@ -685,6 +685,14 @@ void Landscape::speciation(unsigned int generation) {
 
     int specRate = m_RandomGenerator.randomPoisson(m_Speciation_Rate);
 
+    // trait jump of a new species, shared by all its individuals (#114); drawn only for traits with a
+    // jump, so that results without a jump stay unchanged
+    double jump[3];
+    auto drawJump = [&]() {
+        for (int t = 0; t < 3; t++)
+            jump[t] = m_specJump[t] > 0 ? m_RandomGenerator.randomDouble(-m_specJump[t], m_specJump[t]) : 0.0;
+    };
+
 
     for (int i = 0; i < specRate; i++) {
 
@@ -751,7 +759,8 @@ void Landscape::speciation(unsigned int generation) {
                     m_Individuals[k][j].m_Species = new Species(m_Global_Species_Counter,
                                                                 m_Individuals[k][j].m_Species->get_species_ID(),
                                                                 generation, std::make_pair(k, j), m_SimulationEnd);
-                    m_Individuals[k][j].evolveDuringSpeciation();
+                    drawJump();
+                    m_Individuals[k][j].evolveDuringSpeciation(jump);
                     m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
 
                     if (needsDensity()) densityUpdate(k, j);
@@ -774,7 +783,8 @@ void Landscape::speciation(unsigned int generation) {
                                                                 m_Individuals[k][j].m_Species->get_species_ID(),
                                                                 generation, std::make_pair(k, j), m_SimulationEnd);
 
-                    m_Individuals[k][j].evolveDuringSpeciation();
+                    drawJump();
+                    m_Individuals[k][j].evolveDuringSpeciation(jump);
                     m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
                     if (needsDensity()) densityUpdate(k, j);
                     m_Individuals[k][j].m_incip_Age = -99999999;
@@ -784,7 +794,7 @@ void Landscape::speciation(unsigned int generation) {
                             if ((m_Individuals[z][q].m_incip_Age == m_protracted) && (m_Individuals[z][q].m_Species->m_ID == oldspec)) {
                                 m_Individuals[z][q].reportDeath(generation);
                                 m_Individuals[z][q].m_Species = m_Individuals[k][j].m_Species;
-                                m_Individuals[z][q].evolveDuringSpeciation();
+                                m_Individuals[z][q].evolveDuringSpeciation(jump);
                                 if (needsDensity()) densityUpdate(z, q);
                                 m_Individuals[z][q].m_incip_Age = -99999999;
                             }

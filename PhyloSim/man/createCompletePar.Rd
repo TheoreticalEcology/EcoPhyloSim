@@ -14,7 +14,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
   prunePhylogeny = TRUE, negativeDDKernel = "absolute",
   negativeDDWidth = 0.1, negativeDDResponse = "linear", positiveDD = 0,
   positiveDDCut = 1, positiveDDKernel = "species", positiveDDWidth = 0.1,
-  density, densityCut)
+  speciationTraitJump = 0, density, densityCut)
 }
 \arguments{
 \item{x}{Integer, Dimension of the model landscape in x-direction; the grid must have at least 2 cells (x * y >= 2)}
@@ -61,7 +61,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{prunePhylogeny}{Logical, whether extinct lineages without living descendants are removed from the phylogeny during the run, which keeps the tree and memory use small; the phylogeny then contains only the extant species (see \code{\link{runSimulation}}). If FALSE, all species are kept.}
 
-\item{negativeDDKernel}{Character, how the similarity \code{S} of an individual to its neighbors is measured for negative density dependence: "absolute" (default) uses the absolute difference in the competition trait, \code{S = 1 - D}, where \code{D} is the mean difference to the neighbors; "gaussian" uses the mean of \code{exp(-0.5 * (difference / negativeDDWidth)^2)} over the neighbors; "species" uses the proportion of conspecifics among the neighbors, i.e., conspecific density dependence that acts from the first speciation on. The trait-based kernels act only once the competition traits have diverged, which takes thousands of generations, because all individuals start with the same traits. Strengths are not directly comparable between kernels, as the distributions of \code{S} differ.}
+\item{negativeDDKernel}{Character, how the similarity \code{S} of an individual to its neighbors is measured for negative density dependence: "absolute" (default) uses the absolute difference in the competition trait, \code{S = 1 - D}, where \code{D} is the mean difference to the neighbors; "gaussian" uses the mean of \code{exp(-0.5 * (difference / negativeDDWidth)^2)} over the neighbors; "species" uses the proportion of conspecifics among the neighbors, i.e., conspecific density dependence that acts from the first speciation on. The trait-based kernels act only once the competition traits have diverged, which takes thousands of generations, because all individuals start with the same traits; a large enough jump of the competition trait at speciation (e.g. \code{speciationTraitJump = c(0, 0.3, 0)}) makes the absolute kernel act within a few hundred generations. Strengths are not directly comparable between kernels, as the distributions of \code{S} differ.}
 
 \item{negativeDDWidth}{Numeric > 0, width of the Gaussian kernel for \code{negativeDDKernel = "gaussian"}; values above 1 give a message, as the competition trait lies between 0 and 1, and so do values below 0.001, as the trait differs by about 0.01 within species.}
 
@@ -70,6 +70,8 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 \item{positiveDD}{Experimental. Numeric between 0 and 1, strength of positive density dependence (e.g. facilitation by mutualists): individuals with dissimilar neighbors within \code{positiveDDCut} are disadvantaged, with the fitness term \code{1 - positiveDD * (1 - S)}. As the grid is always full, this is the same as an advantage of individuals with similar neighbors. By default (0) there is none. Positive density dependence is destabilizing: on its own and with otherwise default settings, already \code{positiveDD = 0.1} left two or three species after 1000 generations (neutral: about eight), and with \code{dispersal = 1} and \code{specRate = 2}, \code{positiveDD = 0.02} led to the dominance of one species (mean Shannon index 0.09 over 5 runs after 5000 generations; neutral: 2.1), so it is meant to be combined with negative density dependence at another radius or specificity. With the "species" kernel and \code{fission = 0}, a new species starts as a single individual without conspecific neighbors and therefore gets the full penalty \code{positiveDD}.}
 
 \item{positiveDDCut, positiveDDKernel, positiveDDWidth}{Radius, similarity measure (default "species") and Gaussian width for positive density dependence, as \code{negativeDDCut}, \code{negativeDDKernel} and \code{negativeDDWidth}.}
+
+\item{speciationTraitJump}{Numeric, one value for all traits or three values (environment, competition and neutral trait), each between 0 and 1: half-width \code{w} of a trait jump at speciation. Each trait of a new species changes by a value drawn uniformly from \code{(-w, w)} and is reflected at 0 and 1; with fission, all individuals of the new species share the jump, and with protracted speciation, it happens when speciation completes. With the default 0, new species keep the traits of their founding individual and diverge only slowly (see \code{negativeDDKernel}); with 1, the traits of a new species are uniform between 0 and 1, independent of its ancestor, so that they lose their phylogenetic signal.}
 
 \item{density, densityCut}{Deprecated names of \code{negativeDD} and \code{negativeDDCut}.}
 }

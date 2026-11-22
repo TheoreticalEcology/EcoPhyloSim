@@ -98,6 +98,12 @@
     globalEnvRecruitment.phyloTXT = "1d5511f68d5305f36cd2621347b8e36a", 
     fissionDD.specMat = "0c933bd2df4e2326c4c33088215ef770", fissionDD.traitMat = "81f9ce8e054ef6bae9c50a022c69ed54", 
     fissionDD.envMat = "748c757eca6eac53e289c09569ccc92a", fissionDD.compMat = "663006ad3d32ed29c7e873ae567b1d47", 
-    fissionDD.neutMat = "599975ac31fa1ffc3e73398405cd3efb", fissionDD.phyloTXT = "25c97f4755bcd5d6e841f69e950363b5"
+    fissionDD.neutMat = "599975ac31fa1ffc3e73398405cd3efb", fissionDD.phyloTXT = "25c97f4755bcd5d6e841f69e950363b5", 
+    fission2.specMat = "3b2145203ac99e4ed16cb6674d96d4dd", fission2.traitMat = "f219c17d393624f27dd5bdb01c69847a", 
+    fission2.envMat = "748c757eca6eac53e289c09569ccc92a", fission2.compMat = "4905db938dacb199dd3171a028caba86", 
+    fission2.neutMat = "f586ef70e108d6818d8d4d2b505614b9", fission2.phyloTXT = "f9dae58c31a648ba600b3da142c064cb", 
+    protracted.specMat = "f75894babe300f8eaaa2ee18a49124d0", protracted.traitMat = "866813ff8dad972203dc140f28055c61", 
+    protracted.envMat = "748c757eca6eac53e289c09569ccc92a", protracted.compMat = "1f0745d15eef8d5ffa58d7359484a7f6", 
+    protracted.neutMat = "26ccca994c126959e9a60d5eba6bafd6", protracted.phyloTXT = "2df00825117f2367fe4b94ef982e4edb"
     )
 

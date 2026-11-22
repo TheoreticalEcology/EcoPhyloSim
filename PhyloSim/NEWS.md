@@ -1,5 +1,9 @@
 # EcoPhyloSim (development version)
 
+## New features
+
+* `createCompletePar()`: new argument `speciationTraitJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
+
 ## Changes
 
 * `runSimulation()` is faster: about 5 to 60 times with local dispersal (more with larger `dispersal`; less with fitness acting on reproduction), 5 to 25 times with density dependence, about 2 times in global neutral runs and up to 7 times with global dispersal and fitness on recruitment. Results for a given seed are unchanged, except with global dispersal and the environment acting on recruitment, where parents are now proposed from bins of their environmental trait: each parent is drawn with the same probability as before, but with other random numbers (#207).

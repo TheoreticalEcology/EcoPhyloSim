@@ -47,3 +47,18 @@ test_that("environmental filtering correlates traits with the environment, less 
   r01 <- corTraitEnv(0.1)
   expect_true(r0 < r01 && r01 < r)
 })
+
+test_that("trait jumps at speciation act per trait, are shared under fission and stay between 0 and 1 (#114)", {
+  run <- function(...) quietSimulation(x = 20, y = 20, runs = 300, specRate = 2, seed = 1, ...)$Output[[1]]
+  speciesMeans <- function(out, mat) tapply(c(out[[mat]]), c(out$specMat), mean)
+  out <- run(speciationTraitJump = c(0, 1, 0))
+  for (mat in c("traitMat", "compMat", "neutMat")) expect_true(all(out[[mat]] >= 0 & out[[mat]] <= 1))
+  expect_gt(sd(speciesMeans(out, "compMat")), 0.15)
+  expect_gt(sd(speciesMeans(out, "compMat")), 5 * sd(speciesMeans(run(), "compMat")))
+  expect_lt(sd(speciesMeans(out, "neutMat")), 0.1)
+  # with fission, a jump per individual would spread the traits within the newest species
+  out <- run(speciationTraitJump = c(0, 0, 1), fission = 1)
+  withinSd <- tapply(c(out$neutMat), c(out$specMat), function(v) if (length(v) > 1) sd(v) else 0)
+  expect_lt(max(withinSd), 0.05)
+  expect_gt(sd(speciesMeans(out, "neutMat")), 0.15)
+})

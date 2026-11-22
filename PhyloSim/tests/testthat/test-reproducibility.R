@@ -77,6 +77,9 @@ test_that("simulation results are identical to the stored ones", {
                                    fitnessActsOn = c("reproduction", "mortality")),
     globalDD = outputHash(negativeDD = 1, negativeDDCut = 2),
     globalEnvRecruitment = outputHash(environment = 1, fitnessActsOn = "recruitment"),
-    fissionDD = outputHash(dispersal = 1, fission = 1, negativeDD = 1, negativeDDKernel = "species"))
+    fissionDD = outputHash(dispersal = 1, fission = 1, negativeDD = 1, negativeDDKernel = "species"),
+    # the other speciation paths, where a trait jump at speciation would act (#114)
+    fission2 = outputHash(dispersal = 1, fission = 2),
+    protracted = outputHash(dispersal = 1, protracted = 1))
   expect_snapshot_value(hashes, style = "deparse")
 })

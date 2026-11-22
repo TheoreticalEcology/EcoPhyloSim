@@ -81,7 +81,7 @@ public:
 
     void evolve();
 
-    void evolveDuringSpeciation();
+    void evolveDuringSpeciation(const double jump[3]);
 
     double getSeedsTo(int rel_x, int rel_y, int dispersal_type, double temp, bool env, bool dd, int generation,
                       double redQueenStrength, double redQueen);

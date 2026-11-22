@@ -649,6 +649,8 @@ $$ t' = (1 - \alpha)\cdot t_{\mathrm{p}} + \alpha \cdot \bar t + r, $$
 where $t'$ is the offspring's trait value, $t_{\mathrm{p}}$ the parent's,
 $\bar t$ is the mean trait value of the species, $\alpha = 0.2$ is a fixed
 attraction weight, and $r$ is drawn uniformly from $[-0.01, 0.01]$. Values outside $[0, 1]$ are reflected at the boundary.
+At speciation, the traits of a new species can also change by a larger jump
+(`speciationTraitJump`, see Speciation).
 
 ## Environmental filtering
 
@@ -1111,8 +1113,14 @@ The default speciation mechanism is point speciation: in each generation, the
 number of new species is drawn from a Poisson distribution with mean
 `specRate`, and for each of them an individual is chosen at random. `specRate`
 is thus the expected number of new species per generation in the whole grid,
-not a rate per individual. The founding individual keeps its traits, which
-become the initial trait means of the new species (see Known limitations).
+not a rate per individual. By default, the founding individual keeps its
+traits, which become the initial trait means of the new species. With
+`speciationTraitJump` $= w > 0$, each trait of the new species changes at
+speciation by a value drawn uniformly from $(-w, w)$ and is reflected at 0 and
+1, as in trait evolution; $w$ can be set per trait. All individuals of a new
+species share the jump, also with fission, and with protracted speciation it
+happens when speciation completes. With $w = 1$, the traits of a new species
+are uniform between 0 and 1, independent of its ancestor.
 
 All speciation mechanisms implemented in the model are summarized below:
 
@@ -1144,6 +1152,7 @@ All speciation mechanisms implemented in the model are summarized below:
 | `specRate` | expected number of new species per generation in the whole grid | 1 | $\ge 0$, $\le x \cdot y$ |
 | `fission` | speciation by fission: 0 (none), 1 or 2 | 0 | 0, 1, 2 |
 | `protracted` | generations an incipient species must survive | 0 | integer $\ge 0$ |
+| `speciationTraitJump` | half-width $w$ of the trait jump of a new species, one value or one per trait (environment, competition, neutral) | 0 | between 0 and 1 |
 | `redQueenStrength`, `redQueen` | strength $s$ and decay $q$ of the novelty advantage | 0, 0 | $\ge 0$ |
 
 Table: Arguments of `createCompletePar()` for speciation.
@@ -1426,13 +1435,12 @@ discussed in the issues of the package repository:
 - With protracted speciation, the offspring of an incipient individual do not
   inherit the incipient state
   ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
-- New species keep the traits of their founding individual; a trait change at
-  speciation is not implemented
-  ([#114](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/114)).
 - With the trait kernels (`negativeDDKernel = "absolute"` or `"gaussian"`),
   density dependence develops only after thousands of generations, so short
   runs show little of its effect; the `"species"` kernel acts from the first
-  speciation on
+  speciation on, and a large enough jump of the competition trait at
+  speciation (e.g. `speciationTraitJump = c(0, 0.3, 0)`) makes the absolute
+  kernel act within a few hundred generations
   ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
 - `es()` calculates the expected number of species of the neutral model with
   $\theta = 2 \cdot$ `specRate`, about twice the value that fits the model

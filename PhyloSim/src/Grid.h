@@ -72,6 +72,8 @@ public:
     double m_redQueen;
     double m_redQueenStrength;
     int m_protracted;
+    // half-widths of the trait jump at speciation (environment, competition, neutral), set by callModel()
+    double m_specJump[3] = {0, 0, 0};
     std::vector<double> airmat;
     std::vector<double> soilmat;
     int m_ddKernel;
