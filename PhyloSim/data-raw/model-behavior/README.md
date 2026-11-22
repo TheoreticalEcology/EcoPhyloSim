@@ -71,7 +71,9 @@ This complements the pull request workflow in
 [CONTRIBUTING.md](../../../CONTRIBUTING.md#pull-request-workflow).
 
 In the pull request: a change that alters simulation results or the meaning of
-arguments gets a row in `changes.csv`, above the row of the planned release:
+arguments gets a row in `changes.csv`, below the last row of the release in preparation
+(if that release has no row yet, add one with `kind` release and empty `date`
+and `commit`):
 `kind` change, `version` the next release, `reference` the issue, `type` (N, B,
 S or S+B), the `change` and its expected effect on the `outputs`. New or renamed
 arguments are added to `design.R` and `adapters.R` (see Extending). Contributors
@@ -123,15 +125,19 @@ automatically; `archive.R` names their archive `test-<version>_<commit>`.
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3 v0.3
     Rscript PhyloSim/data-raw/model-behavior/archive.R PhyloSim/data-raw/model-behavior/cache/main_0.3_73ebaa3
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3.1 v0.3.1
-    Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3.2 v0.3.2
+    Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> current v0.3.2
     Rscript PhyloSim/data-raw/model-behavior/pPD.R <cores>
     Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior 0.3.2_<commit of v0.3.2>
 
 Runs with failed simulations (0.2, 0.3) are not archived automatically, hence
-the `archive.R` lines. The run of record of 0.3.2 used the commit dbdf3fc of
-#209, whose model code equals that of the tag v0.3.2 (archive `0.3.2_dbdf3fc`). `archive.R` does not overwrite archives, so move existing
-ones away first and delete the old files in `runs/`; run `pPD.R` with the
-release commit checked out.
+the `archive.R` lines; for 0.3.2, `current` uses the adapter of the current
+version until 0.3.2 is in `versions` of `adapters.R`. The run of record of
+0.3.2 used commit dbdf3fc of #209 (scripts at 8c23d06, data sets built at
+3905334), whose model code equals that of the tag v0.3.2 (archive
+`0.3.2_dbdf3fc`); these commits are not on `master` (`git fetch origin
+pull/209/head`). `archive.R` does not overwrite archives, so move existing ones
+away first and delete the old files in `runs/`; run `pPD.R` with the release
+commit checked out.
 
 `makeData.R` reads every file in `runs/` and accepts one run per version, all
 with `indicatorCommit` (see Release, step 3). `makeData.R packageBehavior
@@ -203,10 +209,10 @@ these changes.
   from the version in `adapters.R`.
 - v0.2 stops when only one species is left, as it cannot read a phylogeny with a
   single tip; `simulate.R` then sets the phylogeny to 0, as v0.3 does. v0.2 also
-  crashes without a message (exit status 5) in some simulations, most often with
-  high speciation rates on small grids (29 of 30 with `specRate` 8 on 20 x 20
-  cells), but also in single simulations of 16 other settings, e.g. with
-  environmental filtering or density dependence; these count as failed (59 of
+  crashes without a message (exit status 5) in some simulations, most often in
+  the neutral model on 20 x 20 cells at high speciation rates (29 of 30 with
+  `specRate` 8, 8 of 30 with 4), but also 1 to 4 of 30 in 16 other settings,
+  e.g. with environmental filtering or density dependence; these count as failed (59 of
   2,730 supported simulations in the run of record).
 - v0.3 stops with "numbers of left and right parentheses in Newick string not
   equal" in many simulations with the Red Queen advantage (all 30 with

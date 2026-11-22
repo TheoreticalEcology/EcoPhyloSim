@@ -10,7 +10,8 @@ A list with three entries:
 \code{commit}), setting and indicator: \code{block} (group of settings in which
 one or two parameters are varied), \code{setting} (number within the block),
 the parameters of the setting (names of release 0.3.1, e.g. \code{density} for
-\code{negativeDD}; \code{dispersal} as character), the number of
+\code{negativeDD}, and the current names for parameters added later;
+\code{dispersal} as character), the number of
 \code{generations}, the \code{indicator} and the replicate \code{mean},
 \code{sd} and number of replicates \code{n} (without \code{NA} values) at the
 last census. Indicators as in \code{\link{packageBehavior}} (richness,

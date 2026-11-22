@@ -60,6 +60,7 @@ rq03 <- vapply(c(0.5, 1, 2, 4, 8), function(r) round(30 * if (r == 2)
   val("0.3", "speciationRate", "failed", redQueen = 0.01, specRate = r)), 0)
 # observations on the behavior of a release (problems of the code are issues)
 notes <- list("0.3.2" = c(
+  "The run of this release used commit dbdf3fc of pull request #209, whose model code equals that of the tag v0.3.2.",
   sprintf("Density dependence combined with environmental filtering now increases richness (at `environment = 0.5`, from about %s species without density dependence to %s with `negativeDD = 0.5`); in 0.3.1, it reduced richness (from %s to %s).",
           val("0.3.2", "envDensity", "richness", density = 0, environment = 0.5, digits = 3),
           val("0.3.2", "envDensity", "richness", density = 0.5, environment = 0.5, digits = 3),
@@ -236,7 +237,7 @@ another release:
   [Upgrading from an earlier release](#upgrading-from-an-earlier-release)).
 - **S+B**: both.
 
-```{r timeline, fig.height = 3, fig.cap = "Timeline of the releases (diamonds with version and year; open: planned) and of the changes of the model code that alter simulation results (circles, labeled with their issue or commit and colored by type), in their order, not to scale in time."}
+```{r timeline, fig.height = 3, fig.cap = paste0("Timeline of the releases (diamonds with version and year", if (anyNA(ch$date[ch$kind == "release"])) "; open: planned release", ") and of the changes of the model code that alter simulation results (circles, labeled with their issue or commit and colored by type), in their order, not to scale in time.")}
 op <- par(mar = c(0, 0.5, 0, 0.5))
 n <- nrow(ch)
 isRel <- ch$kind == "release"
@@ -328,7 +329,7 @@ stat <- function(d, k, i) {
 ```{r patterns, fig.height = 8, fig.cap = "Indicators (panels) of nine settings (rows) in the runs of each release (colors and symbols): means of the replicate runs at the last census with 95% confidence intervals (CNDD: estimated over the last five generations). All settings on 50 × 50 cells with specRate = 2; a missing point means that the release does not support the setting or the indicator."}
 vcol <- setNames(hcl.colors(max(3, length(runs)), "Dark 3")[seq_along(runs)], runs)
 vpch <- setNames(rep(c(16, 17, 15, 18, 1, 2), length.out = length(runs)), runs) # not by color only
-op <- par(mfrow = c(4, 2), mar = c(2.5, 0.5, 1.8, 0.5), oma = c(2, 13, 0, 0), cex = 0.7)
+op <- par(mfrow = c(4, 2), mar = c(2.5, 0.5, 1.8, 0.5), oma = c(2, 14.5, 0, 0), cex = 0.7)
 yy <- rev(seq_along(key))
 for (j in seq_along(indicators)) {
   i <- names(indicators)[j]
@@ -391,8 +392,9 @@ simulations in parallel.
 - In most other settings, 0.3.2 takes up to about 20% longer, in particular
   with local dispersal (4–22% over whole blocks). Profiling attributes about 9%
   to memory allocations at each death, introduced between 0.3 and 0.3.1
-  ([#149](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/149)); the rest is not explained. Some settings, mostly with global
-  dispersal, are up to 14% faster.
+  ([#149](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/149)); the rest is not explained. Some settings are faster, mostly with
+  global dispersal (up to about 25% on 20 × 20 cells), and the setting of the
+  block speciation that was unusually slow in 0.3 (26%).
 
 Release 0.3, run in the same way, is up to about 30% faster than 0.2 in most
 settings (block totals from 18% faster to 7% slower); single settings vary more

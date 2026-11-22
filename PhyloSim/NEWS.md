@@ -24,7 +24,7 @@ Results differ from 0.3.1 for the same parameters and seed, because the C++ mode
 ## Bug fixes
 
 * `plotSpatialPhylo()` and `highlightLocalPhylo()` scale the tip labels down for phylogenies with many species, where they overlapped (#180).
-* Functions that need the phylogeny (e.g. `plot()`, `summary()`, `collessImbalance()`, `nullModel()`, `calculatePhylogeneticDispersion()`) stop with a clear message for results with a single species, whose phylogeny is 0, instead of the error "$ operator is invalid for atomic vectors".
+* Functions that need the phylogeny (e.g. `plot()`, `summary()`, `collessImbalance()`, `nullModel()`, `calculatePhylogeneticDispersion()`) stop with a clear message for results with a single species, whose phylogeny is 0, instead of the error "$ operator is invalid for atomic vectors" (#180).
 * `nullModel()` with `fun = "mpd"` and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"` give p = NA instead of p = 0 for plots with a single species (#186), and instead of an error in `ecdf()` if all null communities have a single species, e.g. with a plot size of 1 (#196).
 * `plotPhylogeneticDispersion()` fills the square of a scenario also if a plot size has only NA p-values (grey if all are NA) or the mean p-value is 1, where the square was left empty, and ignores NA values in the means over simulations (`means > 1`) (#195).
 * `nullModel()` and `calculatePhylogeneticDispersion()` stop with an error, and `calculateSummaryStatistics()` gives `dispersion = NA` with a message, for trees with more than 23170 extant species (in a binary tree) on Windows, where `cophenetic()` crashed R (#168).

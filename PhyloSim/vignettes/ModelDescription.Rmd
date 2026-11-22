@@ -413,8 +413,9 @@ conspecific neighbors level off within a few thousand generations (in the
 neutral model on 50 × 50 cells after about 2,000–4,000 generations). The gamma statistic, and in some settings the Colless index
 and the spread of the competition trait, take longer, up to tens of thousands
 of generations. On 100 × 100 cells with
-`specRate = 0.5`, the tree statistics settle only after more than 80,000
-generations, as expected for a larger community with fewer new species. The
+`specRate = 0.5`, the gamma statistic levels off after about 10,000
+generations; the Colless index varies too much between replicates to show a
+trend. The
 correlation between trait and environment has no meaning without
 environmental filtering.
 :::
@@ -504,10 +505,9 @@ of an effect. The parameters are varied one or two at a time around a reference
 setting (50 × 50 cells, `dispersal = 1`, `specRate = 2`, all other parameters
 at their defaults), with `r packageBehavior$info$modes$main$reps` replicate
 runs per setting. The simulations take days, so they are not run when this
-vignette is built: they were run with the scripts in
-`PhyloSim/data-raw/model-behavior` of the
-[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim) at
-the commit `r packageBehavior$info$commit`, and their summaries are stored in
+vignette is built: they were run with the model of commit `r packageBehavior$info$commit` and the
+scripts in `PhyloSim/data-raw/model-behavior` of the
+[package repository](https://github.com/TheoreticalEcology/EcoPhyloSim), and their summaries are stored in
 the data set `packageBehavior` (see `?packageBehavior`). The same design is run
 with every release; how the patterns changed between releases is shown in the
 vignette "Model history".
@@ -581,9 +581,7 @@ conspecifics are clustered, and the species–area curve within the grid should 
 and steeper at large areas, where further clusters are added; with global
 dispersal, subplots are random samples of the whole grid, so the curve rises
 fast at small areas and flattens as it approaches the richness of the grid
-[@chave2002]. In spatial neutral models, species–area curves for different
-dispersal distances coincide once area is rescaled by the dispersal distance
-[@rosindell2007]. The probability that two individuals at a given distance belong
+[@chave2002]. The probability that two individuals at a given distance belong
 to the same species should decrease with distance when dispersal is limited
 [@chaveleigh2002; @condit2002]; with global dispersal, it should be the same at
 all distances and equal to the neutral expectation $1/(1+\theta)$.
@@ -1327,9 +1325,9 @@ point speciation at the same `specRate`
 `r val("dispersal", "richness", dispersal = "1", digits = 3)`), with much more
 even abundances, as expected. Contrary to the expectation, the species are
 much younger (mean age, estimated from the species IDs, see Species ages:
-`r val("fission", "meanSpeciesAge", fission = 1)` and
-`r val("fission", "meanSpeciesAge", fission = 2)` instead of
-`r val("speciation", "meanSpeciesAge", protracted = 0, redQueen = 0)` generations).
+`r val("fission", "meanSpeciesAge", fission = 1, digits = 3)` and
+`r val("fission", "meanSpeciesAge", fission = 2, digits = 3)` instead of
+`r val("speciation", "meanSpeciesAge", protracted = 0, redQueen = 0, digits = 3)` generations).
 A likely explanation: nearly every new species survives its origin, so about
 2 species are added per generation, and richness divided by 2 (about 45
 generations) roughly matches the mean age. With point speciation, most new species go
