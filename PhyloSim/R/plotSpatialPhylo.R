@@ -51,7 +51,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
     }
     
     if(plotTraits==F){
-      par(mfrow=c(1,1),mar = c(1,1,1,1))
+      par(mfrow=c(1,1),mar = c(1,1,1,1), oma = c(0,0,2,0))
     }
     if(plot=="spatial"){
       .imageGrid(landscape, col = cols, yaxt='n', xaxt='n', bty="n")
@@ -86,7 +86,7 @@ plotSpatialPhylo <- function (simu, plot = "both", plotTraits = T, which.result 
       mtext(outer =T ,"Phylogeny",at =0.2, cex=1.2)
     }
     else{
-      par(mfrow=c(1,2))
+      par(mfrow=c(1,2), oma = c(0,0,2,0))
       plot(extantPhylogeny, tip.color = cols, cex = tipCex)
       .imageGrid(landscape, col = cols, yaxt='n', xaxt='n', bty="n")
       mtext(outer =T ,"Spatial distribution",at =0.75, cex=1.2)
