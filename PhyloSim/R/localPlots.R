@@ -100,8 +100,8 @@ localPlots <- function(simu, which.result=NULL,size, n, community = FALSE, plot 
   if(plot == T){
     oldpar <- par()$mar
     par(mar=c(1,1,1,1))
-    image(matrix,  yaxt='n', xaxt='n', asp=1, bty="n")
-    image(plotmat, col=c(rgb(0,0,0,0),rgb(0,0,1,0.7)), add=T)
+    .imageGrid(matrix, yaxt='n', xaxt='n', bty="n")
+    .imageGrid(plotmat, col=c(rgb(0,0,0,0),rgb(0,0,1,0.7)), add=T)
     par(mar=oldpar)
   } 
   

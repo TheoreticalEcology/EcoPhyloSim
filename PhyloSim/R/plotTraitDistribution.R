@@ -35,9 +35,9 @@ plotTraitDistribution <- function (simu, type = "hist", which.result = NULL){
     plot(dat$neutMat~dat$envMat, col = colmat, ylab= "", xlab="Environment")
     title("Neutral Trait")
     
-    image(dat$traitMat, xaxt="n", yaxt="n", ylab="Spatial Distribution",useRaster =T,col = grey(seq(0, 1, length = 256)), asp=1, bty="n")
-    image(dat$compMat, xaxt="n", yaxt="n",useRaster =T,col = grey(seq(0, 1, length = 256)), asp=1, bty="n")
-    image(dat$neutMat, xaxt="n", yaxt="n",useRaster =T,col = grey(seq(0, 1, length = 256)), asp=1, bty="n")
+    .imageGrid(dat$traitMat, xaxt="n", yaxt="n", ylab="Spatial Distribution",useRaster =T,col = grey(seq(0, 1, length = 256)), bty="n")
+    .imageGrid(dat$compMat, xaxt="n", yaxt="n",useRaster =T,col = grey(seq(0, 1, length = 256)), bty="n")
+    .imageGrid(dat$neutMat, xaxt="n", yaxt="n",useRaster =T,col = grey(seq(0, 1, length = 256)), bty="n")
     
     }else{par(mfrow=c(1,3))}
    
