@@ -2,6 +2,7 @@
 
 ## Bug fixes
 
+* `getAverageTraits(orderPhylo = FALSE)` returns one row per species instead of repeating species, usually once per grid cell (#200).
 * `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` work with a single parameter or a single summary statistic instead of stopping with an error (#201).
 
 # EcoPhyloSim 0.3.2
