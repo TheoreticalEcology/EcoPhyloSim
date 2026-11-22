@@ -31,6 +31,17 @@ test_that("plotPhylogeneticDispersion() fills all squares, also for NA p-values 
   expect_equal(squares[3], "grey")
 })
 
+test_that("plotSpatialPhylo() leaves an outer margin for the panel titles (#217)", {
+  pdf(NULL)
+  on.exit(dev.off())
+  local_mocked_bindings(mtext = function(...) oma <<- c(oma, par("oma")[3]), .package = "EcoPhyloSim")
+  for (plot in c("both", "spatial", "phylogeny")) for (plotTraits in c(TRUE, FALSE)) {
+    oma <- NULL
+    plotSpatialPhylo(simu, plot = plot, plotTraits = plotTraits)
+    expect_true(length(oma) > 0 && all(oma >= 1), info = paste(plot, plotTraits))
+  }
+})
+
 test_that(".imageGrid() draws x (columns) horizontally in the aspect ratio of the grid (#211)", {
   pdf(NULL, width = 7, height = 7)
   on.exit(dev.off())
