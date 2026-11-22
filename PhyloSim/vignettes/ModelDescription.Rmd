@@ -1435,7 +1435,9 @@ discussed in the issues of the package repository:
 - With the trait kernels (`negativeDDKernel = "absolute"` or `"gaussian"`),
   density dependence develops only after thousands of generations, so short
   runs show little of its effect; the `"species"` kernel acts from the first
-  speciation on
+  speciation on, and a large enough jump of the competition trait at
+  speciation (e.g. `speciationTraitJump = c(0, 0.3, 0)`) makes the absolute
+  kernel act within a few hundred generations
   ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
 - `es()` calculates the expected number of species of the neutral model with
   $\theta = 2 \cdot$ `specRate`, about twice the value that fits the model
