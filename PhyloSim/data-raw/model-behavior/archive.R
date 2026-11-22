@@ -84,13 +84,13 @@ if (dir.exists(file.path(cacheDir, "raw"))) {
   if (nRaw < sum(simulations$status == "ok")) message("raw/ has outputs of ", nRaw, " of ",
                                                        sum(simulations$status == "ok"), " simulations")
 }
-invisible(file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*)\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE))
+invisible(file.copy(list.files(cacheDir, "((RUNINFO|SESSION-.*|NOTE)\\.txt|\\.R)$", full.names = TRUE), out, overwrite = TRUE))
 writeLines(c(
   paste0("# Model behavior of EcoPhyloSim ", sub("_", " (commit ", name), ")"), "",
   "Per-replicate results of the simulations that document the behavior of the model (vignettes",
   "\"EcoPhyloSim model\" and \"Model history\"), created with",
   "`PhyloSim/data-raw/model-behavior/run.R` and `archive.R` of the package repository, whose README.md",
-  "describes how to regenerate it. `RUNINFO.txt` and the copies of the scripts (`*.R`) record the",
+  "describes how to regenerate it. `RUNINFO.txt`, `NOTE.txt` (if present: manual interventions during the run) and the copies of the scripts (`*.R`) record the",
   "versions used; the indicators are defined in `indicators.R`. `SESSION-*.txt` record the command,",
   "the platform, the installations of the simulated version and of the indicators, and the versions",
   "of all packages.", "",

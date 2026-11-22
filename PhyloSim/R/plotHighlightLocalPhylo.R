@@ -46,7 +46,7 @@ highlightLocalPhylo <- function(simu,which.result=NULL, size, n, subplot = NULL,
       place[k] <- which(phylo$tip.label==x[k])
     }
     
-    ape::tiplabels(text = x,tip = place, frame ="none", srt = 270, adj=0)
+    ape::tiplabels(text = x,tip = place, frame ="none", srt = 270, adj=0, cex = min(1, 40 / length(phylo$tip.label)), xpd = NA)
     ape::add.scale.bar()
   }
 }

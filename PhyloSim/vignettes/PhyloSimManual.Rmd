@@ -262,8 +262,8 @@ reconstructed <- phyloReconstruct(simu)
 true <- simu$Output[[length(simu$Output)]]$phylogeny
 
 op <- par(mfrow = c(1, 2))
-plot(reconstructed, main = "Reconstructed phylogeny")
-plot(true, main = "True phylogeny")
+plot(reconstructed, main = "Reconstructed phylogeny", show.tip.label = FALSE)
+plot(true, main = "True phylogeny", show.tip.label = FALSE)
 par(op)
 ```
 
@@ -429,14 +429,14 @@ priors <- list(specRate = function() runif(1, 0.5, 8),
                environment = function() runif(1, 0, 1))
 # runs long enough to reach equilibrium (see the vignette "EcoPhyloSim model")
 fixed <- list(x = 50, y = 50, dispersal = 1, runs = 50000, calculateSummaries = TRUE)
-runPhylosimAnalysis(priors, fixed, nRuns = 10000, outDir = "abc", summariesOnly = TRUE)
-chunkwiseCleanup("abc")
+runPhylosimAnalysis(priors, fixed, nRuns = 10000, outDir = "abc", summariesOnly = TRUE, nCores = 2)
+chunkwiseCleanup("abc", nCores = 2)
 combineChunks("abc/cleaned_up", "summary_clean")
 combineChunks("abc/cleaned_up", "param_clean")
 prepareForAnalysis("abc", priors)
 recovery <- rejectionSamplePhylosimAnalysis("abc/analysis_ready/parameters",
                                             "abc/analysis_ready/summaries_scaled",
-                                            nDraws = 100, which = c("none", "rf"))
+                                            nDraws = 100, which = c("none", "rf"), nCores = 2)
 ```
 
 Such runs need thousands of simulations, each run to equilibrium, so they take

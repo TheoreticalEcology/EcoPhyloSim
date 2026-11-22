@@ -248,7 +248,7 @@ parName <- function(p) {
 # open circle: reference setting
 response <- function(d, block, xvar, group = NULL, indicators = core,
                      xlab = parName(xvar), log = "", settings = NULL, discrete = FALSE, xnames = NULL) {
-  op <- style(mfrow = c(2, ceiling((length(indicators) + 1) / 2)), mar = c(2, 3.4, 1.6, 0.6),
+  op <- style(mfrow = c(2, ceiling((length(indicators) + 1) / 2)), mar = c(2, 3.4, 1.6, 1.2),
               oma = c(1.6, 0, 0, 0))
   on.exit(par(op))
   anyRef <- FALSE
@@ -305,7 +305,7 @@ response <- function(d, block, xvar, group = NULL, indicators = core,
 
 # replicate mean (line) and mean +/- sd (band) of each indicator over time
 trajectories <- function(d, cases, indicators = core) {
-  op <- style(mfrow = c(2, ceiling((length(indicators) + 1) / 2)), mar = c(2, 3.4, 1.6, 0.6),
+  op <- style(mfrow = c(2, ceiling((length(indicators) + 1) / 2)), mar = c(2, 3.4, 1.6, 1.2),
               oma = c(1.6, 0, 0, 0))
   on.exit(par(op))
   for (ind in indicators) {
@@ -377,15 +377,13 @@ val <- function(block, indicator, ..., digits = 2) {
 }
 ```
 
-The time to equilibrium and the runtime are shown with the runs of the
-simulation design (see Simulation design below): `r reps` replicate runs per
-setting around a reference setting of 50 × 50 cells.
-
-### Time to equilibrium
+## Time to equilibrium
 
 A simulation starts with a single species whose individuals all have the same
 traits, so the indicators change until the model reaches equilibrium. The time
-this takes is shown for five settings.
+this takes, and in the next section the runtime, are shown with the runs of the
+simulation design (see Simulation design below; `r reps` replicate runs per
+setting), here for five settings.
 
 ::: {.expectation}
 **Expectation.** In the neutral model, abundances change only by drift, which
@@ -409,37 +407,10 @@ cases <- data.frame(
 trajectories(main, cases)
 ```
 
-The table gives, for the same settings, the first census after which the
-replicate mean of an indicator stays within 5% of its final level (the mean
-over the last quarter of the run) or within its 95% confidence interval,
-whichever is wider.
-
-```{r equilibrium-table, echo = FALSE}
-eqTime <- function(d, block, setting, indicator) {
-  x <- d$census[d$census$block == block & d$census$setting == setting &
-                  d$census$indicator == indicator, ]
-  x <- x[order(x$generation), ]
-  last <- x$generation >= 0.75 * max(x$generation)
-  level <- mean(x$mean[last])
-  tol <- max(0.05 * abs(level), mean(qt(0.975, x$n[last] - 1) * x$sd[last] / sqrt(x$n[last])))
-  out <- which(is.na(x$mean) | abs(x$mean - level) > tol)
-  if (length(out) == 0) return(format(min(x$generation), big.mark = ",", scientific = FALSE))
-  if (max(out) == nrow(x)) return("not reached")
-  format(x$generation[max(out) + 1], big.mark = ",", scientific = FALSE)
-}
-tab <- sapply(seq_len(nrow(cases)), function(k)
-  sapply(core, eqTime, d = main, block = cases$block[k], setting = cases$setting[k]))
-dimnames(tab) <- list(labels[core], gsub("\n", " ", cases$label))
-knitr::kable(tab, caption = "Generations to equilibrium of each indicator (rows) for the settings of the figure above (columns); not reached: not within the run.")
-```
-
 ::: {.result}
-**Result.** In the figure, species richness, Shannon diversity and the share of
+**Result.** Species richness, Shannon diversity and the share of
 conspecific neighbors level off within a few thousand generations (in the
-neutral model on 50 × 50 cells after about 2,000–4,000 generations). The table
-gives much later times for some of them, because their replicate means still
-fluctuate by more than 5% late in the run; for these indicators, the figure is
-the better guide. The gamma statistic, and in some settings the Colless index
+neutral model on 50 × 50 cells after about 2,000–4,000 generations). The gamma statistic, and in some settings the Colless index
 and the spread of the competition trait, take longer, up to tens of thousands
 of generations. On 100 × 100 cells with
 `specRate = 0.5`, the tree statistics settle only after more than 80,000
@@ -448,7 +419,7 @@ correlation between trait and environment has no meaning without
 environmental filtering.
 :::
 
-### Runtime
+## Runtime
 
 The runtime depends on the number of cells, the dispersal distance and the
 neighborhood of density dependence. It was recorded for all runs of the
@@ -519,7 +490,7 @@ for (k in 1:2) {
   dk <- dk[order(dk$density), ]
   lines(dk$density, dk$per1000, type = "b", pch = 16, col = dc[k])
 }
-legend("topleft", legend = paste("negativeDDCut", 1:2), col = dc, lty = 1, pch = 16, bty = "n")
+legend("bottomright", legend = paste("negativeDDCut", 1:2), col = dc, lty = 1, pch = 16, bty = "n")
 par(op)
 ```
 
@@ -604,10 +575,15 @@ vary it from 0.5 to 3 cells and compare it with global dispersal.
 conspecifics form spatial clusters [@chaveleigh2002] and the share of
 conspecific neighbors increases. Lineages in different parts of the grid stay
 apart longer before they replace each other, so we expect more species on the
-whole grid than with global dispersal. Species–area curves within a landscape
-are steep at small areas when dispersal is short relative to the area
-[@durrett1996; @rosindell2007], whereas global dispersal gives flatter curves
-[@chave2002]. The probability that two individuals at a given distance belong
+whole grid than with global dispersal. With local dispersal, small subplots
+should contain fewer species than random samples of the same size, because
+conspecifics are clustered, and the species–area curve within the grid should be flatter at small areas
+and steeper at large areas, where further clusters are added; with global
+dispersal, subplots are random samples of the whole grid, so the curve rises
+fast at small areas and flattens as it approaches the richness of the grid
+[@chave2002]. In spatial neutral models, species–area curves for different
+dispersal distances coincide once area is rescaled by the dispersal distance
+[@rosindell2007]. The probability that two individuals at a given distance belong
 to the same species should decrease with distance when dispersal is limited
 [@chaveleigh2002; @condit2002]; with global dispersal, it should be the same at
 all distances and equal to the neutral expectation $1/(1+\theta)$.
@@ -654,9 +630,9 @@ legend("topright", legend = st$dispersal, col = dc, lty = 1,
 (`r val("dispersal", "richness", dispersal = "0.5", digits = 3)` species with
 `dispersal = 0.5`, `r val("dispersal", "richness", dispersal = "global", digits = 3)`
 with global dispersal) and the share of conspecific neighbors. With local
-dispersal, small subplots contain fewer species, so that, contrary to the
-expectation, the species–area curve is flatter at small areas than with global
-dispersal; it is steeper only at large areas. With local dispersal,
+dispersal, small subplots contain fewer species, so that, as expected, the
+species–area curve is flatter at small areas and steeper at large areas than
+with global dispersal. With local dispersal,
 the probability that two cells contain the same species decreases with distance,
 as expected.
 With dispersal distances of 2 and 3 cells, richness is close to that with global
@@ -881,8 +857,8 @@ identity (`"species"`). The simulations compare the three kernels at strengths
 **Expectation.** With `"species"`, the fitness term depends on the share
 of conspecific neighbors, which corresponds to conspecific negative density
 dependence as measured in field studies [@comita2010]; it acts from the first speciation on,
-so we expect effects on richness and on the share of conspecific neighbors
-earlier in the run than with the trait kernels (strengths are not directly
+so we expect larger effects on richness and on the share of conspecific
+neighbors than with the trait kernels (strengths are not directly
 comparable between kernels, see above), and no selection on the
 competition trait, whose spread should then be like that of the neutral trait.
 The `"gaussian"` kernel with the default width 0.1 counts only neighbors with
@@ -938,7 +914,7 @@ response(withSettings(main, "densityDispersal", "density", density = 1, densityC
 ```
 
 ::: {.result}
-**Result.** As expected, density dependence increases richness most when
+**Result.** Density dependence increases richness most when
 offspring settle close to their parents: with `dispersal = 0.5`, it gives
 `r val("densityDispersal", "richness", dispersal = "0.5", digits = 3)` species
 (`r val("dispersal", "richness", dispersal = "0.5", digits = 3)` without density
@@ -987,7 +963,8 @@ positive density dependence at these strengths reduces richness only slightly
 species at 0.05 instead of
 `r val("densityKernel", "richness", negativeDDKernel = "species", density = 1, digits = 3)`),
 and the share of conspecific neighbors stays low: negative density dependence
-dominates, and no clusters of intermediate size form.
+dominates at these strengths. Whether clusters of intermediate size form cannot
+be judged from the share of conspecific neighbors.
 :::
 
 ## Selection
@@ -1349,7 +1326,8 @@ point speciation at the same `specRate`
 `r val("fission", "richness", fission = 2, digits = 3)` instead of
 `r val("dispersal", "richness", dispersal = "1", digits = 3)`), with much more
 even abundances, as expected. Contrary to the expectation, the species are
-much younger (mean age `r val("fission", "meanSpeciesAge", fission = 1)` and
+much younger (mean age, estimated from the species IDs, see Species ages:
+`r val("fission", "meanSpeciesAge", fission = 1)` and
 `r val("fission", "meanSpeciesAge", fission = 2)` instead of
 `r val("speciation", "meanSpeciesAge", protracted = 0, redQueen = 0)` generations).
 A likely explanation: nearly every new species survives its origin, so about
@@ -1584,7 +1562,9 @@ With environmental filtering, the grid of 49 × 49 cells gives the same values a
 50 × 50 cells, so the slightly different gradient of an odd number of columns
 does not matter here. The grid of 50 × 40 cells has about 10% fewer species,
 with the same correlation between trait and environment and the same share of
-conspecific neighbors.
+conspecific neighbors; whether this is what 20% fewer cells imply cannot be
+judged here, as the runs on grids of different size have no environmental
+filtering.
 :::
 
 ## Species richness and abundances
@@ -1685,7 +1665,7 @@ for (ind in c("meanSpeciesAge", "corAgeAbundance")) {
   sp <- final(main, "speciation", ind)
   sp <- sp[sp$protracted == 0, ]
   sp <- sp[order(sp$redQueen), ]
-  xs <- 2 * 1.12^(seq_len(nrow(sp)) - 1) # side by side at specRate = 2
+  xs <- 2 * 1.12^seq_len(nrow(sp)) # next to the neutral point at specRate = 2
   cs <- cols[1 + seq_len(nrow(sp))]
   yr <- range(c(f$mean - f$ci, f$mean + f$ci, sp$mean - sp$ci, sp$mean + sp$ci), na.rm = TRUE)
   if (ind == "meanSpeciesAge") yr[2] <- yr[2] + 0.5 * diff(yr) # room for the legend
@@ -1755,10 +1735,10 @@ density dependence (`negativeDD` = 0 or 1), each with global dispersal and
 dispersal 1.
 
 ::: {.expectation}
-**Expectation.** Environmental filtering should increase spatial aggregation
-and the match between traits and environment, and density dependence should
-reduce aggregation; both are expected to increase richness (see
-Environmental filtering and Density dependence). Dispersal can change how strongly each process shows
+**Expectation.** Environmental filtering should increase richness and the
+match between traits and environment, and density dependence should reduce
+aggregation and increase richness (see the results of Environmental filtering
+and Density dependence). Dispersal can change how strongly each process shows
 [@mouquet2003; @adler2005].
 :::
 
@@ -1772,8 +1752,8 @@ response(main, "assembly", "scenario", group = "dispersal", xlab = "")
 ::: {.result}
 **Result.** Environmental filtering increases richness and the match between
 traits and environment, much more with local than with global dispersal.
-Contrary to the expectation, it does not increase spatial aggregation here (see
-Environmental filtering and Spatial structure). Density dependence reduces aggregation with both
+As in the section Environmental filtering, it does not increase spatial
+aggregation (see Spatial structure). Density dependence reduces aggregation with both
 types of dispersal, but increases richness only with local dispersal (see
 Density dependence and dispersal). With local dispersal, both processes
 together give the highest richness (see Environment and density dependence
@@ -1813,7 +1793,7 @@ plot(xpos, f$mean, pch = 16, col = dc[f$dispersal], xaxt = "n",
 axis(1, at = seq_along(sc), labels = sc)
 ciBars(xpos, f$mean, f$ci, dc[f$dispersal])
 abline(h = 0, lty = 2)
-legend("topleft", legend = names(dc), pch = 16, col = dc, title = "dispersal", bty = "n")
+legend("bottomleft", legend = names(dc), pch = 16, col = dc, title = "dispersal", bty = "n")
 ```
 
 ::: {.result}

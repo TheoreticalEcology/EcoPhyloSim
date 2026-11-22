@@ -66,7 +66,7 @@ notes <- list("0.3.2" = c(
           val("0.3.1", "envDensity", "richness", density = 0, environment = 0.5, digits = 3),
           val("0.3.1", "envDensity", "richness", density = 0.5, environment = 0.5, digits = 3))),
   "0.3.1" = c(
-  "With local dispersal, the indicators of the communities equal those of 0.3 (same seeds), except on the grid with an odd number of columns (#173); the indicators of the phylogeny differ (census half a generation later, #147, #160; #174). With global dispersal, all differ slightly (#154), none significantly. The simulations with the Red Queen advantage no longer fail (see 0.3).",
+  "With local dispersal, the indicators of the communities equal those of 0.3 (same seeds), except on the grid with an odd number of columns (#173) and in the settings with the Red Queen advantage, in which many simulations of 0.3 failed; the indicators of the phylogeny differ (census half a generation later, #147, #160; #174). With global dispersal, all differ slightly (#154), none significantly. The simulations with the Red Queen advantage no longer fail (see 0.3).",
   sprintf("Neutral model: richness up to about %s%% above the Ewens sampling formula (batch speciation, #124); Colless index and gamma statistic positive.",
           round(100 * max(n0$mean / mapply(ewens, n0$x * n0$y, n0$specRate) - 1))),
   sprintf("Density dependence is weak: richness increases only from about %s to %s species and levels off from `density = 0.25`–`0.5`; the competition traits split into two groups at the ends of their range (#133). Combined with environmental filtering, density dependence reduces richness.",
@@ -308,9 +308,9 @@ key <- list(
   "Neutral, dispersal 1 (reference)" = list(block = "dispersal", dispersal = "1"),
   "Environment 1, global" = list(block = "environment", dispersal = "global", environment = 1),
   "Environment 1, dispersal 1" = list(block = "environment", dispersal = "1", environment = 1),
-  "Density 1, dispersal 1" = list(block = "density", density = 1, densityCut = 1),
-  "Environment 0.5 + density 0.5" = list(block = "envDensity", environment = 0.5, density = 0.5),
-  "Environment 1 + density 1" = list(block = "assembly", dispersal = "1", environment = 1, density = 1),
+  "negativeDD 1, dispersal 1" = list(block = "density", density = 1, densityCut = 1),
+  "Environment 0.5 + negativeDD 0.5" = list(block = "envDensity", environment = 0.5, density = 0.5),
+  "Environment 1 + negativeDD 1" = list(block = "assembly", dispersal = "1", environment = 1, density = 1),
   "Protracted 1" = list(block = "speciation", protracted = 1, redQueen = 0),
   "Red Queen 0.01 (strength 100)" = list(block = "speciation", redQueen = 0.01))
 indicators <- c(richness = "Richness", conspecificNeighbors = "Conspecific neighbors",
@@ -491,13 +491,19 @@ table defines the indicators computed for each simulation.
 ```{r design}
 d <- unique(s[c("version", "block", "setting", params[params != "block"])])
 d <- d[d$version == tail(s$version, 1), ]
+ref <- d[d$block == "dispersal" & d$dispersal == "1", ][1, ]
+q <- setdiff(params, c("block", "generations"))
 knitr::kable(do.call(rbind, lapply(split(d, d$block), function(b) {
-  varied <- params[params != "block"][vapply(b[params[params != "block"]], function(x) length(unique(x)) > 1, logical(1))]
+  varied <- q[vapply(b[q], function(x) length(unique(x)) > 1, logical(1))]
+  # parameters constant within the block but different from the reference setting
+  fixed <- setdiff(q[vapply(q, function(x) length(unique(b[[x]])) == 1 &&
+                              !identical(as.character(b[[x]][1]), as.character(ref[[x]])), logical(1))], varied)
   data.frame(Block = b$block[1], Settings = nrow(b),
              Varied = paste(vapply(varied, function(p) paste0(p, " (", paste(sort(unique(b[[p]])), collapse = ", "), ")"), ""),
                             collapse = "; "),
+             Fixed = paste(vapply(fixed, function(p) paste(p, b[[p]][1]), ""), collapse = "; "),
              Generations = format(max(b$generations), scientific = FALSE, big.mark = ","))
-})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1 (`density` and `densityCut` are now `negativeDD` and `negativeDDCut`), and current names for parameters added later).")
+})), row.names = FALSE, caption = "Blocks of the design in the newest run: parameters varied around the reference setting and parameters fixed at other values (50 × 50 cells, local dispersal 1, specRate = 2, no environmental filtering or density dependence; parameter names of release 0.3.1 (`density` and `densityCut` are now `negativeDD` and `negativeDDCut`), and current names for parameters added later).")
 ```
 
 | Indicator | Definition |
@@ -526,8 +532,8 @@ on the random number library of the compiler. All releases are evaluated with th
 same version of EcoPhyloSim, so differences come from the simulations, not
 from the analysis code. Each run records the command,
 the platform and the versions of all packages; the archives of the release runs,
-with the results per replicate, are attached to the GitHub releases from release
-0.3.2 on.
+with the results per replicate (without the raw outputs), are attached to the
+GitHub releases.
 
 ## Using the data
 

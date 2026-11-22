@@ -45,7 +45,7 @@ Scripts that document how the behavior of EcoPhyloSim changes between versions
 | `changes.csv`: releases and the changes of the model code that change results (type N: results per seed change, but no change of their distributions was detected; B: patterns change; S: parameters renamed or redefined; S+B: both), with their effects, the evidence and the settings for `attribution.R` | by hand | yes |
 | `runs/<version>_<commit>.csv`: summary of a run (mean, sd and n per setting and indicator at the last census, runtime, share of failed simulations) | `archive.R` | releases only (`*.9000_*.csv` ignored) |
 | `PhyloSim/data/`: `modelHistory.rda`, `packageBehavior.rda`; `pPD.pvalues.rda`, `pPD.positions.rda` | `makeData.R`; `pPD.R` | yes |
-| `archives/<version>_<commit>/`: per-replicate tables, copies of the scripts, provenance and raw outputs (`raw/`: all maps of the last six censuses and the last phylogeny of each simulation, enough to recompute the indicators at the end) | `archive.R` | no; release archives are attached to the GitHub release without `raw/` (about 10 MB, see Release), other runs stay local |
+| `archives/<version>_<commit>/`: per-replicate tables, copies of the scripts, provenance and raw outputs (`raw/`: all maps of the last six censuses and the last phylogeny of each simulation, enough to recompute the indicators at the end) | `archive.R` | no; release archives are attached to the GitHub release without `raw/` (about 10 MB, see Release), other runs stay local; `raw/` (about 0.9 GB per run) is kept only in the main checkout of the maintainer, without a backup |
 | `cache/<mode>_<adapter>_<commit>/`: cache of a run | `run.R` | no; can be deleted once archived |
 | `lib/<commit>/`, `lib/olddeps/`: libraries of the installed versions and of the archived dependencies | `installVersion.R`, `installOldDeps.R` | no |
 
@@ -119,11 +119,19 @@ automatically; `archive.R` names their archive `test-<version>_<commit>`.
 ## Regenerating all runs
 
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.2 v0.2
+    Rscript PhyloSim/data-raw/model-behavior/archive.R PhyloSim/data-raw/model-behavior/cache/main_0.2_2742f3a
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3 v0.3
+    Rscript PhyloSim/data-raw/model-behavior/archive.R PhyloSim/data-raw/model-behavior/cache/main_0.3_73ebaa3
     Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3.1 v0.3.1
-    Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> current HEAD
+    Rscript PhyloSim/data-raw/model-behavior/run.R main <cores> 0.3.2 v0.3.2
     Rscript PhyloSim/data-raw/model-behavior/pPD.R <cores>
-    Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior <archive of current>
+    Rscript PhyloSim/data-raw/model-behavior/makeData.R packageBehavior 0.3.2_<commit of v0.3.2>
+
+Runs with failed simulations (0.2, 0.3) are not archived automatically, hence
+the `archive.R` lines. The run of record of 0.3.2 used the commit dbdf3fc of
+#209, whose model code equals that of the tag v0.3.2 (archive `0.3.2_dbdf3fc`). `archive.R` does not overwrite archives, so move existing
+ones away first and delete the old files in `runs/`; run `pPD.R` with the
+release commit checked out.
 
 `makeData.R` reads every file in `runs/` and accepts one run per version, all
 with `indicatorCommit` (see Release, step 3). `makeData.R packageBehavior
@@ -150,15 +158,17 @@ results of the others in `cache/pPD-partial.rds`.
 2. Run the design with this commit (`run.R main <cores> current HEAD`), and
    `pPD.R` (`Rscript PhyloSim/data-raw/model-behavior/pPD.R <cores>`).
 3. Delete the summaries of development runs from `runs/` (`makeData.R` reads all
-   files there), and run `makeData.R packageBehavior <archive>`.
+   files there). Fill in `date` (release date) and `commit` (the commit of step
+   1) of the release row in `changes.csv`, so that the vignette does not show
+   the release as planned, and the same date in `Date` of
+   `PhyloSim/DESCRIPTION`. Commit, then run `makeData.R packageBehavior <archive>`.
 4. Update `notes` and `inShort` per release in `PhyloSim/vignettes/ModelHistory.Rmd` and the
    description of the runs in the section Simulation design of
    `PhyloSim/vignettes/ModelDescription.Rmd`.
 5. Commit `runs/` and the data sets, tag the release, add the release to
-   `versions` in `adapters.R` (a copy of `current`), fill in `date` and `commit`
-   of its row in `changes.csv` and add a row for the next release, and attach the
-   archive to the GitHub release (in `archives/`:
-   `tar -czf <archive>.tar.gz --exclude=raw <archive>`).
+   `versions` in `adapters.R` (a copy of `current`) and a row for the next
+   release to `changes.csv`, and attach the archive to the GitHub release (in
+   `archives/`: `tar -czf modelBehavior-<archive>.tar.gz --exclude=raw <archive>`).
 
 ## Attribution of single changes
 
@@ -193,8 +203,16 @@ these changes.
   from the version in `adapters.R`.
 - v0.2 stops when only one species is left, as it cannot read a phylogeny with a
   single tip; `simulate.R` then sets the phylogeny to 0, as v0.3 does. v0.2 also
-  crashes without a message (exit status 5) in some simulations with `specRate` 8
-  (seen with grids of 20 and 50 cells); these count as failed.
+  crashes without a message (exit status 5) in some simulations, most often with
+  high speciation rates on small grids (29 of 30 with `specRate` 8 on 20 x 20
+  cells), but also in single simulations of 16 other settings, e.g. with
+  environmental filtering or density dependence; these count as failed (59 of
+  2,730 supported simulations in the run of record).
+- v0.3 stops with "numbers of left and right parentheses in Newick string not
+  equal" in many simulations with the Red Queen advantage (all 30 with
+  `redQueen` 0.1 and 59 of 150 with 0.01; 89 in the run of record), and it is run without fission, which assigns
+  the wrong individuals in 0.3 (#85) and does not finish within hours
+  (`adapters.R`); failed simulations count as failed.
 
 ## Extending
 

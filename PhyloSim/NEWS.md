@@ -9,7 +9,7 @@ Results differ from 0.3.1 for the same parameters and seed, because the C++ mode
 * `createCompletePar()`: new arguments `positiveDD`, `positiveDDCut`, `positiveDDKernel` and `positiveDDWidth` (experimental) for positive density dependence with its own strength, radius and similarity measure; `NeutralMod()` gets `positiveDD` and `positiveDDCut` (@AndyEnvFr, #104, #108).
 * `createCompletePar()`: `fitnessActsOn` accepts `"recruitment"` (fitness of the offspring in the free cell) and combinations such as `c("mortality", "recruitment")` (#165).
 * `runSimulationBatch()`: new argument `onError = "NA"` returns NA for failed simulations instead of stopping (#158).
-* `highlightLocalPhylo()`: new argument `title` replaces the default title of the plots (e.g. `title = ""` for none).
+* `highlightLocalPhylo()`: new argument `title` replaces the default title of the plots (e.g. `title = ""` for none) (#180).
 
 ## Changes
 
@@ -23,6 +23,7 @@ Results differ from 0.3.1 for the same parameters and seed, because the C++ mode
 
 ## Bug fixes
 
+* `plotSpatialPhylo()` and `highlightLocalPhylo()` scale the tip labels down for phylogenies with many species, where they overlapped (#180).
 * Functions that need the phylogeny (e.g. `plot()`, `summary()`, `collessImbalance()`, `nullModel()`, `calculatePhylogeneticDispersion()`) stop with a clear message for results with a single species, whose phylogeny is 0, instead of the error "$ operator is invalid for atomic vectors".
 * `nullModel()` with `fun = "mpd"` and `calculatePhylogeneticDispersion()` with `type = "PhylMeta"` or `"PhylSample"` give p = NA instead of p = 0 for plots with a single species (#186), and instead of an error in `ecdf()` if all null communities have a single species, e.g. with a plot size of 1 (#196).
 * `plotPhylogeneticDispersion()` fills the square of a scenario also if a plot size has only NA p-values (grey if all are NA) or the mean p-value is 1, where the square was left empty, and ignores NA values in the means over simulations (`means > 1`) (#195).
@@ -38,6 +39,7 @@ Results differ from 0.3.1 for the same parameters and seed, because the C++ mode
 
 * The vignette is split into "EcoPhyloSim user guide" (`vignette("PhyloSimManual")`: running the model, plots and summary statistics, fitting it to data) and "EcoPhyloSim model" (`vignette("ModelDescription")`: model overview, processes and community patterns). The user guide has new chapters "Quick start" and "Fitting the model to data" (approximate Bayesian computation and neural simulation-based inference) and explanations of the plots and summary statistics; the model vignette has three chapters: an overview, the processes with their equations, parameters and specific patterns, and the patterns of the community that arise from the processes together (#180).
 * New vignette "Model history" and data set `modelHistory`: which changes of the model code alter simulation results, and how the patterns of the vignette "EcoPhyloSim model" compare between releases; the scripts that produce the data are in the folder `PhyloSim/data-raw/model-behavior` of the repository (#180, #181).
+* The data sets `packageBehavior` and `pPD.pvalues` were simulated again with 0.3.2; `packageBehavior` has new indicators, the runtime and all censuses, and no longer `pilot` and `cnddSpecies` (#180).
 * The help of `createCompletePar()` describes `fitnessBaseMortalityRatio` as the ratio of death rates per mechanism (equivalent to the previous definition for a single mechanism) and the neighborhoods of density dependence, and says that with `protracted > 0` the offspring of an incipient individual do not inherit its incipient state; the help of `getMortalityData()` explains why effects estimated from census data are smaller than in the model (#92, #143, #144).
 * New help page `?PhylosimList` for the class returned by `runSimulationBatch()` and `createPhylosimList()`; the help of `rac()` and `sac()` says that `which.result` accepts several results (#92).
 
