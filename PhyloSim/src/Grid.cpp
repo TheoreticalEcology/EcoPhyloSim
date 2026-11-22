@@ -474,7 +474,7 @@ LocalEnvironment::LocalEnvironment(int xsize, int ysize, int type, bool neutral,
                   mortalityStrength, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmat,
                   soilmat, nicheWidth, ddOptions) {
 
-    // fixes #207 (dispersal weights depend only on the offset; computed once instead of for every death)
+    // dispersal weights depend only on the offset; computed once instead of for every death
     m_dispersalOffsets = circleOffsets(m_Cutoff, false);
     for (const auto &o : m_dispersalOffsets) {
         m_dispersalWeights.push_back(m_Individuals[0][0].dispersal(m_Dispersal_type,
@@ -649,7 +649,7 @@ double Landscape::dissimilaritySum(const Individual &ind, int x, int y, bool pos
 double Landscape::localDissimilarity(Individual &ind, int x, int y, bool positive) {
     int kernel = positive ? m_posKernel : m_ddKernel;
     double width = positive ? m_posWidth : m_ddWidth;
-    // fixes #207 (kernel as template parameter, so that the loop has no branch per neighbor)
+    // kernel as template parameter, so that the loop has no branch per neighbor
     double sum = kernel == 1 ? dissimilaritySum<1>(ind, x, y, positive, width)
                : kernel == 2 ? dissimilaritySum<2>(ind, x, y, positive, width)
                : dissimilaritySum<3>(ind, x, y, positive, width);

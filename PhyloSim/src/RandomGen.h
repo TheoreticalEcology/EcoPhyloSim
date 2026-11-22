@@ -13,7 +13,7 @@
 #include <vector>
 
 // Copy of R's Mersenne-Twister (unif_rand() with RNGkind("Mersenne-Twister")): the same numbers, but inline
-// (fixes #207: half of the time of global neutral runs went into unif_rand()). The state is shared by all
+// (half of the time of global neutral runs went into unif_rand()). The state is shared by all
 // RandomGen objects and synchronized with R's .Random.seed by RNGSync; RandomGen draws give R's numbers only
 // while an RNGSync object exists (in callModel(), multinomialDrawCounts() and binnedParentCounts()).
 namespace mersenneTwister {
