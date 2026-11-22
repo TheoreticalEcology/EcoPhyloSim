@@ -2,8 +2,8 @@ Package: EcoPhyloSim
 Type: Package
 Title: Analysis of Phylogenetic and Biogeographic Patterns, Inferring Species
     Community Assembly
-Version: 0.3.1.9000
-Date: 2026-11-16
+Version: 0.3.2
+Date: 2026-11-22
 Authors@R: c(person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")),
     person("Paul", "Bauche", role = "aut"),
     person("Bingxue", "Wu", role = "aut"),
