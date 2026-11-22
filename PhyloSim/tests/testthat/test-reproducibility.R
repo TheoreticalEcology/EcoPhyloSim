@@ -34,20 +34,22 @@ test_that("results with only one fitness mechanism are numerically reproducible"
                         style = "deparse", tolerance = 1e-6)
 })
 
-# MD5 hash of the complete output of the C++ model (all matrices and the Newick string of each census), written
-# as bytes in a fixed byte order; the phylogeny and the summaries are computed from them in R
+# MD5 hashes of the complete output of the C++ model, one per element (all censuses), written as bytes in a fixed
+# byte order; the phylogeny and the summaries are computed from these elements in R
 outputHash <- function(...) {
   simu <- suppressMessages(suppressWarnings(quietSimulation(x = 24, y = 16, runs = c(100, 200), seed = 1,
                                                             specRate = 2, ...)))
-  f <- tempfile()
-  on.exit(unlink(f))
-  con <- file(f, "wb")
-  for (o in simu$Output) {
-    for (m in o[c("specMat", "traitMat", "envMat", "compMat", "neutMat")]) writeBin(as.vector(m), con, endian = "little")
-    writeBin(charToRaw(o$phyloTXT), con)
-  }
-  close(con)
-  unname(tools::md5sum(f))
+  sapply(c("specMat", "traitMat", "envMat", "compMat", "neutMat", "phyloTXT"), function(element) {
+    f <- tempfile()
+    on.exit(unlink(f))
+    con <- file(f, "wb")
+    for (o in simu$Output) {
+      if (element == "phyloTXT") writeBin(charToRaw(o$phyloTXT), con)
+      else writeBin(as.vector(o[[element]]), con, endian = "little")
+    }
+    close(con)
+    unname(tools::md5sum(f))
+  })
 }
 
 test_that("simulation results are identical to the stored ones", {
