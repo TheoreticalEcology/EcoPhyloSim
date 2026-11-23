@@ -3,6 +3,7 @@
 ## New features
 
 * `createCompletePar()`: new argument `speciationTraitJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
+* `runSimulation()`: new argument `progress` (default `TRUE`) shows a progress bar with the estimated remaining time in interactive sessions; runs can be interrupted with Esc or Ctrl+C, and the end messages are no longer printed (#221).
 
 ## Changes
 

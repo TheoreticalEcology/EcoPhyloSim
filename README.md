@@ -29,9 +29,6 @@ development version:
     # Run the model
     simu <- runSimulation(par)
 
-    ## [1] "Core simulation finished after 0 minute(s) and 0.496 second(s). Converting data"
-    ## done!
-
     plot(simu)
 
 ![](Readme_files/figure-markdown_strict/unnamed-chunk-2-1.png)

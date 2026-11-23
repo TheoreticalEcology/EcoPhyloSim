@@ -7,6 +7,10 @@
  */
 
 #include <Rcpp.h>
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <string>
 #include "./RandomGen.h"
 #include "Individual.h"
 #include "Grid.h"
@@ -47,6 +51,10 @@ PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, doubl
     m_Dispersal = dispersal;
     m_X_coordinate = X;
     m_Y_coordinate = Y;
+    m_SimulationEnd = simulationEnd;
+    m_CheckEvery = std::max(1, 10000 / (X * Y));
+    m_Start = m_NextInterrupt = m_NextPrint = std::chrono::steady_clock::now();
+    m_NextPrint += std::chrono::seconds(1);
 }
 
 PhylSimModel::~PhylSimModel() {
@@ -75,6 +83,52 @@ void PhylSimModel::update(unsigned int runs) {
             m_Local->speciation(timeStep + generation);
             m_Local->m_Phylogeny.pruneIfLarge();
         }
+        if ((timeStep + generation) % m_CheckEvery == 0) checkProgress(timeStep + generation);
     }
     timeStep += runs;
+}
+
+// Checks for user interrupts every 0.2 s and, with m_Progress, updates the progress bar every second.
+// Rcpp::checkUserInterrupt() throws an exception, so that destructors free the model and RNGSync saves
+// the state of the random number generator.
+void PhylSimModel::checkProgress(int generation) {
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    if (now < m_NextInterrupt) return;
+    m_NextInterrupt = now + std::chrono::milliseconds(200);
+    Rcpp::checkUserInterrupt();
+    if (m_Progress && now >= m_NextPrint) {
+        m_NextPrint = now + std::chrono::seconds(1);
+        printProgress(generation, std::chrono::duration<double>(now - m_Start).count());
+    }
+}
+
+static std::string formatSeconds(double s) {
+    long t = std::lround(s);
+    char buf[32];
+    if (t >= 3600) std::snprintf(buf, sizeof(buf), "%ld h %02ld min", t / 3600, t % 3600 / 60);
+    else if (t >= 60) std::snprintf(buf, sizeof(buf), "%ld min %02ld s", t / 60, t % 60);
+    else std::snprintf(buf, sizeof(buf), "%ld s", t);
+    return buf;
+}
+
+// One console line, overwritten with \r; the remaining time assumes a constant time per generation
+void PhylSimModel::printProgress(int generation, double elapsed) {
+    double done = m_SimulationEnd > 0 ? (double) generation / m_SimulationEnd : 1;
+    int width = 20, bar = (int) (done * width);
+    std::string line = "\r[" + std::string(bar, '=') + std::string(width - bar, ' ') + "] ";
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "%3d%%  generation %d/%d, ", (int) (done * 100), generation, m_SimulationEnd);
+    line += buf;
+    if (generation < m_SimulationEnd)
+        line += "elapsed " + formatSeconds(elapsed) + ", remaining ~" +
+                formatSeconds(elapsed * (m_SimulationEnd - generation) / generation);
+    else line += "finished after " + formatSeconds(elapsed);
+    line.resize(std::max<size_t>(line.size(), 100), ' '); // overwrites the rest of a longer previous line
+    Rcpp::Rcout << line << std::flush;
+}
+
+void PhylSimModel::finishProgress() {
+    if (!m_Progress) return;
+    printProgress(m_SimulationEnd, std::chrono::duration<double>(std::chrono::steady_clock::now() - m_Start).count());
+    Rcpp::Rcout << "\n";
 }

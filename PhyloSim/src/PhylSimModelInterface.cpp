@@ -129,6 +129,8 @@ using namespace Rcpp;
 //' @param speciationTraitJump Numeric vector of length 3 with values between 0 and 1, half-widths of the
 //'   uniform trait jump of a new species (environment, competition, neutral); 0 = no jump.
 //'   Corresponds to \code{speciationTraitJump} in \code{\link{createCompletePar}}.
+//' @param progress Logical, whether a progress bar with the estimated remaining time is printed.
+//'   The run can be interrupted (e.g. with Esc or Ctrl+C) in either case.
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -147,7 +149,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                bool recruit = false, int densityKernel = 1, double densityWidth = 0.1,
                NumericVector densityTable = NumericVector::create(), double positiveStrength = 0,
                int positiveCutoff = 1, int positiveKernel = 3, double positiveWidth = 0.1,
-               NumericVector speciationTraitJump = NumericVector::create(0, 0, 0)) {
+               NumericVector speciationTraitJump = NumericVector::create(0, 0, 0), bool progress = false) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -239,6 +241,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     else phylSimModel.m_Local->m_Phylogeny.m_PruneDuringRun = prunePhylogeny;
     Landscape *landscape = dispersal == 1 ? static_cast<Landscape *>(phylSimModel.m_Global) : phylSimModel.m_Local;
     for (int t = 0; t < 3; t++) landscape->m_specJump[t] = speciationTraitJump[t];
+    phylSimModel.m_Progress = progress;
 
 
     for (int step = 0; step < nRuns; step++) {
@@ -325,7 +328,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 
         outList.push_back(listResults);
     }
-
+    phylSimModel.finishProgress();
 
     return outList;
 }

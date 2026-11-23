@@ -16,12 +16,12 @@ extern SEXP _EcoPhyloSim_callModel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                                 SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                                 SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                                 SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                                SEXP, SEXP, SEXP, SEXP);
+                                SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _EcoPhyloSim_multinomialDrawCounts(SEXP, SEXP);
 extern SEXP _EcoPhyloSim_binnedParentCounts(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-        {"_EcoPhyloSim_callModel", (DL_FUNC) & _EcoPhyloSim_callModel, 32},
+        {"_EcoPhyloSim_callModel", (DL_FUNC) & _EcoPhyloSim_callModel, 33},
         {"_EcoPhyloSim_multinomialDrawCounts", (DL_FUNC) & _EcoPhyloSim_multinomialDrawCounts, 2},
         {"_EcoPhyloSim_binnedParentCounts", (DL_FUNC) & _EcoPhyloSim_binnedParentCounts, 10},
         {NULL,                  NULL,                            0}
