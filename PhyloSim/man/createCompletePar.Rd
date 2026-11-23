@@ -44,7 +44,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{type}{Character, determining which model should be used. Currently only "base" (the default) is available. For a simple neutral model in R, see \code{\link{NeutralMod}}.}
 
-\item{fission}{Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual becomes part of new species) and 2 (population is geographically split in two parts).}
+\item{fission}{Integer, determining which fission type should be used. Options are 0 (none = default), 1 (every second individual of the species, in grid order, becomes part of the new species) and 2 (the species is split geographically into two halves along the axis on which it extends farther, measured on the torus; one becomes the new species). Halves are rounded up, so that a species with one individual is replaced as a whole. Without protracted speciation, each event creates one new species, also if the species was split before in the same generation. With \code{protracted > 0}, an event splits only the individuals not marked by an earlier event, or, if it hits a marked individual, the individuals marked together with it.}
 
 \item{redQueen}{Numeric, determining the strength of the fitness decline of an aging species. Must not be negative.}
 

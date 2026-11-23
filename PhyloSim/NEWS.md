@@ -15,6 +15,7 @@
 * `plotSpatialPhylo()`, `plotTraitDistribution(type = "all")` and `localPlots(plot = TRUE)` draw the maps with the x-axis of the grid horizontally and in the aspect ratio of the grid; before, x and y were swapped and the maps were stretched to a square or to the plot panel (#211).
 * `plotSpatialPhylo(plotTraits = FALSE)` shows the panel titles, which were drawn above the top edge of the plot (#217).
 * `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` work with a single parameter or a single summary statistic instead of stopping with an error (#201).
+* `runSimulation()` with `fission = 1` or `2`: without protracted speciation, each speciation event creates a new species. Before, two events on the same species in one generation created only one, and with `fission = 2`, events on species within one or two adjacent columns created none. `fission = 2` now splits a species by rank along the axis on which it extends farther, measured on the torus, instead of at its mean x coordinate. With `protracted > 0`, a new event no longer restarts the incipient stage of individuals marked by an earlier event. Results with fission change (#208).
 
 # EcoPhyloSim 0.3.2
 
