@@ -835,7 +835,7 @@ trait should increase; species may form groups of similar trait values rather
 than spreading evenly along the trait axis [@scheffer2006].
 :::
 
-```{r density, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of negative density dependence (negativeDD, kernel \"absolute\") for the neighborhood radii 1 and 2 (negativeDDCut), with dispersal 1 on 50 × 50 cells (specRate = 2).", capRuns("density"))}
+```{r density, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of negative density dependence (negativeDD, kernel 'absolute') for the neighborhood radii 1 and 2 (negativeDDCut), with dispersal 1 on 50 × 50 cells (specRate = 2).", capRuns("density"))}
 response(main, "density", "density", group = "densityCut")
 ```
 
@@ -881,7 +881,7 @@ similar traits, so it should act more like `"species"` once the traits of
 species have diverged.
 :::
 
-```{r densitykernel, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of negative density dependence for the three similarity measures (negativeDDKernel; radius 1, dispersal 1, 50 × 50 cells); the settings with the kernel \"absolute\" and without density dependence are those of the previous figure. The last panel shows the spread of the neutral trait instead of the correlation between trait and environment.", capRuns("densityKernel"))}
+```{r densitykernel, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of negative density dependence for the three similarity measures (negativeDDKernel; radius 1, dispersal 1, 50 × 50 cells); the settings with the kernel 'absolute' and without density dependence are those of the previous figure. The last panel shows the spread of the neutral trait instead of the correlation between trait and environment.", capRuns("densityKernel"))}
 response(withSettings(main, "densityKernel", "density", density = c(0, 0.5, 1), densityCut = 1),
          "densityKernel", "density", group = "negativeDDKernel",
          indicators = c(core[-4], "sdNeutralTrait"))
@@ -923,7 +923,7 @@ density dependence acts mostly against the offspring of locally common species;
 with global dispersal, they land among random neighbors.
 :::
 
-```{r densitydispersal, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against dispersal with full negative density dependence (negativeDD = 1, radius 1, kernel \"absolute\"; 50 × 50 cells, specRate = 2); the setting with dispersal 1 is that of Negative density dependence.", capRuns("densityDispersal", ref = FALSE))}
+```{r densitydispersal, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against dispersal with full negative density dependence (negativeDD = 1, radius 1, kernel 'absolute'; 50 × 50 cells, specRate = 2); the setting with dispersal 1 is that of Negative density dependence.", capRuns("densityDispersal", ref = FALSE))}
 response(withSettings(main, "densityDispersal", "density", density = 1, densityCut = 1),
          "densityDispersal", "dispersal")
 ```
@@ -956,7 +956,7 @@ further out count for it. This may keep clusters at an intermediate size; we
 found no prediction in the literature for this.
 :::
 
-```{r positivedd, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of positive density dependence (kernel \"species\", radius 2), without and with negative density dependence (negativeDD = 1, kernel \"species\", radius 1); dispersal 1, 50 × 50 cells. The settings without positive density dependence are those of the sections Negative density dependence and Similarity measure of density dependence.", capRuns("positiveDD", fewer = TRUE))}
+```{r positivedd, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of positive density dependence (kernel 'species', radius 2), without and with negative density dependence (negativeDD = 1, kernel 'species', radius 1); dispersal 1, 50 × 50 cells. The settings without positive density dependence are those of the sections Negative density dependence and Similarity measure of density dependence.", capRuns("positiveDD", fewer = TRUE))}
 pd <- withSettings(main, "positiveDD", "density", density = 0, densityCut = 1)
 pd <- withSettings(pd, "positiveDD", "densityKernel", density = 1, negativeDDKernel = "species")
 response(pd, "positiveDD", "positiveDD", group = "density",
@@ -1741,7 +1741,7 @@ the death rate multiply (see Selection), so each acts whatever the
 strength of the other.
 :::
 
-```{r envdensity, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of environmental filtering (environment) for three strengths of negative density dependence (negativeDD; radius 1, kernel \"absolute\"), with dispersal 1 on 50 × 50 cells.", capRuns("envDensity"))}
+```{r envdensity, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste("Indicators against the strength of environmental filtering (environment) for three strengths of negative density dependence (negativeDD; radius 1, kernel 'absolute'), with dispersal 1 on 50 × 50 cells.", capRuns("envDensity"))}
 response(main, "envDensity", "environment", group = "density")
 ```
 
