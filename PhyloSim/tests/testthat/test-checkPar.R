@@ -89,6 +89,9 @@ test_that("density dependence options and fitnessActsOn stages are checked (#144
                           traitEvolution = c(0, 0.1, 0)), "about 0.096")
   expect_silent(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 1e-4, traitEvolution = 0))
   expect_silent(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 1e-4, traitPull = 0))
+  expect_message(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 0.01,
+                          traitEvolution = 1, traitPull = 0.01), "about 0.29") # capped at a uniform trait
+  expect_error(smallPar(traitEvolution = c(neutral = 0.2, env = 0, comp = 0)), "unnamed")
   expect_error(smallPar(fitnessActsOn = "recruitment", redQueen = 0.5), "no effect")
   expect_error(smallPar(fitnessActsOn = character(0)), "fitnessActsOn")
   expect_silent(smallPar(fitnessActsOn = c("mortality", "recruitment"), negativeDD = 0.5, environment = 0.5))
@@ -100,6 +103,9 @@ test_that("density dependence options and fitnessActsOn stages are checked (#144
   p$density <- p$negativeDD; p$negativeDD <- NULL
   expect_equal(EcoPhyloSim:::checkPar(p)[names(smallPar())], smallPar())
   expect_null(EcoPhyloSim:::checkPar(p)$density)
+  p$speciationTraitJump <- c(0, 1, 0) # name before #220
+  expect_equal(EcoPhyloSim:::checkPar(p)$traitSpeciationJump, c(0, 1, 0))
+  expect_null(EcoPhyloSim:::checkPar(p)$speciationTraitJump)
 })
 
 test_that("positive density dependence is checked, and old argument names still work", {

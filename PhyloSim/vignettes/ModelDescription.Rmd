@@ -1863,9 +1863,9 @@ Without a jump, `traitEvolution = 0.1` reduces $K$ to
 ancestors, $K$ is about `r signif(mean(nicheMean$K[nicheMean$jump == 1]), 1)`,
 and the share of clustered plots
 (`r round(100 * mean(nicheMean$clustered[nicheMean$jump == 1]))`% on average) is
-close to that expected without phylogenetic structure. With jumps, both are
-already low and change little with `traitEvolution`. $K$ varies strongly
-between runs.
+at or below that expected without phylogenetic structure. With
+`traitSpeciationJump = 1`, both change little with `traitEvolution`. $K$
+varies strongly between runs.
 :::
 
 ## Density dependence measured from mortality
