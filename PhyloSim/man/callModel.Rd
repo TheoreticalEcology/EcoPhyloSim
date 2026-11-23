@@ -147,7 +147,7 @@ jump), half-widths of the uniform trait change at birth and weights of the pull 
 They correspond to the arguments of the same names in \code{\link{createCompletePar}}.}
 
 \item{progress}{Logical, whether a progress bar with the estimated remaining time is printed.
-The run can be interrupted (e.g. with Esc or Ctrl+C) in either case.}
+In either case, the run can be interrupted (e.g. with Esc or Ctrl+C) or stopped by a time limit.}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

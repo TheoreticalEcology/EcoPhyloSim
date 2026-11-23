@@ -4,7 +4,7 @@
 
 * `createCompletePar()`: new argument `traitSpeciationJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
 * `createCompletePar()`: new arguments `traitEvolution` and `traitPull` (one value or one per trait) set the half-width of the random trait change at each birth and the weight of the pull to the species mean; the defaults 0.01 and 0.2 are the values fixed so far (#220).
-* `runSimulation()`: new argument `progress` (default `TRUE`) shows a progress bar with the estimated remaining time in interactive sessions; runs can be interrupted with Esc or Ctrl+C, and the end messages are no longer printed (#221).
+* `runSimulation()`: new argument `progress` (default `TRUE`) shows a progress bar with the estimated remaining time in interactive sessions; runs can be interrupted with Esc or Ctrl+C or stopped by a time limit set with `setTimeLimit()`, and the end messages are no longer printed (#221).
 
 ## Changes
 

@@ -27,26 +27,30 @@ test_that("runSimulation warns if only one species is left", {
   expect_identical(simu$Output[[1]]$phylogeny, 0)
 })
 
-test_that("runSimulation shows progress only on request and can be interrupted (#221)", {
+test_that("runSimulation shows progress only on request (#221)", {
   par <- createCompletePar(x = 20, y = 20, runs = 100, specRate = 2, seed = 1)
-  expect_silent(simu <- runSimulation(par)) # Rscript and testthat are not interactive
+  expect_silent(runSimulation(par)) # Rscript and testthat are not interactive
   expect_error(runSimulation(par, progress = NA), "progress")
   expect_output(callModel(x = 10, y = 10, dispersal = 1, runs = c(5, 10), specRate = 1, dens = FALSE, env = FALSE,
                           neutral = TRUE, mort = FALSE, mortStrength = 1, repro = FALSE, dispersalCutoff = 1,
                           densityCutoff = 1, envStrength = 1, compStrength = 1, fission = 0, redQueen = 0,
                           redQueenStrength = 0, protracted = 0, airmatR = 1, soilmatR = 1, prunePhylogeny = TRUE,
                           nicheWidth = 0.03, progress = TRUE),
-                "100%  generation 10/10, finished after")
+                "100%  gen 10/10, finished after")
+})
 
+test_that("runSimulation stops early at a time limit (#221)", {
   skip_on_cran()
-  # the time limit is checked with user interrupts, so it stops the C++ run early
+  par <- createCompletePar(x = 20, y = 20, runs = 100, specRate = 2, seed = 1)
+  simu <- runSimulation(par)
+  # the C++ run checks for interrupts and time limits, so it stops early with the time limit error
   set.seed(2)
   seed <- .Random.seed
   time <- system.time(res <- tryCatch({
     setTimeLimit(elapsed = 0.5, transient = TRUE)
     runSimulation(createCompletePar(x = 100, y = 100, runs = 20000, seed = 1))
-  }, interrupt = function(e) "interrupt", finally = setTimeLimit()))[["elapsed"]]
-  expect_identical(res, "interrupt")
+  }, error = function(e) conditionMessage(e), finally = setTimeLimit()))[["elapsed"]]
+  expect_identical(res, gettext("reached elapsed time limit", domain = "R"))
   expect_lt(time, 3)
   expect_identical(.Random.seed, seed)
   expect_identical(runSimulation(par)$Output, simu$Output)

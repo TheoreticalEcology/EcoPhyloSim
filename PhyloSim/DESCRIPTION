@@ -26,7 +26,7 @@ BugReports: https://github.com/TheoreticalEcology/EcoPhyloSim/issues
 Depends:
     R (>= 4.1.0)
 Imports:
-    Rcpp (>= 0.12.9),
+    Rcpp (>= 1.0.10),
     ape,
     doParallel,
     picante,
@@ -43,7 +43,7 @@ Suggests:
     ranger,
     data.table,
     gtools
-LinkingTo: Rcpp
+LinkingTo: Rcpp (>= 1.0.10)
 Roxygen: list(old_usage = TRUE, markdown = TRUE)
 LazyData: true
 VignetteBuilder: knitr
