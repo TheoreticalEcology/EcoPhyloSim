@@ -10,6 +10,7 @@
 #define GRID_H_
 
 #include <utility>  // needed for std::pair
+#include <map>
 #include <vector>
 
 #include "Phylogeny.h"
@@ -72,10 +73,14 @@ public:
     double m_redQueen;
     double m_redQueenStrength;
     int m_protracted;
-    // fission: event that marked the individual for speciation (index x * m_Ydimensions + y; valid only while
-    // the individual is incipient; events count from 1), and the number of fission events so far
-    std::vector<unsigned long long> m_fissionTag;
-    unsigned long long m_fissionEvents = 0;
+    // incipient lineages by tag (#143): the lineage they are nested in (0 if none) and the generation in which
+    // their speciation started; individuals carry the tag of their innermost lineage (Individual::m_incipTag)
+    struct Incipient {
+        unsigned long long parent;
+        unsigned int start;
+    };
+    std::map<unsigned long long, Incipient> m_incipient;
+    unsigned long long m_incipEvents = 0; // tags count from 1
     // trait parameters (environment, competition, neutral), set by callModel(): half-widths of the trait jump at
     // speciation, half-widths of the random trait change at birth and weights of the pull to the species mean
     double m_specJump[3] = {0, 0, 0};

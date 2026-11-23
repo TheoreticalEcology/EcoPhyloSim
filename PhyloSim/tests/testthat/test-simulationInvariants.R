@@ -23,7 +23,8 @@ test_that("the seed alone controls the phylogeny (#135)", {
 
 test_that("extant species end at the present and no branch length is negative (#81)", {
   # on small grids, global dispersal used to draw the dying individual as its own parent
-  for (args in list(list(), list(environment = 0.5), list(dispersal = 0.5))) {
+  for (args in list(list(), list(environment = 0.5), list(dispersal = 0.5), list(protracted = 2),
+                    list(protracted = 2, fission = 1))) {
     for (seed in 1:20) {
       par <- c(list(x = 3, y = 3, specRate = 1, runs = 2000, seed = seed, convertToBinaryTree = FALSE), args)
       out <- suppressWarnings(do.call(quietSimulation, par))$Output[[1]] # warning for results with only one species (#153)
@@ -59,6 +60,20 @@ test_that("every fission event creates a new species, also for narrow species an
   # on a single column, the part west of the mean x coordinate used to be empty
   out <- quietSimulation(x = 1, y = 50, runs = 500, fission = 2, seed = 1)$Output[[1]]
   expect_gt(length(unique(c(out$specMat))), 1)
+})
+
+test_that("protracted speciation completes whole lineages, which split off when speciation starts (#143)", {
+  run <- function(...) quietSimulation(x = 20, y = 20, runs = 500, specRate = 2, seed = 1, ...)$Output[[1]]
+  # if only the founding individual could complete speciation, nearly all events would be lost
+  richness <- function(p) length(unique(c(run(protracted = p)$specMat)))
+  expect_gt(richness(3), 0.4 * richness(0))
+  # no split within the last 5 generations before the census at 500.5
+  for (fission in 0:2) {
+    tree <- run(protracted = 5, fission = fission)$phylogeny
+    depth <- ape::node.depth.edgelength(tree)
+    tips <- seq_len(ape::Ntip(tree))
+    expect_gte(max(depth[tips]) - max(depth[-tips]), 5.5)
+  }
 })
 
 test_that("trait jumps at speciation act per trait, are shared under fission and stay between 0 and 1 (#114)", {

@@ -132,7 +132,6 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
         m_neighborOffsets[positive] = circleOffsets(cutoff, false);
     }
     m_densityOutdated.assign(m_LandscapeSize, 0);
-    m_fissionTag.assign(m_LandscapeSize, 0);
     // END Grid Geometry calculations
 
     // largest product of the death rates of the mechanisms acting on mortality (Individual::deathProbability)
@@ -168,8 +167,6 @@ void Landscape::increaseAge(unsigned int /* generation */) {
     for (int rows = 0; rows < this->m_Xdimensions; rows++) {
         for (int cols = 0; cols < this->m_Ydimensions; cols++) {
             this->m_Individuals[rows][cols].m_Age += 1;
-            this->m_Individuals[rows][cols].m_incip_Age += 1;
-
         }
     }
 }
@@ -694,34 +691,55 @@ void Landscape::speciation(unsigned int generation) {
             jump[t] = m_specJump[t] > 0 ? m_RandomGenerator.randomDouble(-m_specJump[t], m_specJump[t]) : 0.0;
     };
 
-    // fission: the incipient individual at (k, j) and the others marked by the same event form a new species
-    auto fissionSpeciation = [&](int k, int j) {
-        m_Global_Species_Counter += 1;
-        m_Individuals[k][j].m_Species->m_Children.push_back(m_Global_Species_Counter);
-        m_Individuals[k][j].reportDeath(generation);
+    // Each speciation event starts an incipient lineage with its own tag. Offspring inherit the tag of their
+    // parent, so that the whole lineage completes speciation together, `protracted` generations after the
+    // event (#143); an event on an incipient individual starts a lineage nested in its own.
+    auto newTag = [&](unsigned long long parent, unsigned int start) {
+        m_incipient[++m_incipEvents] = {parent, start};
+        return m_incipEvents;
+    };
+    auto outermost = [&](unsigned long long t) {
+        while (m_incipient.at(t).parent != 0) t = m_incipient.at(t).parent;
+        return t;
+    };
+    auto carries = [&](unsigned long long t, unsigned long long lineage) {
+        while (t != 0 && t != lineage) t = m_incipient.at(t).parent;
+        return t != 0;
+    };
 
-        unsigned long long tag = m_fissionTag[k * m_Ydimensions + j];
-        m_Individuals[k][j].m_Species = new Species(m_Global_Species_Counter,
-                                                    m_Individuals[k][j].m_Species->get_species_ID(),
-                                                    generation, std::make_pair(k, j), m_SimulationEnd);
+    // the incipient lineage `lineage` becomes a new species, with the individual at (k, j) as its founder
+    auto complete = [&](int k, int j, unsigned long long lineage) {
+        Individual &founder = m_Individuals[k][j];
+        m_Global_Species_Counter += 1;
+        founder.m_Species->m_Children.push_back(m_Global_Species_Counter);
+        founder.reportDeath(generation);
+        founder.m_Species = new Species(m_Global_Species_Counter, founder.m_Species->get_species_ID(),
+                                        generation, std::make_pair(k, j), m_SimulationEnd);
+        founder.m_Species->m_Date_of_Split = m_incipient.at(lineage).start;
 
         drawJump();
-        m_Individuals[k][j].evolveDuringSpeciation(jump);
-        m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
+        founder.evolveDuringSpeciation(jump);
+        m_Phylogeny.updatePhylogeny(founder.m_Species);
         if (needsDensity()) densityUpdate(k, j);
-        m_Individuals[k][j].m_incip_Age = -99999999;
+        if (founder.m_incipTag == lineage) founder.m_incipTag = 0;
 
-        for (int z = 0; z < m_Xdimensions; z++) {
-            for (int q = 0; q < m_Ydimensions; q++) {
-                if ((m_Individuals[z][q].m_incip_Age == m_protracted) && (m_fissionTag[z * m_Ydimensions + q] == tag)) {
-                    m_Individuals[z][q].reportDeath(generation);
-                    m_Individuals[z][q].m_Species = m_Individuals[k][j].m_Species;
-                    m_Individuals[z][q].evolveDuringSpeciation(jump);
+        // the other members of the lineage, including those of lineages nested in it, which keep their own tag;
+        // without protracted speciation and fission, the founder is the only member
+        if (m_protracted > 0 || m_fission != 0) {
+            for (int z = 0; z < m_Xdimensions; z++) {
+                for (int q = 0; q < m_Ydimensions; q++) {
+                    Individual &ind = m_Individuals[z][q];
+                    if (&ind == &founder || !carries(ind.m_incipTag, lineage)) continue;
+                    ind.reportDeath(generation);
+                    ind.m_Species = founder.m_Species;
+                    ind.evolveDuringSpeciation(jump);
                     if (needsDensity()) densityUpdate(z, q);
-                    m_Individuals[z][q].m_incip_Age = -99999999;
+                    if (ind.m_incipTag == lineage) ind.m_incipTag = 0;
                 }
             }
         }
+        for (auto &l : m_incipient) if (l.second.parent == lineage) l.second.parent = 0;
+        m_incipient.erase(lineage);
     };
 
     for (int i = 0; i < specRate; i++) {
@@ -733,26 +751,23 @@ void Landscape::speciation(unsigned int generation) {
         Rcpp::Rcout << "new species at:\nx: " << x << "; y: " << y << "\n";
 #endif
 
-        // In every case the counter for the incipient ages set to zero.
-        // This value is updated every time step. Which individuals are chosen is dependent on the
-        // other speciation mechanisms (fission or no fission).
-
+        // without fission, the hit individual starts an incipient lineage; a second event on it in the same
+        // generation still gives one species (#208)
         if (m_fission == 0) {
-            m_Individuals[x][y].m_incip_Age = 0;
+            Individual &ind = m_Individuals[x][y];
+            if (ind.m_incipTag == 0 || m_incipient.at(ind.m_incipTag).start != generation)
+                ind.m_incipTag = newTag(ind.m_incipTag, generation);
         }
 
         // fixes #208 (lost events): an event splits only the group of the hit individual, i.e. the
-        // individuals of its species marked by the same earlier event (incipient), or the unmarked ones
+        // individuals of its species in the same incipient lineage, or those not incipient
         if (m_fission != 0) {
-            auto group = [&](int k, int j) {
-                int age = m_Individuals[k][j].m_incip_Age;
-                return age >= 0 && age <= m_protracted ? m_fissionTag[k * m_Ydimensions + j] : 0ULL;
-            };
-            unsigned long long hitGroup = group(x, y);
+            unsigned long long hitGroup = m_Individuals[x][y].m_incipTag;
             std::vector<std::pair<int, int> > cells; // in grid order
             for (int k = 0; k < m_Xdimensions; k++) {
                 for (int j = 0; j < m_Ydimensions; j++) {
-                    if (m_Individuals[k][j].m_Species == m_Individuals[x][y].m_Species && group(k, j) == hitGroup)
+                    if (m_Individuals[k][j].m_Species == m_Individuals[x][y].m_Species &&
+                        m_Individuals[k][j].m_incipTag == hitGroup)
                         cells.push_back(std::make_pair(k, j));
                 }
             }
@@ -788,51 +803,33 @@ void Landscape::speciation(unsigned int generation) {
             }
 
             // the first, third, ... individuals (fission 1) or the first half (fission 2) form the new species;
-            // a group of one individual is replaced as a whole
-            m_fissionEvents++;
+            // a group of one individual is replaced as a whole; a split incipient lineage keeps its start
+            unsigned long long tag = hitGroup == 0 ? newTag(0, generation)
+                                                   : newTag(0, m_incipient.at(hitGroup).start);
             for (unsigned int z = 0; z < cells.size(); z++) {
                 if (m_fission == 1 ? z % 2 : 2 * z >= cells.size()) continue;
-                Individual &ind = m_Individuals[cells[z].first][cells[z].second];
-                if (hitGroup == 0) ind.m_incip_Age = 0; // a split incipient group keeps its age
-                m_fissionTag[cells[z].first * m_Ydimensions + cells[z].second] = m_fissionEvents;
+                m_Individuals[cells[z].first][cells[z].second].m_incipTag = tag;
             }
             // without protracted speciation, the next event already sees the new species
-            if (m_protracted == 0) fissionSpeciation(cells[0].first, cells[0].second);
+            if (m_protracted == 0) complete(cells[0].first, cells[0].second, tag);
         }
     } // END  for (int i = 0; i < specRate; i++)
 
-    // In the same timestep new species arise.
-    // Which individuals become part of the new species is dependent on the incipient age of the
-    // individual and the other speciation mechanism (fission or no fission).
-
-    if (m_fission == 0) {
-        for (int k = 0; k < m_Xdimensions; k++) {
-            for (int j = 0; j < m_Ydimensions; j++) {
-                if (m_Individuals[k][j].m_incip_Age == m_protracted) {
-                    m_Global_Species_Counter += 1;
-
-                    m_Individuals[k][j].m_Species->m_Children.push_back(m_Global_Species_Counter);
-                    m_Individuals[k][j].reportDeath(generation);
-                    m_Individuals[k][j].m_Species = new Species(m_Global_Species_Counter,
-                                                                m_Individuals[k][j].m_Species->get_species_ID(),
-                                                                generation, std::make_pair(k, j), m_SimulationEnd);
-                    drawJump();
-                    m_Individuals[k][j].evolveDuringSpeciation(jump);
-                    m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
-
-                    if (needsDensity()) densityUpdate(k, j);
-                }
+    // Lineages whose speciation started `protracted` generations ago become new species, in grid order of
+    // their first member; nested lineages after the lineage they are nested in
+    for (int k = 0; k < m_Xdimensions; k++) {
+        for (int j = 0; j < m_Ydimensions; j++) {
+            while (m_Individuals[k][j].m_incipTag != 0) {
+                unsigned long long lineage = outermost(m_Individuals[k][j].m_incipTag);
+                if (generation - m_incipient.at(lineage).start < (unsigned int) m_protracted) break;
+                complete(k, j, lineage);
             }
         }
     }
-
-    if (m_fission != 0) {
-        for (int k = 0; k < m_Xdimensions; k++) {
-            for (int j = 0; j < m_Ydimensions; j++) {
-                if (m_Individuals[k][j].m_incip_Age == m_protracted) fissionSpeciation(k, j);
-            }
-        }
-    }
+    // lineages that died out before completing speciation
+    for (auto it = m_incipient.begin(); it != m_incipient.end() &&
+                                        generation - it->second.start >= (unsigned int) m_protracted;)
+        it = m_incipient.erase(it);
 }
         
 

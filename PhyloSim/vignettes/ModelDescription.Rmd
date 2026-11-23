@@ -1150,13 +1150,17 @@ All speciation mechanisms implemented in the model are summarized below:
   whole. Without protracted speciation, each event creates a new species, also
   if it hits a species split earlier in the same generation.
   With protracted speciation, an event on an incipient individual splits only
-  the individuals marked together with it.
+  the individuals marked together with it and their offspring.
 - **Protracted speciation:** based on @rosindell2010, a species undergoes an
-  incipient stage before becoming a new species. In the implementation, the
-  chosen individual becomes a new species only if it survives `protracted`
-  generations; its offspring do not inherit the incipient state (see Known
-  limitations). `specRate` is
-  then the expected number of incipient individuals per generation.
+  incipient stage before becoming a new species. In the implementation, each
+  event starts an incipient lineage, the chosen individual and its offspring,
+  which becomes a new species `protracted` generations later if any of its
+  members is still alive. An event on an incipient individual starts a lineage
+  nested in its own, which becomes a species of its own later. In the
+  phylogeny, a new species splits off when its speciation starts, as in the
+  protracted birth-death model [@etienne2012]; the age $a$ of the Red Queen
+  advantage counts from the completion of speciation. `specRate` is then the
+  expected number of incipient lineages started per generation.
 - **Red Queen:** based on @odwyer2014, new species have advantages over old
   species due to their novelty alone, and the effect vanishes over time. The
   fitness is multiplied by $1 + s \exp(-q\,a)$, where $s$ = `redQueenStrength`,
@@ -1277,19 +1281,22 @@ speciation rate, i.e. the trees show more recent than early branching.
 ### Protracted speciation and Red Queen
 
 Two mechanisms change whether new species persist: protracted speciation
-completes a speciation only if the founding individual survives `protracted`
-generations (see Known limitations), and the Red Queen gives young species a
+completes a speciation only if the incipient lineage survives `protracted`
+generations, and the Red Queen gives young species a
 fitness advantage (`redQueenStrength`, decaying with `redQueen`). The
 simulations vary `protracted` from 0 to 5, and use `redQueen = 0.01` and `0.1`
 with `redQueenStrength = 100`.
 
 ::: {.expectation}
-**Expectation.** An individual survives a generation with probability of about $\exp(-1)$, so in the
-neutral model protracted speciation should act like a speciation rate reduced
-by a factor of about $\exp(-p)$, with $p$ = `protracted`, and richness should decrease accordingly. In
-the original model of protracted speciation, in which the whole incipient
-lineage becomes a new species [@rosindell2010], protracted speciation slows down branching towards the present
-[@etienne2012]. A Red Queen advantage of young species is expected to make
+**Expectation.** Incipient lineages that die out within `protracted`
+generations never become species, and
+lineages that are still incipient at the census count to their parent
+species, so richness should decrease with `protracted`, but much less than
+with a speciation rate reduced by a factor of $\exp(-p)$, with $p$ =
+`protracted`, which is what an incipient stage of the founding individual
+alone would give (an individual survives a generation with probability of
+about $\exp(-1)$). Protracted speciation slows down branching towards the
+present [@etienne2012]. A Red Queen advantage of young species is expected to make
 species younger without changing abundance distributions much
 [@odwyer2014]. Without environment and density dependence, the base fitness is
 0.01, so `redQueenStrength` must be large (here 100) for young species to
@@ -1308,8 +1315,12 @@ ewensRatio <- function(p) ewens(theta(2, 2500) * exp(-p), 2500) / ewens(theta(2,
 ```
 
 ::: {.result}
-**Result.** Richness decreases with `protracted` roughly as predicted by a
-speciation rate reduced by $\exp(-p)$, slightly more: relative to
+**Result.** These runs were made with release 0.3.2, in which only the
+founding individual could complete speciation
+([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)), so they
+do not show the expectation above; they are replaced at the next release. Richness decreases with `protracted`
+roughly as predicted by a speciation rate reduced by $\exp(-p)$, slightly
+more: relative to
 `protracted = 0`, it is
 `r round(rich(1) / rich(0), 2)` for $p = 1$ (Ewens sampling formula, which assumes global dispersal, with the
 reduced rate: `r round(ewensRatio(1), 2)`) and `r round(rich(2) / rich(0), 2)` for
@@ -1452,9 +1463,6 @@ discussed in the issues of the package repository:
 
 - `dispersal` has an effect only in steps of 0.5
   ([#141](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/141)).
-- With protracted speciation, the offspring of an incipient individual do not
-  inherit the incipient state
-  ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
 - Two speciation events in one generation on the same cell (without fission)
   or on the same single incipient individual (fission with protracted
   speciation) create only one species

@@ -22,7 +22,7 @@ Individual::Individual() {
 
     this->m_LocalDensity = 0.0; // density experienced around itself; Grid recomputes it before it is read (ensureDensity)
     this->m_Age = 0;
-    this->m_incip_Age = -99999999;
+    this->m_incipTag = 0;
 
     this->m_nicheWidth = 0.03659906; // environmental niche width (standard deviation), see getFitness
     this->m_Mean = 0.5; // environmental trait
@@ -48,7 +48,7 @@ Individual::Individual(const Individual &ind) {
     this->m_Y_coordinate = ind.m_Y_coordinate;
     this->m_LocalDensity = ind.m_LocalDensity;
     this->m_Age = 0;
-    this->m_incip_Age = -99999999;
+    this->m_incipTag = ind.m_incipTag; // fixes #143 (offspring inherit the incipient state)
     this->m_nicheWidth = ind.m_nicheWidth;
     this->m_Mean = ind.m_Mean;
 
@@ -77,7 +77,7 @@ void Individual::operator=(const Individual &ind) {
     this->m_Y_coordinate = -999;
     this->m_LocalDensity = ind.m_LocalDensity;
     this->m_Age = 0;
-    this->m_incip_Age = -99999999;
+    this->m_incipTag = ind.m_incipTag; // fixes #143 (offspring inherit the incipient state)
 
     this->m_nicheWidth = ind.m_nicheWidth;
 

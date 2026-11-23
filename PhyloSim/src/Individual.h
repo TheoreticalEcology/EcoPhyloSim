@@ -59,7 +59,7 @@ public:
 
     double m_LocalDensity;
     unsigned long long m_Age;
-    int m_incip_Age;
+    unsigned long long m_incipTag; // innermost incipient lineage (Landscape::m_incipient), 0 if none
 
     double m_nicheWidth;
     double m_Mean;
