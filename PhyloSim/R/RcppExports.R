@@ -105,9 +105,10 @@
 #'   \code{2 * positiveCutoff + 1} must not exceed \code{min(x, y)} if \code{positiveStrength > 0}.
 #' @param positiveKernel Integer, similarity measure for positive density dependence, coded as \code{densityKernel}.
 #' @param positiveWidth Numeric > 0, width of the Gaussian kernel for positive density dependence.
-#' @param speciationTraitJump Numeric vector of length 3 with values between 0 and 1, half-widths of the
-#'   uniform trait jump of a new species (environment, competition, neutral); 0 = no jump.
-#'   Corresponds to \code{speciationTraitJump} in \code{\link{createCompletePar}}.
+#' @param traitSpeciationJump,traitEvolution,traitPull Numeric vectors of length 3 (environment, competition,
+#'   neutral trait) with values between 0 and 1: half-widths of the uniform trait jump of a new species (0 = no
+#'   jump), half-widths of the uniform trait change at birth and weights of the pull to the species mean at birth.
+#'   They correspond to the arguments of the same names in \code{\link{createCompletePar}}.
 #' @param progress Logical, whether a progress bar with the estimated remaining time is printed.
 #'   The run can be interrupted (e.g. with Esc or Ctrl+C) in either case.
 #'
@@ -120,8 +121,8 @@
 #'   these into the final \code{PhyloSim} object (\code{specMat}, \code{traitMat},
 #'   \code{neutMat}, \code{compMat}, \code{envMat}, \code{phylogeny}, \code{phyloTXT}).
 #' @keywords internal
-callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE, densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric( c()), positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L, positiveWidth = 0.1, speciationTraitJump = as.numeric( c(0, 0, 0)), progress = FALSE) {
-    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth, speciationTraitJump, progress)
+callModel <- function(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit = FALSE, densityKernel = 1L, densityWidth = 0.1, densityTable = as.numeric( c()), positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L, positiveWidth = 0.1, traitSpeciationJump = as.numeric( c(0, 0, 0)), traitEvolution = as.numeric( c(0.01, 0.01, 0.01)), traitPull = as.numeric( c(0.2, 0.2, 0.2)), progress = FALSE) {
+    .Call(`_EcoPhyloSim_callModel`, x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth, traitSpeciationJump, traitEvolution, traitPull, progress)
 }
 
 multinomialDrawCounts <- function(weights, nDraws) {

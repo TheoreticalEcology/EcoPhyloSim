@@ -290,7 +290,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             m_Individuals[x_coordinate][y_coordinate].m_X_coordinate = x_coordinate;
             m_Individuals[x_coordinate][y_coordinate].m_Y_coordinate = y_coordinate;
             // report birth and evolve is NOT automatic
-            m_Individuals[x_coordinate][y_coordinate].evolve();
+            m_Individuals[x_coordinate][y_coordinate].evolve(m_traitEvolution, m_traitPull);
         }
     }
 
@@ -450,7 +450,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
             m_Individuals[x_coordinate][y_coordinate].m_X_coordinate = x_coordinate;
             m_Individuals[x_coordinate][y_coordinate].m_Y_coordinate = y_coordinate;
 
-            m_Individuals[x_coordinate][y_coordinate].evolve();
+            m_Individuals[x_coordinate][y_coordinate].evolve(m_traitEvolution, m_traitPull);
             if (!m_traitBins.empty()) binCell(target);
 
             parents[x_coordinate * m_Ydimensions + y_coordinate].first = x_coordinate;
@@ -600,7 +600,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         m_Individuals[x_coordinate][y_coordinate].m_X_coordinate = x_coordinate;
         m_Individuals[x_coordinate][y_coordinate].m_Y_coordinate = y_coordinate;
 
-        m_Individuals[x_coordinate][y_coordinate].evolve();
+        m_Individuals[x_coordinate][y_coordinate].evolve(m_traitEvolution, m_traitPull);
 
         // UPDATE RELATEDNESS
 

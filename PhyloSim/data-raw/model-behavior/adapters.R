@@ -27,12 +27,22 @@ versions <- list(
                             "positiveDD", "positiveDDCut"),
                  rename = c(density = "negativeDD", densityCut = "negativeDDCut"),
                  fitnessActsOn = c("mortality", "reproduction", "both", "recruitment")),
-  # since #114: trait jump at speciation
+  # #114 (a30af0e) until #220: trait jump at speciation, then called speciationTraitJump
+  i114 = list(
+                 params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
+                            "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
+                            "protracted", "redQueen", "redQueenStrength", "negativeDDKernel",
+                            "positiveDD", "positiveDDCut", "traitSpeciationJump"),
+                 rename = c(density = "negativeDD", densityCut = "negativeDDCut",
+                            traitSpeciationJump = "speciationTraitJump"),
+                 fitnessActsOn = c("mortality", "reproduction", "both", "recruitment")),
+  # since #220: trait evolution at birth
   current = list(
                  params = c("x", "y", "dispersal", "specRate", "density", "densityCut", "environment",
                             "nicheWidth", "fitnessActsOn", "fitnessBaseMortalityRatio", "fission",
                             "protracted", "redQueen", "redQueenStrength", "negativeDDKernel",
-                            "positiveDD", "positiveDDCut", "speciationTraitJump"),
+                            "positiveDD", "positiveDDCut", "traitSpeciationJump", "traitEvolution",
+                            "traitPull"),
                  rename = c(density = "negativeDD", densityCut = "negativeDDCut"),
                  fitnessActsOn = c("mortality", "reproduction", "both", "recruitment"))
 )

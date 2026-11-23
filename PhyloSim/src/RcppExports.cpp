@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // callModel
-List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral, bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength, int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth, bool recruit, int densityKernel, double densityWidth, NumericVector densityTable, double positiveStrength, int positiveCutoff, int positiveKernel, double positiveWidth, NumericVector speciationTraitJump, bool progress);
-RcppExport SEXP _EcoPhyloSim_callModel(SEXP xSEXP, SEXP ySEXP, SEXP dispersalSEXP, SEXP runsSEXP, SEXP specRateSEXP, SEXP densSEXP, SEXP envSEXP, SEXP neutralSEXP, SEXP mortSEXP, SEXP mortStrengthSEXP, SEXP reproSEXP, SEXP dispersalCutoffSEXP, SEXP densityCutoffSEXP, SEXP envStrengthSEXP, SEXP compStrengthSEXP, SEXP fissionSEXP, SEXP redQueenSEXP, SEXP redQueenStrengthSEXP, SEXP protractedSEXP, SEXP airmatRSEXP, SEXP soilmatRSEXP, SEXP prunePhylogenySEXP, SEXP nicheWidthSEXP, SEXP recruitSEXP, SEXP densityKernelSEXP, SEXP densityWidthSEXP, SEXP densityTableSEXP, SEXP positiveStrengthSEXP, SEXP positiveCutoffSEXP, SEXP positiveKernelSEXP, SEXP positiveWidthSEXP, SEXP speciationTraitJumpSEXP, SEXP progressSEXP) {
+List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral, bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff, double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength, int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth, bool recruit, int densityKernel, double densityWidth, NumericVector densityTable, double positiveStrength, int positiveCutoff, int positiveKernel, double positiveWidth, NumericVector traitSpeciationJump, NumericVector traitEvolution, NumericVector traitPull, bool progress);
+RcppExport SEXP _EcoPhyloSim_callModel(SEXP xSEXP, SEXP ySEXP, SEXP dispersalSEXP, SEXP runsSEXP, SEXP specRateSEXP, SEXP densSEXP, SEXP envSEXP, SEXP neutralSEXP, SEXP mortSEXP, SEXP mortStrengthSEXP, SEXP reproSEXP, SEXP dispersalCutoffSEXP, SEXP densityCutoffSEXP, SEXP envStrengthSEXP, SEXP compStrengthSEXP, SEXP fissionSEXP, SEXP redQueenSEXP, SEXP redQueenStrengthSEXP, SEXP protractedSEXP, SEXP airmatRSEXP, SEXP soilmatRSEXP, SEXP prunePhylogenySEXP, SEXP nicheWidthSEXP, SEXP recruitSEXP, SEXP densityKernelSEXP, SEXP densityWidthSEXP, SEXP densityTableSEXP, SEXP positiveStrengthSEXP, SEXP positiveCutoffSEXP, SEXP positiveKernelSEXP, SEXP positiveWidthSEXP, SEXP traitSpeciationJumpSEXP, SEXP traitEvolutionSEXP, SEXP traitPullSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -47,9 +47,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type positiveCutoff(positiveCutoffSEXP);
     Rcpp::traits::input_parameter< int >::type positiveKernel(positiveKernelSEXP);
     Rcpp::traits::input_parameter< double >::type positiveWidth(positiveWidthSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type speciationTraitJump(speciationTraitJumpSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type traitSpeciationJump(traitSpeciationJumpSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type traitEvolution(traitEvolutionSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type traitPull(traitPullSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth, speciationTraitJump, progress));
+    rcpp_result_gen = Rcpp::wrap(callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort, mortStrength, repro, dispersalCutoff, densityCutoff, envStrength, compStrength, fission, redQueen, redQueenStrength, protracted, airmatR, soilmatR, prunePhylogeny, nicheWidth, recruit, densityKernel, densityWidth, densityTable, positiveStrength, positiveCutoff, positiveKernel, positiveWidth, traitSpeciationJump, traitEvolution, traitPull, progress));
     return rcpp_result_gen;
 END_RCPP
 }
