@@ -4,10 +4,12 @@
 \alias{runSimulation}
 \title{Species Community Simulation}
 \usage{
-runSimulation(par)
+runSimulation(par, progress = TRUE)
 }
 \arguments{
 \item{par}{a list of model parameters created with \link{createCompletePar}}
+
+\item{progress}{logical, whether to show a progress bar with the estimated remaining time in interactive sessions (not while knitting a document). The estimate assumes a constant time per generation and is too short if later generations take longer, e.g. while the number of species grows. In either case, the run can be interrupted (e.g., with Esc or Ctrl+C), and a time limit set with \code{\link{setTimeLimit}} stops it with an error.}
 }
 \value{
 An object of class \code{PhyloSim}. This object contains the species matrix, the trait matrix, the environmental matrix, the competition matrix and the neutral matrix, as well as the phylogeny and the parameter settings of the simulation.
