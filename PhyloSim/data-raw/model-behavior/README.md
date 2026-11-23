@@ -16,8 +16,8 @@ Scripts that document how the behavior of EcoPhyloSim changes between versions
   not depend on the number of cores, and seeds do not change when a parameter is
   added to `base`. `design.R` also sets the censuses and `indicatorCommit`.
 - **Versions** (`versions` in `adapters.R`, whose names are called adapters):
-  the releases 0.2, 0.3, 0.3.1 and 0.3.2, and `current`, any commit since #114;
-  earlier commits since #172 (2331720) run with `0.3.2`, earlier ones with `0.3.1`. The indicators of all runs are computed with
+  the releases 0.2, 0.3, 0.3.1 and 0.3.2, and `current`, any commit since #220;
+  earlier commits since #114 (a30af0e) run with `i114`, earlier ones since #172 (2331720) run with `0.3.2`, earlier ones with `0.3.1`. The indicators of all runs are computed with
   one fixed installation of EcoPhyloSim (`indicatorCommit` in `design.R`), so
   that they differ between versions only through the model.
 - **Stages** (all commands from the repository root):

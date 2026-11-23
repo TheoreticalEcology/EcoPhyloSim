@@ -2,7 +2,8 @@
 
 ## New features
 
-* `createCompletePar()`: new argument `speciationTraitJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
+* `createCompletePar()`: new argument `traitSpeciationJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
+* `createCompletePar()`: new arguments `traitEvolution` and `traitPull` (one value or one per trait) set the half-width of the random trait change at each birth and the weight of the pull to the species mean; the defaults 0.01 and 0.2 are the values fixed so far (#220).
 
 ## Changes
 

@@ -647,10 +647,25 @@ species:
 $$ t' = (1 - \alpha)\cdot t_{\mathrm{p}} + \alpha \cdot \bar t + r, $$
 
 where $t'$ is the offspring's trait value, $t_{\mathrm{p}}$ the parent's,
-$\bar t$ is the mean trait value of the species, $\alpha = 0.2$ is a fixed
-attraction weight, and $r$ is drawn uniformly from $[-0.01, 0.01]$. Values outside $[0, 1]$ are reflected at the boundary.
-At speciation, the traits of a new species can also change by a larger jump
-(`speciationTraitJump`, see Speciation).
+$\bar t$ is the current mean trait value of the species, $\alpha$ = `traitPull`
+is the weight of the species mean, and $r$ is drawn uniformly from $(-w, w)$
+with $w$ = `traitEvolution`. Values outside $[0, 1]$ are reflected at the boundary.
+The random change is drawn also with $w = 0$, so that the other random numbers
+of a run do not shift with $w$; as long as the traits do not act, the other
+results stay the same. With $\alpha > 0$, the pull keeps the traits within a species
+together: if the species mean stays constant, the standard deviation of a trait
+within the species approaches $w / \sqrt{3\alpha(2 - \alpha)}$, about 0.01 with
+the defaults. With $\alpha = 0$, the traits of the lineages within a species
+drift apart; with $\alpha = 1$, the offspring gets the species mean plus $r$,
+independent of its parent. At speciation, the traits of a new species can also
+change by a larger jump (`traitSpeciationJump`, see Speciation).
+
+| Argument | Meaning | Default | Range |
+|---|---|---|---|
+| `traitEvolution` | half-width $w$ of the random trait change at each birth, one value or one per trait (environment, competition, neutral) | 0.01 | between 0 and 1 |
+| `traitPull` | weight $\alpha$ of the species mean in the trait of an offspring, one value or one per trait | 0.2 | between 0 and 1 |
+
+Table: Arguments of `createCompletePar()` for trait evolution.
 
 ## Environmental filtering
 
@@ -1115,7 +1130,7 @@ number of new species is drawn from a Poisson distribution with mean
 is thus the expected number of new species per generation in the whole grid,
 not a rate per individual. By default, the founding individual keeps its
 traits, which become the initial trait means of the new species. With
-`speciationTraitJump` $= w > 0$, each trait of the new species changes at
+`traitSpeciationJump` $= w > 0$, each trait of the new species changes at
 speciation by a value drawn uniformly from $(-w, w)$ and is reflected at 0 and
 1, as in trait evolution; $w$ can be set per trait. All individuals of a new
 species share the jump, also with fission, and with protracted speciation it
@@ -1152,7 +1167,7 @@ All speciation mechanisms implemented in the model are summarized below:
 | `specRate` | expected number of new species per generation in the whole grid | 1 | $\ge 0$, $\le x \cdot y$ |
 | `fission` | speciation by fission: 0 (none), 1 or 2 | 0 | 0, 1, 2 |
 | `protracted` | generations an incipient species must survive | 0 | integer $\ge 0$ |
-| `speciationTraitJump` | half-width $w$ of the trait jump of a new species, one value or one per trait (environment, competition, neutral) | 0 | between 0 and 1 |
+| `traitSpeciationJump` | half-width $w$ of the trait jump of a new species, one value or one per trait (environment, competition, neutral) | 0 | between 0 and 1 |
 | `redQueenStrength`, `redQueen` | strength $s$ and decay $q$ of the novelty advantage | 0, 0 | $\ge 0$ |
 
 Table: Arguments of `createCompletePar()` for speciation.
@@ -1439,7 +1454,7 @@ discussed in the issues of the package repository:
   density dependence develops only after thousands of generations, so short
   runs show little of its effect; the `"species"` kernel acts from the first
   speciation on, and a large enough jump of the competition trait at
-  speciation (e.g. `speciationTraitJump = c(0, 0.3, 0)`) makes the absolute
+  speciation (e.g. `traitSpeciationJump = c(0, 0.3, 0)`) makes the absolute
   kernel act within a few hundred generations
   ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
 - `es()` calculates the expected number of species of the neutral model with
@@ -1767,6 +1782,90 @@ types of dispersal, but increases richness only with local dispersal (see
 Density dependence and dispersal). With local dispersal, both processes
 together give the highest richness (see Environment and density dependence
 combined).
+:::
+
+### Trait evolution and niche conservatism
+
+Unlike the other sections of this chapter, this one is simulated when the
+vignette is built: environmental filtering at recruitment with global dispersal
+(`environment = 1`, `fitnessActsOn = "recruitment"`, 50 × 50 cells,
+`specRate = 2`, 3,000 generations, 3 seeds per setting), with three values of
+`traitEvolution` and of `traitSpeciationJump` (on all traits). Filtering at
+recruitment sorts the traits along the gradient also with global dispersal, so
+that local communities are shaped by filtering and not by local speciation.
+Niche conservatism is measured by Blomberg's $K$ of the species means of the
+environmental trait on the tree of the extant species [@blomberg2003;
+`picante::Kcalc()`], the phylogenetic structure of local communities by the
+share of plots (30 plots of 5 × 5 cells, `localPlots()`; plots with a single
+species are left out) whose unweighted mean phylogenetic distance between
+species is among the lowest 5% of communities with the same species but
+randomly shuffled tips of the tree (`picante::ses.mpd()` with
+`null.model = "taxa.labels"`, 99 repetitions); without phylogenetic structure,
+this share is about 5%.
+
+::: {.expectation}
+**Expectation.** The faster traits change within species and the larger the
+jumps at speciation, the less related species resemble each other, so $K$
+should decrease with both parameters. With conserved niches, environmental
+filtering brings together related species, so local communities should be
+phylogenetically clustered; with labile traits, this clustering should weaken
+[@webb2002].
+:::
+
+```{r nicheConservatism, echo = FALSE, fig.width = 7, fig.height = 3, fig.cap = "Blomberg's K of the environmental trait (log scale) and share of phylogenetically clustered plots against traitEvolution, for three values of traitSpeciationJump, with environmental filtering at recruitment and global dispersal (50 × 50 cells, 3,000 generations). Points: means of 3 runs; bars: range; dashed line: share expected without phylogenetic structure."}
+nicheRun <- function(evo, jump, seed) {
+  par <- createCompletePar(x = 50, y = 50, runs = 3000, specRate = 2, environment = 1,
+                           fitnessActsOn = "recruitment", traitEvolution = evo,
+                           traitSpeciationJump = jump, seed = seed)
+  invisible(capture.output(simu <- runSimulation(par)))
+  phy <- simu$Output[[1]]$phylogeny
+  traits <- getAverageTraits(simu)
+  envTrait <- setNames(traits[, "env trait"], paste0("s", rownames(traits)))
+  set.seed(seed)
+  comm <- localPlots(simu, size = 5, n = 30, community = TRUE)$communityTable
+  p <- picante::ses.mpd(comm, ape::cophenetic.phylo(phy), null.model = "taxa.labels", runs = 99)$mpd.obs.p
+  c(K = picante::Kcalc(envTrait[phy$tip.label], phy), clustered = mean(p <= 0.05, na.rm = TRUE))
+}
+niche <- expand.grid(seed = 1:3, evo = c(0.01, 0.03, 0.1), jump = c(0, 0.3, 1))
+niche <- cbind(niche, t(mapply(nicheRun, niche$evo, niche$jump, niche$seed)))
+nicheMean <- aggregate(cbind(K, clustered) ~ evo + jump, niche, mean)
+nicheVal <- function(v, evo, jump) nicheMean[nicheMean$evo == evo & nicheMean$jump == jump, v]
+jumpCols <- groupCols(niche$jump)
+layout(matrix(1:3, 1), widths = c(1, 1, 0.55))
+for (v in c("K", "clustered")) {
+  style(mar = c(3.4, 4.2, 1.6, 0.6))
+  plot(range(niche$evo), range(niche[[v]], if (v == "clustered") 0), type = "n",
+       log = if (v == "K") "xy" else "x", xlab = "traitEvolution", ylab = "", xaxt = "n")
+  title(ylab = c(K = "Blomberg's K", clustered = "Clustered plots")[v], line = 3)
+  axis(1, at = c(0.01, 0.03, 0.1), labels = c(0.01, 0.03, 0.1))
+  if (v == "clustered") abline(h = 0.05, lty = 2, col = "grey50")
+  for (j in names(jumpCols)) {
+    s <- niche[niche$jump == as.numeric(j), ]
+    m <- nicheMean[nicheMean$jump == as.numeric(j), ]
+    lines(m$evo, m[[v]], type = "b", pch = 19, col = jumpCols[j])
+    r <- aggregate(s[[v]], list(evo = s$evo), range)
+    ok <- r$x[, 2] > r$x[, 1] # no bars of length 0 (they give warnings)
+    arrows(r$evo[ok], r$x[ok, 1], r$evo[ok], r$x[ok, 2], angle = 90, code = 3, length = 0.02, col = jumpCols[j])
+  }
+}
+legendPanel(legend = names(jumpCols), col = jumpCols, pch = 19, lty = 1, title = "traitSpeciationJump")
+```
+
+::: {.result}
+**Result.** Overall, both parameters reduce niche conservatism and the
+phylogenetic clustering of local communities, as expected. With the defaults, $K$ is
+`r signif(nicheVal("K", 0.01, 0), 2)` and
+`r round(100 * nicheVal("clustered", 0.01, 0))`% of the plots are clustered.
+Without a jump, `traitEvolution = 0.1` reduces $K$ to
+`r signif(nicheVal("K", 0.1, 0), 2)` and the share of clustered plots to
+`r round(100 * nicheVal("clustered", 0.1, 0))`%; with
+`traitSpeciationJump = 1`, the traits of new species are independent of their
+ancestors, $K$ is about `r signif(mean(nicheMean$K[nicheMean$jump == 1]), 1)`,
+and the share of clustered plots
+(`r round(100 * mean(nicheMean$clustered[nicheMean$jump == 1]))`% on average) is
+close to that expected without phylogenetic structure. With jumps, both are
+already low and change little with `traitEvolution`. $K$ varies strongly
+between runs.
 :::
 
 ## Density dependence measured from mortality

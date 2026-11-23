@@ -72,7 +72,9 @@ runSimulation <- function(par)
                       positiveCutoff = par$positiveDDCut,
                       positiveKernel = match(par$positiveDDKernel, kernels),
                       positiveWidth = par$positiveDDWidth,
-                      speciationTraitJump = rep_len(par$speciationTraitJump, 3))
+                      traitSpeciationJump = rep_len(par$traitSpeciationJump, 3),
+                      traitEvolution = rep_len(par$traitEvolution, 3),
+                      traitPull = rep_len(par$traitPull, 3))
     
     runtime <- as.numeric((proc.time() - ptm)[3])
     

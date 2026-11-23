@@ -213,35 +213,18 @@ double Individual::euclidian_distance(int x, int y) {
     return sqrt((x * x) + (y * y));
 }
 
-void Individual::evolve() {
+// change[] are the half-widths of the random change and pull[] the weights of the species mean (#220); the random
+// change is drawn also if its width is 0, so that the other random numbers do not shift with it
+void Individual::evolve(const double change[3], const double pull[3]) {
 
-    double width = 0.01;
-
-    double upperBound = 1.0;
-    double lowerBound = 0.0;
-
-    double weightSpecies = 0.2;
-
-    // Environment
-
-    m_Mean = (1.0 - weightSpecies) * m_Mean + weightSpecies * m_Species->m_Mean +
-             m_RandomGenerator.randomDouble(-width, width);
-    if (m_Mean > upperBound) m_Mean = upperBound - (m_Mean - upperBound);
-    else if (m_Mean < lowerBound) m_Mean = lowerBound + std::abs(m_Mean);
-
-    // Competition
-
-    m_CompetitionMarker = (1.0 - weightSpecies) * m_CompetitionMarker + weightSpecies * m_Species->m_CompetitionMean +
-                          m_RandomGenerator.randomDouble(-width, width);
-    if (m_CompetitionMarker > upperBound) m_CompetitionMarker = upperBound - (m_CompetitionMarker - upperBound);
-    else if (m_CompetitionMarker < lowerBound) m_CompetitionMarker = lowerBound + std::abs(m_CompetitionMarker);
-
-    //Neutral
-
-    m_NeutralMarker = (1.0 - weightSpecies) * m_NeutralMarker + weightSpecies * m_Species->m_NeutralMean +
-                      m_RandomGenerator.randomDouble(-width, width);
-    if (m_NeutralMarker > upperBound) m_NeutralMarker = upperBound - (m_NeutralMarker - upperBound);
-    else if (m_NeutralMarker < lowerBound) m_NeutralMarker = lowerBound + std::abs(m_NeutralMarker);
+    double *traits[3] = {&m_Mean, &m_CompetitionMarker, &m_NeutralMarker};
+    const double means[3] = {m_Species->m_Mean, m_Species->m_CompetitionMean, m_Species->m_NeutralMean};
+    for (int t = 0; t < 3; t++) {
+        double &trait = *traits[t];
+        trait = (1.0 - pull[t]) * trait + pull[t] * means[t] + m_RandomGenerator.randomDouble(-change[t], change[t]);
+        if (trait > 1.0) trait = 1.0 - (trait - 1.0);
+        else if (trait < 0.0) trait = std::abs(trait);
+    }
 
     reportBirth(); // ATTENTION: reportBirth is called here!
 }

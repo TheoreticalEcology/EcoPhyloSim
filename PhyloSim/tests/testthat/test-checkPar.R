@@ -7,7 +7,7 @@ test_that("valid settings pass", {
   expect_silent(smallPar(airmat = matrix(0.5, 10, 10), dispersal = 1, negativeDD = 1,
                          environment = 0.5, runs = c(1, 1, 2)))
   expect_silent(createCompletePar(x = 20, y = 30, airmat = matrix(0.5, 30, 20)))
-  expect_silent(smallPar(speciationTraitJump = c(0, 0.5, 1)))
+  expect_silent(smallPar(traitSpeciationJump = c(0, 0.5, 1), traitEvolution = c(0, 0.5, 1), traitPull = c(0, 0.5, 1)))
 })
 
 test_that("createCompletePar() rejects invalid single parameters", {
@@ -25,8 +25,12 @@ test_that("createCompletePar() rejects invalid single parameters", {
   expect_error(smallPar(negativeDDCut = 0), "negativeDDCut")
   expect_error(smallPar(fission = 3), "fission")
   expect_error(smallPar(protracted = -1), "protracted")
-  expect_error(smallPar(speciationTraitJump = 1.1), "speciationTraitJump")
-  expect_error(smallPar(speciationTraitJump = c(0.1, 0.2)), "speciationTraitJump")
+  expect_error(smallPar(traitSpeciationJump = 1.1), "traitSpeciationJump")
+  expect_error(smallPar(traitSpeciationJump = c(0.1, 0.2)), "traitSpeciationJump")
+  expect_error(smallPar(traitEvolution = -0.1), "traitEvolution")
+  expect_error(smallPar(traitEvolution = c(0.1, NA, 0.1)), "traitEvolution")
+  expect_error(smallPar(traitPull = 1.1), "traitPull")
+  expect_error(smallPar(traitPull = c(0.1, 0.2)), "traitPull")
   expect_error(smallPar(redQueen = -1), "redQueen")
   expect_error(smallPar(prunePhylogeny = NA), "prunePhylogeny")
 })
@@ -80,13 +84,19 @@ test_that("density dependence options and fitnessActsOn stages are checked (#144
   expect_message(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 1e-4), "far below")
   expect_message(smallPar(positiveDD = 0.5, positiveDDKernel = "gaussian", positiveDDWidth = 1e-4), "positiveDDWidth")
   expect_silent(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 0.001))
+  # the threshold follows the random change of the competition trait at birth (#220)
+  expect_message(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 0.001,
+                          traitEvolution = c(0, 0.1, 0)), "about 0.096")
+  expect_silent(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 1e-4, traitEvolution = 0))
+  expect_silent(smallPar(negativeDD = 0.5, negativeDDKernel = "gaussian", negativeDDWidth = 1e-4, traitPull = 0))
   expect_error(smallPar(fitnessActsOn = "recruitment", redQueen = 0.5), "no effect")
   expect_error(smallPar(fitnessActsOn = character(0)), "fitnessActsOn")
   expect_silent(smallPar(fitnessActsOn = c("mortality", "recruitment"), negativeDD = 0.5, environment = 0.5))
   expect_silent(smallPar(fitnessActsOn = "recruitment", dispersal = "global", negativeDD = 0.5))
   # parameter lists from earlier versions get the default options
   p <- smallPar()
-  p$negativeDDKernel <- p$negativeDDWidth <- p$negativeDDResponse <- p$positiveDD <- p$speciationTraitJump <- NULL
+  p$negativeDDKernel <- p$negativeDDWidth <- p$negativeDDResponse <- p$positiveDD <- p$traitSpeciationJump <-
+    p$traitEvolution <- p$traitPull <- NULL
   p$density <- p$negativeDD; p$negativeDD <- NULL
   expect_equal(EcoPhyloSim:::checkPar(p)[names(smallPar())], smallPar())
   expect_null(EcoPhyloSim:::checkPar(p)$density)
@@ -153,7 +163,9 @@ test_that("callModel() stops on invalid input (#13)", {
   expect_error(call(positiveKernel = 0), "positiveKernel")
   expect_error(call(densityTable = 0.5), "densityTable")
   expect_error(call(densityTable = c(0, 2)), "densityTable")
-  expect_error(call(speciationTraitJump = 0.5), "speciationTraitJump")
-  expect_error(call(speciationTraitJump = c(0, 0, -0.1)), "speciationTraitJump")
+  expect_error(call(traitSpeciationJump = 0.5), "traitSpeciationJump")
+  expect_error(call(traitSpeciationJump = c(0, 0, -0.1)), "traitSpeciationJump")
+  expect_error(call(traitEvolution = c(0, 0, 1.5)), "traitEvolution")
+  expect_error(call(traitPull = 0.2), "traitPull")
   expect_error(call(recruit = TRUE, mort = FALSE, densityKernel = 3, densityTable = c(1, 0.5, 0.3, 0.2, 0)), NA)
 })
