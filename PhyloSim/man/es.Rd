@@ -7,22 +7,27 @@
 es(specRate, dimensions)
 }
 \arguments{
-\item{specRate}{The speciation rate in speciations per generation}
+\item{specRate}{the speciation rate in speciations per generation}
 
-\item{dimensions}{The length of the grid edge}
+\item{dimensions}{the length of the grid edge of a square grid, or the grid dimensions \code{c(x, y)}}
 }
 \value{
 A float value for the expected species richness
 }
 \description{
-Calculate the expected species richness in the equilibrium state as calculated by Hubbell (2001).
+Calculates the expected species richness of the neutral model with global dispersal in equilibrium, from the Ewens sampling formula.
 }
 \details{
-This function is only valid for neutral models!
+The function is only valid for neutral models with global dispersal. With \eqn{J} cells and \code{specRate} new species per generation of \eqn{J} death-birth events, the speciation probability per birth is \eqn{\nu = specRate / J}{nu = specRate / J}. For this Moran model, the expected number of species is \deqn{E(S) = \sum_{i=0}^{J-1} \frac{\theta}{\theta + i}, \quad \theta = \frac{(J - 1) \nu}{1 - \nu} = \frac{specRate (J - 1)}{J - specRate}}{E(S) = sum_{i = 0}^{J - 1} theta / (theta + i), theta = (J - 1) nu / (1 - nu) = specRate (J - 1) / (J - specRate)} (Vallade and Houchmandzadeh 2003, eqns 6 and 7). \eqn{\theta}{theta} is about \code{specRate}, half of the fundamental biodiversity number \eqn{2 J \nu}{2 J nu} of Hubbell (2001).
+
+Simulations with \code{\link{runSimulation}} have 7 to 15\% (0.5 to 2.3 species) more species than this expectation for \code{specRate} = 1 to 4 on 10 x 10 to 30 x 30 cells, probably because the model adds the new species at the end of each generation, right before the species are recorded.
 }
 \examples{
 es(2, 100)
+es(2, c(50, 200)) # grid of 50 x 200 cells
 }
 \references{
-Hubbell, Stephen P. The unified neutral theory of biodiversity and biogeography (MPB-32). Vol. 32. Princeton University Press, 2001.
+Hubbell, S. P. (2001) The unified neutral theory of biodiversity and biogeography. Princeton University Press.
+
+Vallade, M. and Houchmandzadeh, B. (2003) Analytical solution of a neutral model of biodiversity. Physical Review E 68, 061902. \doi{10.1103/PhysRevE.68.061902}
 }

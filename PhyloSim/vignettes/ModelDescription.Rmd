@@ -1198,7 +1198,7 @@ $$E(S) = \sum_{i=0}^{J-1} \frac{\theta}{\theta + i}, \qquad
 \theta = \frac{(J-1)\,\nu}{1-\nu} \approx \texttt{specRate}.$$
 For large $J$ and small $\nu$, this $\theta$ is about half of the fundamental
 biodiversity number $2J\nu$ used in other formulations of neutral theory
-[@hubbell2001; @vallade2003]; `es()` uses $2J\nu$ (see Known limitations). The
+[@hubbell2001; @vallade2003]; `es()` calculates $E(S)$ with this $\theta$. The
 same theory predicts that two random individuals belong to the same species
 with probability $1/(1+\theta)$. With global dispersal, space plays no role, so
 this is also the expected share of conspecific neighbors. The theory also gives
@@ -1214,7 +1214,7 @@ the slowdown of branching towards the present (negative gamma statistic) that
 is typical of empirical trees [@davies2011; @manceau2015; @phillimore2008].
 :::
 
-```{r neutral, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = paste0("Neutral model with global dispersal against the speciation rate, for three grid sizes, at the end of runs of ", fmt(gens[["neutral"]]), " generations (mean and 95% confidence interval of ", reps, " replicate runs). Left: species richness; dashed: Ewens sampling formula, dotted: es(). Right: share of conspecific neighbors; dashed: 1/(1 + θ).")}
+```{r neutral, echo = FALSE, fig.width = 7, fig.height = 3.5, fig.cap = paste0("Neutral model with global dispersal against the speciation rate, for three grid sizes, at the end of runs of ", fmt(gens[["neutral"]]), " generations (mean and 95% confidence interval of ", reps, " replicate runs). Left: species richness; dashed: Ewens sampling formula (es()). Right: share of conspecific neighbors; dashed: 1/(1 + θ).")}
 op <- style(mfrow = c(1, 2))
 f <- final(main, "neutral", "richness")
 g <- final(main, "neutral", "conspecificNeighbors")
@@ -1228,8 +1228,7 @@ for (k in seq_along(sizes)) {
   s <- f[f$x == sizes[k], ]
   points(s$specRate, s$mean, col = sc[k], pch = 16)
   ciBars(s$specRate, s$mean, s$ci, sc[k])
-  lines(sr, sapply(sr, function(r) ewens(theta(r, sizes[k]^2), sizes[k]^2)), col = sc[k], lty = 2)
-  lines(sr, sapply(sr, es, dimensions = sizes[k]), col = sc[k], lty = 3)
+  lines(sr, sapply(sr, es, dimensions = sizes[k]), col = sc[k], lty = 2)
 }
 legend("topleft", legend = paste(sizes, "x", sizes), col = sc,
        pch = 16, bty = "n")
@@ -1266,10 +1265,8 @@ in most settings, by up to about 15%, but within the 95% confidence interval in
 more than half of them (e.g.
 `r val("neutral", "richness", x = 50, specRate = 8, digits = 3)` instead of
 `r round(ewens(theta(8, 2500), 2500), 1)` for 50 × 50 cells and `specRate = 8`),
-possibly because of the batch speciation described above
-([#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)). `es()`
-gives 40–80% more species than the simulations, as expected from its definition
-of $\theta$. As predicted, the Colless index is
+likely because of the batch speciation described above
+([#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)). As predicted, the Colless index is
 positive in all settings. The gamma statistic is positive and increases with the
 speciation rate, i.e. the trees show more recent than early branching.
 :::
@@ -1466,10 +1463,6 @@ discussed in the issues of the package repository:
   speciation (e.g. `traitSpeciationJump = c(0, 0.3, 0)`) makes the absolute
   kernel act within a few hundred generations
   ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
-- `es()` calculates the expected number of species of the neutral model with
-  $\theta = 2 \cdot$ `specRate`, about twice the value that fits the model
-  (see Neutral model and speciation rate;
-  [#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)).
 :::
 
 # Community patterns

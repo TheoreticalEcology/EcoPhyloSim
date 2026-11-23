@@ -68,7 +68,7 @@ test_that("NeutralMod richness matches the Ewens sampling formula", {
   J <- 6
   theta <- specRate * (J - 1) / (J - specRate)
   i <- 0:(J - 1)
-  expected <- sum(theta / (theta + i))
+  expected <- es(specRate, c(3, 2))
   se <- sqrt(sum(theta * i / (theta + i)^2) / 500)
   richness <- sapply(1:500, function(s) specRich(NeutralMod(x = 3, y = 2, runs = 60,
                                     specRate = specRate, seed = s, verbose = FALSE)))
