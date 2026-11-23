@@ -26,7 +26,7 @@ base <- list(x = 50, y = NA, dispersal = "1", specRate = 2, density = 0, density
              environment = 0, nicheWidth = 0.03659906, fitnessActsOn = "mortality",
              fitnessBaseMortalityRatio = 10, fission = 0, protracted = 0, redQueen = 0,
              redQueenStrength = 0, negativeDDKernel = "absolute", positiveDD = 0,
-             positiveDDCut = 1, speciationTraitJump = 0)
+             positiveDDCut = 1, traitSpeciationJump = 0, traitEvolution = 0.01, traitPull = 0.2)
 
 grid <- function(...) expand.grid(..., stringsAsFactors = FALSE)
 design <- list(

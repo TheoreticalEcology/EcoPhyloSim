@@ -2,15 +2,17 @@
 # createCompletePar() and runSimulation(), so that lists changed by hand are
 # also checked before they reach the C++ code (#118).
 checkPar <- function(par) {
-  # parameter lists created before negative and positive density dependence were separated
-  for (old in c("density", "densityCut")) {
-    new <- sub("density", "negativeDD", old)
+  # parameter lists created before negative and positive density dependence were separated, or before #220
+  renamed <- c(density = "negativeDD", densityCut = "negativeDDCut", speciationTraitJump = "traitSpeciationJump")
+  for (old in names(renamed)) {
+    new <- renamed[[old]]
     if (is.null(par[[new]])) par[[new]] <- par[[old]]
     else if (!is.null(par[[old]])) warning("'", old, "' is ignored, as '", new, "' is also given.", call. = FALSE)
     par[[old]] <- NULL
   }
   defaults <- formals(createCompletePar)[c("negativeDDKernel", "negativeDDWidth", "negativeDDResponse", "positiveDD",
-                                           "positiveDDCut", "positiveDDKernel", "positiveDDWidth", "speciationTraitJump")]
+                                           "positiveDDCut", "positiveDDKernel", "positiveDDWidth", "traitSpeciationJump",
+                                           "traitEvolution", "traitPull")]
   for (n in names(defaults)) if (is.null(par[[n]])) par[[n]] <- defaults[[n]]
   coll <- checkmate::makeAssertCollection()
   checkmate::assert_count(par[["x"]], positive = TRUE, .var.name = "x", add = coll)
@@ -46,9 +48,11 @@ checkPar <- function(par) {
   checkmate::assert_int(par[["seed"]], .var.name = "seed", add = coll)
   checkmate::assert_choice(par[["fission"]], 0:2, .var.name = "fission", add = coll)
   checkmate::assert_count(par[["protracted"]], .var.name = "protracted", add = coll)
-  if (!checkmate::test_numeric(par[["speciationTraitJump"]], lower = 0, upper = 1, any.missing = FALSE) ||
-      !length(par[["speciationTraitJump"]]) %in% c(1, 3)) {
-    coll$push("Variable 'speciationTraitJump': Must be 1 or 3 values between 0 and 1.")
+  for (n in c("traitSpeciationJump", "traitEvolution", "traitPull")) {
+    if (!checkmate::test_numeric(par[[n]], lower = 0, upper = 1, any.missing = FALSE) ||
+        !length(par[[n]]) %in% c(1, 3) || !is.null(names(par[[n]]))) { # names would be ignored (order counts)
+      coll$push(paste0("Variable '", n, "': Must be 1 or 3 unnamed values between 0 and 1."))
+    }
   }
   checkmate::assert_number(par[["redQueen"]], lower = 0, finite = TRUE, .var.name = "redQueen", add = coll)
   checkmate::assert_number(par[["redQueenStrength"]], lower = 0, finite = TRUE,
@@ -123,8 +127,13 @@ checkPar <- function(par) {
     if (par[[dd]] > 0 && par[[paste0(dd, "Kernel")]] == "gaussian") {
       if (width > 1) message(dd, "Width = ", width, " is larger than the range of the competition trait [0, 1], ",
                              "so all neighbors count as similar.")
-      if (width < 0.001) message(dd, "Width = ", width, " is far below the trait differences within species ",
-                                 "(about 0.01), so almost no neighbor counts as similar.")
+      # approximate standard deviation of the competition trait within species (#220)
+      w <- rep_len(par[["traitEvolution"]], 3)[2]
+      a <- rep_len(par[["traitPull"]], 3)[2]
+      # no message without pull (no stable spread); at most the SD of a uniform trait in [0, 1]
+      sdWithin <- if (a > 0) min(w / sqrt(3 * a * (2 - a)), 1 / sqrt(12)) else 0
+      if (width < sdWithin / 10) message(dd, "Width = ", width, " is far below the trait differences within species ",
+                                         "(about ", signif(sdWithin, 2), "), so almost no neighbor counts as similar.")
     }
   }
   same <- function(s) par[[paste0("negativeDD", s)]] == par[[paste0("positiveDD", s)]]

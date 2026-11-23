@@ -76,8 +76,11 @@ public:
     // the individual is incipient; events count from 1), and the number of fission events so far
     std::vector<unsigned long long> m_fissionTag;
     unsigned long long m_fissionEvents = 0;
-    // half-widths of the trait jump at speciation (environment, competition, neutral), set by callModel()
+    // trait parameters (environment, competition, neutral), set by callModel(): half-widths of the trait jump at
+    // speciation, half-widths of the random trait change at birth and weights of the pull to the species mean
     double m_specJump[3] = {0, 0, 0};
+    double m_traitEvolution[3] = {0.01, 0.01, 0.01};
+    double m_traitPull[3] = {0.2, 0.2, 0.2};
     std::vector<double> airmat;
     std::vector<double> soilmat;
     int m_ddKernel;

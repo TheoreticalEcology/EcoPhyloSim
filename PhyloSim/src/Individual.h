@@ -79,7 +79,7 @@ public:
 
     void reportBirth(); // should make this private later, but at the moment used in init
 
-    void evolve();
+    void evolve(const double change[3], const double pull[3]);
 
     void evolveDuringSpeciation(const double jump[3]);
 

@@ -64,14 +64,29 @@ test_that("every fission event creates a new species, also for narrow species an
 test_that("trait jumps at speciation act per trait, are shared under fission and stay between 0 and 1 (#114)", {
   run <- function(...) quietSimulation(x = 20, y = 20, runs = 300, specRate = 2, seed = 1, ...)$Output[[1]]
   speciesMeans <- function(out, mat) tapply(c(out[[mat]]), c(out$specMat), mean)
-  out <- run(speciationTraitJump = c(0, 1, 0))
+  out <- run(traitSpeciationJump = c(0, 1, 0))
   for (mat in c("traitMat", "compMat", "neutMat")) expect_true(all(out[[mat]] >= 0 & out[[mat]] <= 1))
   expect_gt(sd(speciesMeans(out, "compMat")), 0.15)
   expect_gt(sd(speciesMeans(out, "compMat")), 5 * sd(speciesMeans(run(), "compMat")))
   expect_lt(sd(speciesMeans(out, "neutMat")), 0.1)
   # with fission, a jump per individual would spread the traits within the newest species
-  out <- run(speciationTraitJump = c(0, 0, 1), fission = 1)
+  out <- run(traitSpeciationJump = c(0, 0, 1), fission = 1)
   withinSd <- tapply(c(out$neutMat), c(out$specMat), function(v) if (length(v) > 1) sd(v) else 0)
   expect_lt(max(withinSd), 0.05)
   expect_gt(sd(speciesMeans(out, "neutMat")), 0.15)
+})
+
+test_that("trait evolution at birth acts per trait and does not change the other random numbers (#220)", {
+  run <- function(...) quietSimulation(x = 20, y = 20, runs = 300, specRate = 2, seed = 1, ...)$Output[[1]]
+  withinSd <- function(out, mat) mean(tapply(c(out[[mat]]), c(out$specMat), function(v) if (length(v) > 1) sd(v) else 0))
+  ref <- run()
+  out <- run(traitEvolution = c(0, 1, 0.05), traitPull = c(0.2, 0, 1))
+  # without random change and jump, the traits stay at their initial value 0.5
+  expect_true(all(out$traitMat == 0.5))
+  for (mat in c("compMat", "neutMat")) expect_true(all(out[[mat]] >= 0 & out[[mat]] <= 1))
+  expect_gt(withinSd(out, "compMat"), 0.1)
+  expect_gt(withinSd(out, "neutMat"), withinSd(ref, "neutMat"))
+  # the random change is drawn also with width 0, and traits do not act in the neutral model
+  expect_identical(out$specMat, ref$specMat)
+  expect_identical(out$phyloTXT, ref$phyloTXT)
 })

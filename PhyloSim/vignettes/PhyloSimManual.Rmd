@@ -254,7 +254,7 @@ plotTraitDistribution(simu, type = "all")
 
 **Reconstructed phylogenies:** `phyloReconstruct()` clusters the species by the
 mean of their neutral trait (hierarchical clustering with `hclust()`). As the
-neutral trait changes only by drift (unless `speciationTraitJump` changes it at
+neutral trait changes only by drift (unless `traitSpeciationJump` changes it at
 speciation), comparing the result with the true phylogeny shows how much
 phylogenetic signal such a trait carries.
 
