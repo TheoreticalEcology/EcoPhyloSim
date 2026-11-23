@@ -48,6 +48,19 @@ test_that("environmental filtering correlates traits with the environment, less 
   expect_true(r0 < r01 && r01 < r)
 })
 
+test_that("every fission event creates a new species, also for narrow species and repeated hits (#208)", {
+  # with global dispersal, the same seed draws the same speciation events for all fission types
+  tips <- function(fission) {
+    out <- quietSimulation(x = 10, y = 10, runs = 100, specRate = 5, fission = fission, seed = 1, prunePhylogeny = FALSE)
+    ape::Ntip(out$Output[[1]]$phylogeny)
+  }
+  expect_equal(tips(2), tips(1))
+  expect_gt(tips(1), tips(0)) # without fission, two events on the same cell create only one species
+  # on a single column, the part west of the mean x coordinate used to be empty
+  out <- quietSimulation(x = 1, y = 50, runs = 500, fission = 2, seed = 1)$Output[[1]]
+  expect_gt(length(unique(c(out$specMat))), 1)
+})
+
 test_that("trait jumps at speciation act per trait, are shared under fission and stay between 0 and 1 (#114)", {
   run <- function(...) quietSimulation(x = 20, y = 20, runs = 300, specRate = 2, seed = 1, ...)$Output[[1]]
   speciesMeans <- function(out, mat) tapply(c(out[[mat]]), c(out$specMat), mean)

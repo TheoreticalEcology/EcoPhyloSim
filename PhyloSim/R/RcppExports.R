@@ -64,7 +64,8 @@
 #'   to \code{negativeDD} in \code{\link{createCompletePar}}.
 #' @param fission Integer, which fission (speciation) type to use: 0 = none (default),
 #'   1 = every second individual of a species becomes part of a new species, 2 = the
-#'   population is geographically split into two parts, one of which becomes a new species.
+#'   species is geographically split into two halves, one of which becomes a new species
+#'   (see \code{\link{createCompletePar}}).
 #' @param redQueen Numeric, strength of the fitness decline of an aging species.
 #' @param redQueenStrength Numeric, strength of the Red Queen effect; values > 0 give a
 #'   newly formed species a fitness boost due to its novelty, which vanishes over time.

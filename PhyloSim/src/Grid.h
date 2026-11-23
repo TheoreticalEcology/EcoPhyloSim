@@ -72,6 +72,10 @@ public:
     double m_redQueen;
     double m_redQueenStrength;
     int m_protracted;
+    // fission: event that marked the individual for speciation (index x * m_Ydimensions + y; valid only while
+    // the individual is incipient; events count from 1), and the number of fission events so far
+    std::vector<unsigned long long> m_fissionTag;
+    unsigned long long m_fissionEvents = 0;
     // half-widths of the trait jump at speciation (environment, competition, neutral), set by callModel()
     double m_specJump[3] = {0, 0, 0};
     std::vector<double> airmat;

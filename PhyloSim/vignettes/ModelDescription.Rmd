@@ -1127,10 +1127,15 @@ All speciation mechanisms implemented in the model are summarized below:
 - **Point speciation:** the default, see above.
 - **Fission type 1:** an individual is drawn at random, so that species are
   chosen in proportion to their abundance; every second individual of its
-  species becomes part of a new species.
-- **Fission type 2:** as type 1, but the species is split geographically at the
-  mean x-coordinate of its individuals. One part becomes a new species, the
-  other part is not affected.
+  species, in grid order, becomes part of a new species.
+- **Fission type 2:** as type 1, but the species is split geographically into
+  two halves along the axis on which it extends farther, measured on the torus;
+  one half becomes a new species, the other is not affected. With both types,
+  halves are rounded up, so that a species with one individual is replaced as a
+  whole. Without protracted speciation, each event creates a new species, also
+  if it hits a species split earlier in the same generation.
+  With protracted speciation, an event on an incipient individual splits only
+  the individuals marked together with it.
 - **Protracted speciation:** based on @rosindell2010, a species undergoes an
   incipient stage before becoming a new species. In the implementation, the
   chosen individual becomes a new species only if it survives `protracted`
@@ -1435,6 +1440,10 @@ discussed in the issues of the package repository:
 - With protracted speciation, the offspring of an incipient individual do not
   inherit the incipient state
   ([#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)).
+- Two speciation events in one generation on the same cell (without fission)
+  or on the same single incipient individual (fission with protracted
+  speciation) create only one species
+  ([#208](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/208)).
 - With the trait kernels (`negativeDDKernel = "absolute"` or `"gaussian"`),
   density dependence develops only after thousands of generations, so short
   runs show little of its effect; the `"species"` kernel acts from the first
