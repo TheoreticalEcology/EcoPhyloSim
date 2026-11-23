@@ -132,6 +132,7 @@ Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool
         m_neighborOffsets[positive] = circleOffsets(cutoff, false);
     }
     m_densityOutdated.assign(m_LandscapeSize, 0);
+    m_fissionTag.assign(m_LandscapeSize, 0);
     // END Grid Geometry calculations
 
     // largest product of the death rates of the mechanisms acting on mortality (Individual::deathProbability)
@@ -693,6 +694,35 @@ void Landscape::speciation(unsigned int generation) {
             jump[t] = m_specJump[t] > 0 ? m_RandomGenerator.randomDouble(-m_specJump[t], m_specJump[t]) : 0.0;
     };
 
+    // fission: the incipient individual at (k, j) and the others marked by the same event form a new species
+    auto fissionSpeciation = [&](int k, int j) {
+        m_Global_Species_Counter += 1;
+        m_Individuals[k][j].m_Species->m_Children.push_back(m_Global_Species_Counter);
+        m_Individuals[k][j].reportDeath(generation);
+
+        unsigned long long tag = m_fissionTag[k * m_Ydimensions + j];
+        m_Individuals[k][j].m_Species = new Species(m_Global_Species_Counter,
+                                                    m_Individuals[k][j].m_Species->get_species_ID(),
+                                                    generation, std::make_pair(k, j), m_SimulationEnd);
+
+        drawJump();
+        m_Individuals[k][j].evolveDuringSpeciation(jump);
+        m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
+        if (needsDensity()) densityUpdate(k, j);
+        m_Individuals[k][j].m_incip_Age = -99999999;
+
+        for (int z = 0; z < m_Xdimensions; z++) {
+            for (int q = 0; q < m_Ydimensions; q++) {
+                if ((m_Individuals[z][q].m_incip_Age == m_protracted) && (m_fissionTag[z * m_Ydimensions + q] == tag)) {
+                    m_Individuals[z][q].reportDeath(generation);
+                    m_Individuals[z][q].m_Species = m_Individuals[k][j].m_Species;
+                    m_Individuals[z][q].evolveDuringSpeciation(jump);
+                    if (needsDensity()) densityUpdate(z, q);
+                    m_Individuals[z][q].m_incip_Age = -99999999;
+                }
+            }
+        }
+    };
 
     for (int i = 0; i < specRate; i++) {
 
@@ -711,36 +741,63 @@ void Landscape::speciation(unsigned int generation) {
             m_Individuals[x][y].m_incip_Age = 0;
         }
 
+        // fixes #208 (lost events): an event splits only the group of the hit individual, i.e. the
+        // individuals of its species marked by the same earlier event (incipient), or the unmarked ones
         if (m_fission != 0) {
-            std::vector<int> xvec;
-            std::vector<int> yvec;
+            auto group = [&](int k, int j) {
+                int age = m_Individuals[k][j].m_incip_Age;
+                return age >= 0 && age <= m_protracted ? m_fissionTag[k * m_Ydimensions + j] : 0ULL;
+            };
+            unsigned long long hitGroup = group(x, y);
+            std::vector<std::pair<int, int> > cells; // in grid order
             for (int k = 0; k < m_Xdimensions; k++) {
                 for (int j = 0; j < m_Ydimensions; j++) {
-                    if (m_Individuals[k][j].m_Species == m_Individuals[x][y].m_Species) {
-                        xvec.push_back(k);
-                        yvec.push_back(j);
+                    if (m_Individuals[k][j].m_Species == m_Individuals[x][y].m_Species && group(k, j) == hitGroup)
+                        cells.push_back(std::make_pair(k, j));
+                }
+            }
+
+            // fission 2: the half with the smaller coordinates along the axis with the larger extent
+            if (m_fission == 2 && cells.size() > 1) {
+                int key[2][2]; // per axis: span of the group and first coordinate after its largest gap
+                for (int axis = 0; axis < 2; axis++) {
+                    int dim = axis ? m_Ydimensions : m_Xdimensions;
+                    std::vector<char> occupied(dim, 0);
+                    for (const auto &c : cells) occupied[axis ? c.second : c.first] = 1;
+                    // largest run of empty coordinates on the torus; ties keep the gap across the edge
+                    int first = 0, last = dim - 1;
+                    while (!occupied[first]) first++;
+                    while (!occupied[last]) last--;
+                    int gap = first + dim - 1 - last, start = first;
+                    for (int v = first, prev = first; v <= last; v++) {
+                        if (!occupied[v]) continue;
+                        if (v - prev - 1 > gap) {
+                            gap = v - prev - 1;
+                            start = v;
+                        }
+                        prev = v;
                     }
+                    key[axis][0] = dim - gap;
+                    key[axis][1] = start;
                 }
+                int axis = key[1][0] > key[0][0];
+                int dim = axis ? m_Ydimensions : m_Xdimensions, start = key[axis][1];
+                auto pos = [&](const std::pair<int, int> &c) { return ((axis ? c.second : c.first) - start + dim) % dim; };
+                std::stable_sort(cells.begin(), cells.end(),
+                                 [&](const std::pair<int, int> &a, const std::pair<int, int> &b) { return pos(a) < pos(b); });
             }
 
-
-            if (m_fission == 1) {
-                for (unsigned int z = 0; z < xvec.size(); z += 2) {
-                    m_Individuals[xvec[z]][yvec[z]].m_incip_Age = 0;
-                }
+            // the first, third, ... individuals (fission 1) or the first half (fission 2) form the new species;
+            // a group of one individual is replaced as a whole
+            m_fissionEvents++;
+            for (unsigned int z = 0; z < cells.size(); z++) {
+                if (m_fission == 1 ? z % 2 : 2 * z >= cells.size()) continue;
+                Individual &ind = m_Individuals[cells[z].first][cells[z].second];
+                if (hitGroup == 0) ind.m_incip_Age = 0; // a split incipient group keeps its age
+                m_fissionTag[cells[z].first * m_Ydimensions + cells[z].second] = m_fissionEvents;
             }
-
-            if (m_fission == 2) {
-                int sum = std::accumulate(xvec.begin(), xvec.end(), 0);
-                int mean = sum / xvec.size();
-                if (sum == 0) mean = -1;
-
-                for (unsigned int z = 0; z < xvec.size(); z++) {
-                    if (xvec[z] < mean) {
-                        m_Individuals[xvec[z]][yvec[z]].m_incip_Age = 0;
-                    }
-                }
-            }
+            // without protracted speciation, the next event already sees the new species
+            if (m_protracted == 0) fissionSpeciation(cells[0].first, cells[0].second);
         }
     } // END  for (int i = 0; i < specRate; i++)
 
@@ -770,37 +827,9 @@ void Landscape::speciation(unsigned int generation) {
     }
 
     if (m_fission != 0) {
-        unsigned long long oldspec;
         for (int k = 0; k < m_Xdimensions; k++) {
             for (int j = 0; j < m_Ydimensions; j++) {
-                if (m_Individuals[k][j].m_incip_Age == m_protracted) {
-                    m_Global_Species_Counter += 1;
-                    m_Individuals[k][j].m_Species->m_Children.push_back(m_Global_Species_Counter);
-                    m_Individuals[k][j].reportDeath(generation);
-
-                    oldspec = m_Individuals[k][j].m_Species->m_ID;
-                    m_Individuals[k][j].m_Species = new Species(m_Global_Species_Counter,
-                                                                m_Individuals[k][j].m_Species->get_species_ID(),
-                                                                generation, std::make_pair(k, j), m_SimulationEnd);
-
-                    drawJump();
-                    m_Individuals[k][j].evolveDuringSpeciation(jump);
-                    m_Phylogeny.updatePhylogeny(m_Individuals[k][j].m_Species);
-                    if (needsDensity()) densityUpdate(k, j);
-                    m_Individuals[k][j].m_incip_Age = -99999999;
-
-                    for (int z = 0; z < m_Xdimensions; z++) {
-                        for (int q = 0; q < m_Ydimensions; q++) {
-                            if ((m_Individuals[z][q].m_incip_Age == m_protracted) && (m_Individuals[z][q].m_Species->m_ID == oldspec)) {
-                                m_Individuals[z][q].reportDeath(generation);
-                                m_Individuals[z][q].m_Species = m_Individuals[k][j].m_Species;
-                                m_Individuals[z][q].evolveDuringSpeciation(jump);
-                                if (needsDensity()) densityUpdate(z, q);
-                                m_Individuals[z][q].m_incip_Age = -99999999;
-                            }
-                        }
-                    }
-                }
+                if (m_Individuals[k][j].m_incip_Age == m_protracted) fissionSpeciation(k, j);
             }
         }
     }
