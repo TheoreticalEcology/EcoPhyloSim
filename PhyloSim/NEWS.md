@@ -5,6 +5,7 @@
 * `createCompletePar()`: new argument `traitSpeciationJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
 * `createCompletePar()`: new arguments `traitEvolution` and `traitPull` (one value or one per trait) set the half-width of the random trait change at each birth and the weight of the pull to the species mean; the defaults 0.01 and 0.2 are the values fixed so far (#220).
 * `es()`: `dimensions` also accepts the grid dimensions `c(x, y)` of a non-square grid (#124).
+* `runSimulation()`: new argument `progress` (default `TRUE`) shows a progress bar with the estimated remaining time in interactive sessions; runs can be interrupted with Esc or Ctrl+C or stopped by a time limit set with `setTimeLimit()`, and the end messages are no longer printed (#221).
 
 ## Changes
 
@@ -16,6 +17,7 @@
 * `getAverageTraits(orderPhylo = FALSE)` returns one row per species instead of repeating species, usually once per grid cell (#200).
 * `plotSpatialPhylo()`, `plotTraitDistribution(type = "all")` and `localPlots(plot = TRUE)` draw the maps with the x-axis of the grid horizontally and in the aspect ratio of the grid; before, x and y were swapped and the maps were stretched to a square or to the plot panel (#211).
 * `plotSpatialPhylo(plotTraits = FALSE)` shows the panel titles, which were drawn above the top edge of the plot (#217).
+* Vignettes: figure captions with double quotes no longer show the figure as raw `<img>` text in the built vignettes (#222).
 * `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` work with a single parameter or a single summary statistic instead of stopping with an error (#201).
 * `runSimulation()` with `fission = 1` or `2`: without protracted speciation, each speciation event creates a new species. Before, two events on the same species in one generation created only one, and with `fission = 2`, events on species within one or two adjacent columns created none. `fission = 2` now splits a species by rank along the axis on which it extends farther, measured on the torus, instead of at its mean x coordinate. With `protracted > 0`, a new event no longer restarts the incipient stage of individuals marked by an earlier event. Results with fission change (#208).
 

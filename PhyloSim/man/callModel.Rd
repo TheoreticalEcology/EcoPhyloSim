@@ -12,7 +12,7 @@ callModel(x, y, dispersal, runs, specRate, dens, env, neutral, mort,
   positiveStrength = 0, positiveCutoff = 1L, positiveKernel = 3L,
   positiveWidth = 0.1, traitSpeciationJump = as.numeric(c(0, 0, 0)),
   traitEvolution = as.numeric(c(0.01, 0.01, 0.01)),
-  traitPull = as.numeric(c(0.2, 0.2, 0.2)))
+  traitPull = as.numeric(c(0.2, 0.2, 0.2)), progress = FALSE)
 }
 \arguments{
 \item{x}{Integer, dimension of the model landscape in x-direction.}
@@ -145,6 +145,9 @@ the linear term \code{1 - compStrength * S}. It is \code{negativeDDResponse} of
 neutral trait) with values between 0 and 1: half-widths of the uniform trait jump of a new species (0 = no
 jump), half-widths of the uniform trait change at birth and weights of the pull to the species mean at birth.
 They correspond to the arguments of the same names in \code{\link{createCompletePar}}.}
+
+\item{progress}{Logical, whether a progress bar with the estimated remaining time is printed.
+In either case, the run can be interrupted (e.g. with Esc or Ctrl+C) or stopped by a time limit.}
 }
 \value{
 A list with one element per entry in \code{runs}, each containing the raw

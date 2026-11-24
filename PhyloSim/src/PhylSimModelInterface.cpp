@@ -130,6 +130,8 @@ using namespace Rcpp;
 //'   neutral trait) with values between 0 and 1: half-widths of the uniform trait jump of a new species (0 = no
 //'   jump), half-widths of the uniform trait change at birth and weights of the pull to the species mean at birth.
 //'   They correspond to the arguments of the same names in \code{\link{createCompletePar}}.
+//' @param progress Logical, whether a progress bar with the estimated remaining time is printed.
+//'   In either case, the run can be interrupted (e.g. with Esc or Ctrl+C) or stopped by a time limit.
 //'
 //' @return A list with one element per entry in \code{runs}, each containing the raw
 //'   simulation output for that generation: \code{Species} (species identity per grid
@@ -150,7 +152,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
                int positiveCutoff = 1, int positiveKernel = 3, double positiveWidth = 0.1,
                NumericVector traitSpeciationJump = NumericVector::create(0, 0, 0),
                NumericVector traitEvolution = NumericVector::create(0.01, 0.01, 0.01),
-               NumericVector traitPull = NumericVector::create(0.2, 0.2, 0.2)) {
+               NumericVector traitPull = NumericVector::create(0.2, 0.2, 0.2), bool progress = false) {
 #ifdef DEBUG
     std::ofstream debugFile;
     debugFile.open("debug.txt");
@@ -251,6 +253,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
         landscape->m_traitEvolution[t] = traitEvolution[t];
         landscape->m_traitPull[t] = traitPull[t];
     }
+    phylSimModel.m_Progress = progress;
 
 
     for (int step = 0; step < nRuns; step++) {
@@ -337,7 +340,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
 
         outList.push_back(listResults);
     }
-
+    phylSimModel.finishProgress();
 
     return outList;
 }

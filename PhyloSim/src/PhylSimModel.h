@@ -11,6 +11,7 @@
 #include "debug.h"
 
 #include "Grid.h"
+#include <chrono>
 
 class PhylSimModel {
 public:
@@ -32,8 +33,17 @@ public:
 
     void update(unsigned int runs);
 
+    // progress bar and user interrupts during update() (#221); they draw no random numbers
+    bool m_Progress = false;
+    void finishProgress();
 
 private:
+    int m_SimulationEnd;
+    unsigned int m_CheckEvery; // generations between clock reads, about 10^4 cell updates
+    std::chrono::steady_clock::time_point m_Start, m_NextInterrupt, m_NextPrint;
+    size_t m_LineLength = 0; // length of the last progress line, 0 = none printed
+    void checkProgress(int generation);
+    void printProgress(int generation, double elapsed);
 };
 
 
