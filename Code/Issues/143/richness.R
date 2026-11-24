@@ -4,7 +4,7 @@
 # and 2. Compared with the Ewens expectation for theta = specRate * exp(-p),
 # i.e. if only the founding individual can complete speciation.
 # Results: see README.md. Run with R 4.6.2 and EcoPhyloSim at commit 619b469
-# (before) and on branch i143-protractedInheritance (after); the library
+# (before) and at commit 7d72cdf (after); the library
 # with the installed version is the first command line argument, e.g.
 # Rscript richness.R <library>. Single thread, about 10 minutes.
 lib <- commandArgs(TRUE)[1]

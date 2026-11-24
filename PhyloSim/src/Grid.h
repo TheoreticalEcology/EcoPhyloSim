@@ -73,7 +73,7 @@ public:
     double m_redQueen;
     double m_redQueenStrength;
     int m_protracted;
-    // incipient lineages by tag (#143): the lineage they are nested in (0 if none) and the generation in which
+    // incipient lineages by tag: the lineage they are nested in (0 if none) and the generation in which
     // their speciation started; individuals carry the tag of their innermost lineage (Individual::m_incipTag)
     struct Incipient {
         unsigned long long parent;

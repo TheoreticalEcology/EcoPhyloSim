@@ -1159,8 +1159,8 @@ All speciation mechanisms implemented in the model are summarized below:
   nested in its own, which becomes a species of its own later. In the
   phylogeny, a new species splits off when its speciation starts, as in the
   protracted birth-death model [@etienne2012]; the age $a$ of the Red Queen
-  advantage counts from the completion of speciation. `specRate` is then the
-  expected number of incipient lineages started per generation.
+  advantage counts from the completion of speciation. `specRate` then counts
+  speciation events, which start incipient lineages, not completed species.
 - **Red Queen:** based on @odwyer2014, new species have advantages over old
   species due to their novelty alone, and the effect vanishes over time. The
   fitness is multiplied by $1 + s \exp(-q\,a)$, where $s$ = `redQueenStrength`,
@@ -1394,9 +1394,9 @@ indicators lie on the same curve against richness as those of point
 speciation. Deviations show effects of the mechanism itself: more even
 abundances and older species with fission, whose new species start with many
 individuals, and younger species with the Red Queen advantage. Protracted
-speciation, which in this implementation only lowers the effective speciation
-rate (see Protracted speciation and Red Queen), should lie on the curve of
-point speciation.
+speciation should lie near the curves of point speciation, except for the
+gamma statistic: no split falls within the last `protracted` generations, so
+it should be lower [@etienne2012].
 :::
 
 ```{r mechanisms, echo = FALSE, fig.width = 7, fig.height = 5, fig.cap = paste0("Speciation mechanisms at dispersal 1: species richness against specRate (first panel), and other indicators against richness (means of ", reps, " replicate runs at generation ", fmt(gens[["speciationRate"]]), ", fewer for tree statistics in some settings, see Simulation design; specRate from 0.5 to 8, 50 × 50 cells).")}
@@ -1443,8 +1443,10 @@ par(op)
 ```
 
 ::: {.result}
-**Result.** As expected, protracted speciation lies on the curves of point
-speciation. Fission and the Red Queen do not: at the same richness, both give
+**Result.** The runs for protracted speciation were made with release 0.3.2,
+before [#143](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/143)
+(see Protracted speciation and Red Queen); they lie on the curves of point
+speciation and are replaced at the next release. Fission and the Red Queen do not: at the same richness, both give
 higher Shannon diversity, i.e. more even abundances, more balanced trees
 (lower Colless index) and a lower gamma statistic than point speciation. They
 differ in spatial structure: at the same richness, fission gives fewer

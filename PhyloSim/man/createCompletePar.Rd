@@ -50,7 +50,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{redQueenStrength}{Numeric, determining the strength of the Red Queen effect. A value > 0 means a new species gets a fitness boost due to its novelty. Must not be negative.}
 
-\item{protracted}{Integer >= 0. With \code{protracted > 0}, each speciation event starts an incipient lineage, the chosen individual and its offspring, which becomes a new species \code{protracted} generations later if any of its members is still alive; an event on an incipient individual starts a lineage nested in its own. In the phylogeny, the new species splits off when its speciation starts. Default is 0.}
+\item{protracted}{Integer >= 0. With \code{protracted > 0}, each speciation event starts an incipient lineage, the chosen individual and its offspring, which becomes a new species \code{protracted} generations later if any of its members is still alive; an event on an incipient individual starts a lineage nested in its own (without fission, see \code{fission}). \code{specRate} then counts speciation events, which start incipient lineages, not completed species. In the phylogeny, the new species splits off when its speciation starts. Default is 0.}
 
 \item{airmat}{matrix determining the environment of the simulation, with \code{y} rows and \code{x} columns (the grid dimensions); values must be between 0 and 1. A single value (the default) gives an environmental gradient along \code{x} that rises from 0 to 1 and falls back (1 - |2i/x - 1| in column i = 0, ..., x - 1, so the maximum is below 1 if x is odd).}
 

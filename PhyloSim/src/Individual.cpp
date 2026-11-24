@@ -77,7 +77,7 @@ void Individual::operator=(const Individual &ind) {
     this->m_Y_coordinate = -999;
     this->m_LocalDensity = ind.m_LocalDensity;
     this->m_Age = 0;
-    this->m_incipTag = ind.m_incipTag; // fixes #143 (offspring inherit the incipient state)
+    this->m_incipTag = ind.m_incipTag;
 
     this->m_nicheWidth = ind.m_nicheWidth;
 

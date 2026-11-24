@@ -724,7 +724,8 @@ void Landscape::speciation(unsigned int generation) {
         if (founder.m_incipTag == lineage) founder.m_incipTag = 0;
 
         // the other members of the lineage, including those of lineages nested in it, which keep their own tag;
-        // without protracted speciation and fission, the founder is the only member
+        // without protracted speciation and fission, the founder is the only member. The founder is handled
+        // first, so that species trait values and results with protracted = 0 stay the same
         if (m_protracted > 0 || m_fission != 0) {
             for (int z = 0; z < m_Xdimensions; z++) {
                 for (int q = 0; q < m_Ydimensions; q++) {
@@ -826,10 +827,11 @@ void Landscape::speciation(unsigned int generation) {
             }
         }
     }
-    // lineages that died out before completing speciation
-    for (auto it = m_incipient.begin(); it != m_incipient.end() &&
-                                        generation - it->second.start >= (unsigned int) m_protracted;)
-        it = m_incipient.erase(it);
+    // lineages that died out before completing speciation (after a fission split, tags are not ordered by start)
+    for (auto it = m_incipient.begin(); it != m_incipient.end();) {
+        if (generation - it->second.start >= (unsigned int) m_protracted) it = m_incipient.erase(it);
+        else ++it;
+    }
 }
         
 
