@@ -226,7 +226,7 @@ aggregation (local dispersal) makes small subplots poor in species, so the
 curve is flat at small areas and steep at large areas; with global dispersal, subplots are close to random samples of the
 whole grid and the curve flattens early.
 
-```{r sac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Species–area curve of the same simulation (sac()): mean number of species in randomly placed square subplots against their area in cells (both axes logarithmic); grey band and dashed lines: 5% and 95% quantiles across subplots. Its shape depends on dispersal and spatial aggregation (see the vignette \"EcoPhyloSim model\")."}
+```{r sac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Species–area curve of the same simulation (sac()): mean number of species in randomly placed square subplots against their area in cells (both axes logarithmic); grey band and dashed lines: 5% and 95% quantiles across subplots. Its shape depends on dispersal and spatial aggregation (see the vignette 'EcoPhyloSim model')."}
 sac(simu, title = "")
 ```
 
@@ -236,7 +236,7 @@ species dominate, a flat one that abundances are even; the length of the curve
 is the number of species. Density dependence is expected to flatten the curve,
 as it favors rare species.
 
-```{r rac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Rank–abundance curve of the same simulation (rac()): number of individuals of each species in the whole grid against its rank (most abundant species = rank 1). The vignette \"EcoPhyloSim model\" compares such curves with the expectation of neutral theory."}
+```{r rac, results = 'hide', fig.width = 4.5, fig.height = 4.5, fig.cap = "Rank–abundance curve of the same simulation (rac()): number of individuals of each species in the whole grid against its rank (most abundant species = rank 1). The vignette 'EcoPhyloSim model' compares such curves with the expectation of neutral theory."}
 rac(simu, title = "")
 ```
 
@@ -388,7 +388,7 @@ The result can be visualized with `plotPhylogeneticDispersion()`. The figure
 uses example results stored in the package (`pPD.pvalues`, `pPD.positions`);
 they illustrate the plot only.
 
-```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "plotPhylogeneticDispersion() for the example data pPD.pvalues: one simulation of 50,000 generations on 50 × 50 cells for each of four dispersal settings (rows: global or dispersal distance) and seven combinations of environmental filtering and density dependence (columns; upper labels: strength of environment, lower labels: strength of negativeDD): neither, a gradient from filtering only to density dependence only, and both; analysed with the null model \"PhylMeta\" (200 subplots per size). In each square, the line shows the median p-value against the subplot size (2 to 10 cells per side), the band the interquartile range; the color shows the mean over subplot sizes of the median p-values, from clustered (turquoise) through neutral (white) to overdispersed (pink)."}
+```{r plotphyldis, fig.width = 6, fig.height = 5, fig.cap = "plotPhylogeneticDispersion() for the example data pPD.pvalues: one simulation of 50,000 generations on 50 × 50 cells for each of four dispersal settings (rows: global or dispersal distance) and seven combinations of environmental filtering and density dependence (columns; upper labels: strength of environment, lower labels: strength of negativeDD): neither, a gradient from filtering only to density dependence only, and both; analysed with the null model 'PhylMeta' (200 subplots per size). In each square, the line shows the median p-value against the subplot size (2 to 10 cells per side), the band the interquartile range; the color shows the mean over subplot sizes of the median p-values, from clustered (turquoise) through neutral (white) to overdispersed (pink)."}
 data("pPD.pvalues")
 data("pPD.positions")
 
