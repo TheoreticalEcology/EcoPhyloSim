@@ -9,7 +9,8 @@ test_that("richness of the neutral model matches es()", {
   expected <- es(2, 20)
   se <- sd(richness) / sqrt(length(richness))
   # 7 to 15% more species than es(), probably because the species are recorded right after the new
-  # species of a generation are added (Code/Issues/124); es() with theta = 2 * specRate gave 70% more
+  # species of a generation are added (Code/Issues/124); es() with theta = 2 * specRate gave 50%
+  # more species than the simulations
   expect_gt(mean(richness), expected - 4 * se)
   expect_lt(mean(richness), 1.2 * expected)
 })

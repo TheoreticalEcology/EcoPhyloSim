@@ -6,7 +6,7 @@
 #    the end of runs of 5 * J generations, 100 seeds per setting).
 # Run from the repository root: Rscript Code/Issues/124/esTheta.R (about 5 minutes, 1 thread).
 # Results are written to Code/Issues/124/esTheta.csv; see README.md for the numbers and decisions.
-# EcoPhyloSim 0.3.2.9000 (branch i124-esTheta), R 4.6.2; seeds 1 to 100.
+# EcoPhyloSim 0.3.2.9000 (commit 71e9afe), R 4.6.2; seeds 1 to 100.
 
 devtools::load_all("PhyloSim", quiet = TRUE)
 

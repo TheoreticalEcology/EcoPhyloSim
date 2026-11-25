@@ -4,7 +4,7 @@
 
 ## Theta
 
-In `runSimulation()` with global dispersal, one generation has J = x · y death–birth events, and the parent is a random cell other than the dead one (#81). With `specRate` new species per generation, the speciation probability per birth is ν = `specRate` / J. Apart from the timing of speciation (see Simulations), this is the metacommunity model of Vallade & Houchmandzadeh (2003, Phys. Rev. E 68, 061902, doi:10.1103/PhysRevE.68.061902): their eqns 2 and 3 draw the parent from the J − 1 other individuals, eqn 6 gives θ = (J − 1) ν / (1 − ν) = `specRate` (J − 1) / (J − `specRate`), and eqn 7 gives E(S) = Σ θ / (θ + i), i = 0, …, J − 1. The paper notes that this θ equals Hubbell's fundamental biodiversity number (2 J ν) within a factor of 2 for large J and small ν. `es()` used θ = 2 · `specRate`; for 30 × 30 cells, it gave 1.72 to 1.74 times the expected richness (`specRate` = 1, 2, 4).
+In `runSimulation()` with global dispersal, one generation has J = x · y death–birth events, and the parent is a random cell other than the dead one (#81). `Landscape::speciation()` turns on average `specRate` random individuals into new species at the end of each generation. In the Moran model of Vallade & Houchmandzadeh (2003, Phys. Rev. E 68, 061902, doi:10.1103/PhysRevE.68.061902), instead, each offspring founds a new species with probability ν, here ν = `specRate` / J: their eqns 2 and 3 draw the parent from the J − 1 other individuals, eqn 6 gives θ = (J − 1) ν / (1 − ν) = `specRate` (J − 1) / (J − `specRate`), and eqn 7 gives E(S) = Σ θ / (θ + i), i = 0, …, J − 1. The paper notes that this θ equals Hubbell's fundamental biodiversity number (2 J ν) within a factor of 2 for large J and small ν. For the speciation of `runSimulation()`, apart from its timing, the same coalescent argument gives θ = `specRate` (J − 1) / J, i.e. up to 2.7% fewer species than `es()` in the simulated settings (10 × 10 cells, `specRate` = 4). `es()` used θ = 2 · `specRate`; for 30 × 30 cells, it gave 1.72 to 1.74 times the expected richness (`specRate` = 1, 2, 4).
 
 ## Simulations
 
@@ -26,7 +26,7 @@ The simulations have 7 to 15% (0.5 to 2.3 species) more species than `es()`. The
 
 ## Decisions
 
-- `es()` uses the exact θ of the Moran model rather than θ = `specRate`; the expected richness differs by at most 2.1% (10 × 10 cells, `specRate` = 4) between the two in the simulated settings, and the exact θ also holds for small grids such as the 3 × 2 grid of the `NeutralMod()` test.
+- `es()` uses the exact θ of the Moran model, the model of the theory and of `NeutralMod()`, rather than θ = `specRate` or the θ of `runSimulation()` above; its expected richness differs from that with θ = `specRate` by at most 2.1% (10 × 10 cells, `specRate` = 4) in the simulated settings, and the exact θ also holds for small grids such as the 3 × 2 grid of the `NeutralMod()` test.
 - `dimensions` accepts `c(x, y)`, because the model allows non-square grids; one number still means a square grid.
 - `test-neutralTheory.R` accepts simulated richness from `es()` − 4 SE to 1.2 · `es()` (seeds 1 to 20 give 12.45, i.e. 1.11 · `es()`), i.e., it allows the offset of the end-of-generation speciation, but fails for the old θ (lower bound 15.9).
 - The end-of-generation speciation in the C++ model is not changed here: speciating at single births would change the results of all simulations.

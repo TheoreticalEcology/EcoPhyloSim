@@ -1187,13 +1187,13 @@ dispersal.
 ::: {.expectation}
 **Expectation.** With global dispersal and no fitness differences, the model
 is a zero-sum Moran model: in each generation, $J = x \cdot y$ individuals die
-and are replaced by offspring of random individuals, and on average `specRate`
-of the replacements found a new species, so the speciation probability per
-replacement is $\nu = \texttt{specRate}/J$. (In `runSimulation()`, the new
-species arise at the end of each generation rather than at single
-replacements, so the model is close to, but not exactly, a Moran model.) The
-equilibrium of the Moran model is known exactly [@vallade2003]. The number of
-species follows the Ewens sampling formula [@ewens1972],
+and are replaced by offspring of random individuals, each of which founds a
+new species with probability $\nu$; with `specRate` new species per
+generation, $\nu = \texttt{specRate}/J$. (In `runSimulation()`, on average
+`specRate` random individuals become new species at the end of each generation
+rather than at single replacements, so the model is close to, but not exactly,
+a Moran model.) The equilibrium of the Moran model is known exactly
+[@vallade2003]. The number of species follows the Ewens sampling formula [@ewens1972],
 $$E(S) = \sum_{i=0}^{J-1} \frac{\theta}{\theta + i}, \qquad
 \theta = \frac{(J-1)\,\nu}{1-\nu} \approx \texttt{specRate}.$$
 For large $J$ and small $\nu$, this $\theta$ is about half of the fundamental
@@ -1222,7 +1222,7 @@ sizes <- sort(unique(f$x))
 sr <- exp(seq(log(min(f$specRate)), log(max(f$specRate)), length.out = 30))
 sc <- groupCols(sizes)
 plot(f$specRate, f$mean, type = "n", log = "xy", xlab = "specRate", xaxt = "n",
-     ylab = "Species richness", ylim = range(c(pmax(f$mean - f$ci, 1), 2 * f$mean), na.rm = TRUE))
+     ylab = "Species richness", ylim = range(c(pmax(f$mean - f$ci, 1), f$mean + f$ci), na.rm = TRUE))
 axis(1, at = c(0.5, 1, 2, 4, 8), labels = c(0.5, 1, 2, 4, 8))
 for (k in seq_along(sizes)) {
   s <- f[f$x == sizes[k], ]
@@ -1264,7 +1264,7 @@ agree with the Ewens sampling formula. Species richness is higher than expected
 in most settings, by up to about 15%, but within the 95% confidence interval in
 more than half of them (e.g.
 `r val("neutral", "richness", x = 50, specRate = 8, digits = 3)` instead of
-`r round(ewens(theta(8, 2500), 2500), 1)` for 50 × 50 cells and `specRate = 8`),
+`r round(es(8, 50), 1)` for 50 × 50 cells and `specRate = 8`),
 likely because of the batch speciation described above
 ([#124](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/124)). As predicted, the Colless index is
 positive in all settings. The gamma statistic is positive and increases with the

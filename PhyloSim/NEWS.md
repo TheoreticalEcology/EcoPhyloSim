@@ -13,7 +13,7 @@
 
 ## Bug fixes
 
-* `es()` uses the speciation parameter of the Moran model, θ = `specRate` (J − 1) / (J − `specRate`) with J cells (Vallade & Houchmandzadeh 2003), instead of 2 · `specRate`; the expected richness was 1.5 to 1.7 times too high on 10 x 10 to 30 x 30 cells (#124).
+* `es()` uses the speciation parameter of the Moran model, θ = `specRate` (J − 1) / (J − `specRate`) with J cells (Vallade & Houchmandzadeh 2003), instead of 2 · `specRate`; the expected richness was 1.5 to 1.7 times too high on 10 x 10 to 30 x 30 cells. `es()` stops if `specRate` exceeds the number of cells (#124).
 * `getAverageTraits(orderPhylo = FALSE)` returns one row per species instead of repeating species, usually once per grid cell (#200).
 * `plotSpatialPhylo()`, `plotTraitDistribution(type = "all")` and `localPlots(plot = TRUE)` draw the maps with the x-axis of the grid horizontally and in the aspect ratio of the grid; before, x and y were swapped and the maps were stretched to a square or to the plot panel (#211).
 * `plotSpatialPhylo(plotTraits = FALSE)` shows the panel titles, which were drawn above the top edge of the plot (#217).
