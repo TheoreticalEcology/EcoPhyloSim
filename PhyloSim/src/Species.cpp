@@ -15,6 +15,7 @@ Species::Species() {
     this->m_Ancestor = 0;
     this->m_Count = 0;
     this->m_Date_of_Emergence = 0;
+    this->m_Date_of_Split = 0;
     this->m_Origin = std::make_pair(0, 0);
     this->m_Variance = 0.04659906;
     this->m_Mean = 1.0;
@@ -34,6 +35,7 @@ Species::Species(const Species &spec) {
     this->m_Ancestor = spec.m_Ancestor;
     this->m_Count = spec.m_Count;
     this->m_Date_of_Emergence = spec.m_Date_of_Emergence;
+    this->m_Date_of_Split = spec.m_Date_of_Split;
     this->m_Origin = spec.m_Origin;
     this->m_Variance = spec.m_Variance;
     this->m_Mean = spec.m_Mean;
@@ -54,6 +56,7 @@ void Species::operator=(const Species &spec) {
     this->m_Ancestor = spec.m_Ancestor;
     this->m_Count = spec.m_Count;
     this->m_Date_of_Emergence = spec.m_Date_of_Emergence;
+    this->m_Date_of_Split = spec.m_Date_of_Split;
     this->m_Origin = spec.m_Origin;
     this->m_Variance = spec.m_Variance;
     this->m_Mean = spec.m_Mean;
@@ -75,6 +78,7 @@ Species::Species(unsigned long long id, unsigned long long father,
     this->m_Ancestor = father;
     this->m_Count = 0;
     this->m_Date_of_Emergence = date;
+    this->m_Date_of_Split = date;
     this->m_Origin = birthplace;
     this->m_Variance = 0.04659906;
     this->m_Mean = 1.0;

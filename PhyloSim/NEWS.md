@@ -17,6 +17,7 @@
 * `plotSpatialPhylo(plotTraits = FALSE)` shows the panel titles, which were drawn above the top edge of the plot (#217).
 * Vignettes: figure captions with double quotes no longer show the figure as raw `<img>` text in the built vignettes (#222).
 * `rejectionSample()` and `rejectionSamplePhylosimAnalysis()` work with a single parameter or a single summary statistic instead of stopping with an error (#201).
+* `runSimulation()` with `protracted > 0`: the offspring of an incipient individual inherit its incipient state; before, only the founding individual could complete speciation, which reduced the speciation rate by a factor of about `exp(-protracted)`. In the phylogeny, a new species now splits off when its speciation starts. Results with the default `protracted = 0` are unchanged (#143).
 * `runSimulation()` with `fission = 1` or `2`: without protracted speciation, each speciation event creates a new species. Before, two events on the same species in one generation created only one, and with `fission = 2`, events on species within one or two adjacent columns created none. `fission = 2` now splits a species by rank along the axis on which it extends farther, measured on the torus, instead of at its mean x coordinate. With `protracted > 0`, a new event no longer restarts the incipient stage of individuals marked by an earlier event. Results with fission change (#208).
 
 # EcoPhyloSim 0.3.2

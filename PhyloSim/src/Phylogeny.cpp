@@ -56,7 +56,8 @@ void Phylogeny::pruneIfLarge() {
 
 // Writes the phylogeny in Newick format. Each species is a lineage from its emergence to
 // its extinction (or the present); each speciation event is a node labeled with the parent
-// species, and children that emerge in the same generation share one node (polytomy).
+// species, and children that split off in the same generation share one node (polytomy); with protracted
+// speciation, a species splits off when its speciation starts (m_Date_of_Split).
 // Events of generation g are placed at time g, the census at time current + 0.5, so that tips
 // of extant species end 0.5 generations after those of species that went extinct in the
 // last generation (#147). With m_PruneDuringRun, prunePhylogeny() must have been called
@@ -69,15 +70,15 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
     const bool extantOnly = m_PruneDuringRun;
     auto species = [phylogenyMap](unsigned long long id) { return phylogenyMap->find(id)->second; };
     auto hasTip = [extantOnly](const Species *s) { return !extantOnly || s->m_Count > 0; };
-    // index after the children of s that emerge in the same generation as child i
+    // index after the children of s that split off in the same generation as child i
     auto groupEnd = [&species](const Species *s, size_t i) {
-        unsigned long long date = species(s->m_Children[i])->m_Date_of_Emergence;
-        while (i < s->m_Children.size() && species(s->m_Children[i])->m_Date_of_Emergence == date) i++;
+        unsigned long long date = species(s->m_Children[i])->m_Date_of_Split;
+        while (i < s->m_Children.size() && species(s->m_Children[i])->m_Date_of_Split == date) i++;
         return i;
     };
     auto restNonEmpty = [&hasTip](const Species *s, size_t i) { return i < s->m_Children.size() || hasTip(s); };
 
-    // A segment (s, i) is the lineage of s from the emergence of its child i onwards;
+    // A segment (s, i) is the lineage of s from the split of its child i onwards;
     // (s, 0) is the subtree of s. Frames are kept on a stack, as the tree can be deep.
     struct Frame {
         Species *s;
@@ -103,7 +104,7 @@ Phylogeny::writePhylogenyR(unsigned long long start, std::multimap<unsigned long
         } else {
             tree += "(";
             stack.push_back({s, i, groupEnd(s, i), i,
-                             species(s->m_Children[i])->m_Date_of_Emergence, parentTime});
+                             species(s->m_Children[i])->m_Date_of_Split, parentTime});
         }
     };
 

@@ -31,6 +31,7 @@ public:
 
     unsigned long long m_ID;
     unsigned long long m_Date_of_Emergence;
+    unsigned long long m_Date_of_Split; // start of speciation, before m_Date_of_Emergence with protracted speciation
     unsigned int m_Date_of_Extinction;
     double m_Mean;
     double m_FirstMean, m_FirstNeutral, m_FirstComp;
