@@ -4,6 +4,7 @@
 
 * `createCompletePar()`: new argument `traitSpeciationJump` (one value or one per trait, default 0) changes the traits of a new species by a random jump at speciation, shared by all its individuals (#114).
 * `createCompletePar()`: new arguments `traitEvolution` and `traitPull` (one value or one per trait) set the half-width of the random trait change at each birth and the weight of the pull to the species mean; the defaults 0.01 and 0.2 are the values fixed so far (#220).
+* `es()`: `dimensions` also accepts the grid dimensions `c(x, y)` of a non-square grid (#124).
 * `runSimulation()`: new argument `progress` (default `TRUE`) shows a progress bar with the estimated remaining time in interactive sessions; runs can be interrupted with Esc or Ctrl+C or stopped by a time limit set with `setTimeLimit()`, and the end messages are no longer printed (#221).
 
 ## Changes
@@ -12,6 +13,7 @@
 
 ## Bug fixes
 
+* `es()` uses the speciation parameter of the Moran model, θ = `specRate` (J − 1) / (J − `specRate`) with J cells (Vallade & Houchmandzadeh 2003), instead of 2 · `specRate`; the expected richness was 1.5 to 1.7 times too high on 10 x 10 to 30 x 30 cells. `es()` stops if `specRate` exceeds the number of cells (#124).
 * `getAverageTraits(orderPhylo = FALSE)` returns one row per species instead of repeating species, usually once per grid cell (#200).
 * `plotSpatialPhylo()`, `plotTraitDistribution(type = "all")` and `localPlots(plot = TRUE)` draw the maps with the x-axis of the grid horizontally and in the aspect ratio of the grid; before, x and y were swapped and the maps were stretched to a square or to the plot panel (#211).
 * `plotSpatialPhylo(plotTraits = FALSE)` shows the panel titles, which were drawn above the top edge of the plot (#217).

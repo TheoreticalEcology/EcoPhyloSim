@@ -39,10 +39,14 @@ test_that("sac plots several results that do not start with the first", {
 })
 
 test_that("es gives one species for one individual and increases with specRate", {
-  expect_equal(es(3, 1), 1) # a single individual is a single species
+  expect_equal(es(1, 1), 1) # a single individual is a single species
+  expect_equal(es(0, 3), 1)
+  expect_equal(es(9, 3), 9) # every birth is a new species
+  expect_error(es(10, 3)) # more new species than cells
   expect_gt(es(2, 10), es(1, 10))
-  skip("es() uses theta = 2 * specRate, see #124")
-  expect_equal(es(2, 3), sum(2 / (2 + 0:8)))
+  theta <- 2 * 8 / 7 # specRate * (J - 1) / (J - specRate), #124
+  expect_equal(es(2, 3), sum(theta / (theta + 0:8)))
+  expect_equal(es(2, c(3, 3)), es(2, 3))
 })
 
 test_that("the bundled simulations have class PhyloSim", {
