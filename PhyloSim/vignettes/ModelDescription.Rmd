@@ -555,15 +555,17 @@ cells within the radius $R$ (excluding the cell itself), with weights
 
 $$ K(d) = \exp\left(-\frac{d}{\delta}\right), $$
 
-where $d$ is the Euclidean distance, $R = \lfloor 2 \cdot \texttt{dispersal}
-\rfloor$ and $\delta = R / 2$. For multiples of 0.5, $\delta$ = `dispersal`, the
-distance at which the weight falls to $1/e$; other values act like the next
-lower multiple of 0.5 (see Known limitations). The neighborhood is a discretized circle: all cells with
-$|\Delta x| \le R$ and $|\Delta y| \le \lfloor\sqrt{R^2 - \Delta x^2}\rfloor$.
+where $d$ is the Euclidean distance, $\delta$ = `dispersal` is the distance at
+which the weight falls to $1/e$, and $R = 2 \delta$. The neighborhood is a
+discretized circle: all cells with $\Delta x^2 + \Delta y^2 \le R^2$. As
+distances on the grid take only the values $1, \sqrt{2}, 2, \sqrt{5}, \ldots$,
+the neighborhood grows in steps; for `dispersal` below $\sqrt{2} / 2 \approx
+0.71$, it contains only the four nearest cells, which then have equal weights,
+so all these values give the same model.
 
 | Argument | Meaning | Default | Range |
 |---|---|---|---|
-| `dispersal` | `"global"` (or 0), or the dispersal distance | `"global"` | `"global"`, 0 or $\ge 0.5$ with $2R + 1 \le \min(x, y)$ |
+| `dispersal` | `"global"` (or 0), or the dispersal distance | `"global"` | `"global"`, 0 or $\ge 0.5$ with $2 \lfloor R \rfloor + 1 \le \min(x, y)$ |
 
 Table: Argument of `createCompletePar()` for dispersal.
 
@@ -1460,8 +1462,6 @@ settings.
 Some properties of the current implementation can be unexpected; they are
 discussed in the issues of the package repository:
 
-- `dispersal` has an effect only in steps of 0.5
-  ([#141](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/141)).
 - Two speciation events in one generation on the same cell (without fission)
   or on the same single incipient individual (fission with protracted
   speciation) create only one species

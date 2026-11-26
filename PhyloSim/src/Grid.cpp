@@ -25,7 +25,7 @@ const int Landscape::maxRecruitTries; // definition, as it is passed by referenc
 
 
 Landscape::Landscape(int xsize, int ysize, int type, bool neutral, bool dd, bool env,
-                     bool mort, bool repro, unsigned int runs, double specRate, int dispersalCutoff,
+                     bool mort, bool repro, unsigned int runs, double specRate, double dispersalCutoff,
                      int DensityCutoff, unsigned int mortalityStrength,
                      double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                      int protracted,
@@ -173,7 +173,7 @@ void Landscape::increaseAge(unsigned int /* generation */) {
 
 
 GlobalEnvironment::GlobalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort,
-                                     bool repro, unsigned int runs, double specRate, int dispersalCutoff,
+                                     bool repro, unsigned int runs, double specRate, double dispersalCutoff,
                                      int densityCutoff, unsigned int mortalityStrength, double envStrength,
                                      double compStrength, int fission, double redQueen, double redQueenStrength,
                                      int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
@@ -467,7 +467,7 @@ void GlobalEnvironment::reproduce(unsigned int generation) {
 
 
 LocalEnvironment::LocalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort,
-                                   bool repro, unsigned int runs, double specRate, int dispersalCutoff,
+                                   bool repro, unsigned int runs, double specRate, double dispersalCutoff,
                                    int densityCutoff, unsigned int mortalityStrength, double envStrength,
                                    double compStrength, int fission, double redQueen, double redQueenStrength,
                                    int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
@@ -550,7 +550,7 @@ void LocalEnvironment::reproduce(unsigned int generation) {
         ////////////////////////////////////////////
         // DISPERSAL
 
-        // parent cells; callModel() and checkPar() guarantee 2 * m_Cutoff + 1 <= min(x, y), so that no offset reaches
+        // parent cells; callModel() and checkPar() guarantee 2 * floor(m_Cutoff) + 1 <= min(x, y), so that no offset reaches
         // the target cell again
         auto parentX = [&](int i) { return wrapX(x_coordinate + m_dispersalOffsets[i].first); };
         auto parentY = [&](int i) { return wrapY(y_coordinate + m_dispersalOffsets[i].second); };
@@ -632,10 +632,13 @@ void Landscape::ensureDensity(int x, int y) {
     outdated = 0;
 }
 
-std::vector<std::pair<int, int> > Landscape::circleOffsets(int cutoff, bool withCenter) {
+// cells with i^2 + j^2 <= cutoff^2; the cutoff may be real-valued (dispersal, #141), and the tolerance keeps cells at
+// exactly this distance for inputs with rounding errors such as 2 * 0.3 / 0.2 = 2.9999999999999996
+std::vector<std::pair<int, int> > Landscape::circleOffsets(double cutoff, bool withCenter) {
     std::vector<std::pair<int, int> > offsets;
-    for (int i = -cutoff; i <= cutoff; i++) {
-        int yLim = floor(sqrt(cutoff * cutoff - i * i)); // avoid diagonal bias
+    int iMax = floor(cutoff + 1e-9);
+    for (int i = -iMax; i <= iMax; i++) {
+        int yLim = floor(sqrt(std::max(0.0, cutoff * cutoff - i * i)) + 1e-9); // avoid diagonal bias
         for (int j = -yLim; j <= yLim; j++) {
             if (withCenter || i != 0 || j != 0) offsets.push_back(std::make_pair(i, j));
         }

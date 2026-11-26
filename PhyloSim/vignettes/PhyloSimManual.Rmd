@@ -108,8 +108,8 @@ individual comes from a parent near its cell, and environmental filtering
 environment of their cell. All parameters are listed with their
 defaults and ranges in `?createCompletePar`; the vignette "EcoPhyloSim model"
 (`vignette("ModelDescription", package = "EcoPhyloSim")`) explains the
-processes they control and lists known limitations (e.g. `dispersal` has an
-effect only in steps of 0.5). Besides the model parameters,
+processes they control and lists known limitations (e.g. density dependence
+with the trait kernels develops only after thousands of generations). Besides the model parameters,
 `createCompletePar()` has arguments that control the run and its output:
 
 | Argument | Meaning | Default |

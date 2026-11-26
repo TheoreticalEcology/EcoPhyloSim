@@ -26,7 +26,7 @@
  */
 class Landscape {
 public:
-    int m_Cutoff;
+    double m_Cutoff;
     int m_DensityCutoff;
     int m_Dispersal_type;
     // The size of the landscape.
@@ -98,7 +98,7 @@ public:
 
     Landscape(int xsize, int ysize, int type, bool neutral,
               bool dd, bool env, bool mort, bool repro, unsigned int simulationEnd, double specRate,
-              int dispersalCutoff, int densityCutoff, unsigned int mortalityStrength, double envStrength,
+              double dispersalCutoff, int densityCutoff, unsigned int mortalityStrength, double envStrength,
               double compStrength, int fission, double redQueen, double redQueenStrength, int protracted,
               std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
               DensityOptions ddOptions);
@@ -134,7 +134,7 @@ public:
     bool needsDensity() const { return (m_DD || m_pDD) && (m_mortality || m_reproduction); }
 
     // offsets (dx, dy) of the cells within the cutoff, ordered by dx, then dy
-    static std::vector<std::pair<int, int> > circleOffsets(int cutoff, bool withCenter);
+    static std::vector<std::pair<int, int> > circleOffsets(double cutoff, bool withCenter);
 
     // coordinate on the torus, for coordinates between -m_Xdimensions (-m_Ydimensions) and 2 * m_Xdimensions - 1
     int wrapX(int x) const { return x < 0 ? x + m_Xdimensions : (x >= m_Xdimensions ? x - m_Xdimensions : x); }
@@ -156,7 +156,7 @@ public:
 class GlobalEnvironment : public Landscape {
 public:
     GlobalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort, bool repro,
-                      unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
+                      unsigned int runs, double specRate, double dispersalCutoff, int densityCutoff,
                       unsigned int mortalityStrength,
                       double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                       int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,
@@ -184,7 +184,7 @@ public:
 class LocalEnvironment : public Landscape {
 public:
     LocalEnvironment(int xsize, int ysize, int type, bool neutral, bool dd, bool env, bool mort, bool repro,
-                     unsigned int runs, double specRate, int dispersalCutoff, int densityCutoff,
+                     unsigned int runs, double specRate, double dispersalCutoff, int densityCutoff,
                      unsigned int mortalityStrength,
                      double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                      int protracted, std::vector<double> airmat, std::vector<double> soilmat, double nicheWidth,

@@ -18,7 +18,15 @@ test_that("SimulationBatch is running correctly",{
   expect_is(simuBatch, "PhylosimList")
   expect_is(simuBatch[[1]], "PhyloSim")
   expect_is(simuBatch[[2]], "PhyloSim")
-  
+
+})
+
+test_that("dispersal between multiples of 0.5 has an effect (#141)", {
+  f <- function(d) runSimulation(createCompletePar(x = 20, y = 20, dispersal = d, runs = 100, specRate = 2,
+                                                   seed = 1))$Output[[1]]$specMat
+  expect_false(identical(f(0.5), f(0.75))) # more cells within 2 * dispersal
+  expect_false(identical(f(1), f(1.05)))   # same cells, other kernel scale
+  expect_identical(f(1.5), f(0.3 / 0.2)) # 1.4999999999999998 gives the same cells
 })
 
 test_that("runSimulation warns if only one species is left", {

@@ -22,7 +22,7 @@ createCompletePar(x = 50, y = 50, dispersal = "global", runs = 100,
 
 \item{y}{Integer, Dimension of the model landscape in y-direction}
 
-\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance; 2 * floor(2 * dispersal) + 1 must not exceed min(x, y). Only multiples of 0.5 have an effect (see \code{vignette("ModelDescription", package = "EcoPhyloSim")}).}
+\item{dispersal}{Numeric or character. Type 0 or "global" for global dispersal. For local dispersal, a number >= 0.5 sets the dispersal distance: parents are drawn from the cells within the distance \code{2 * dispersal}, with weights \code{exp(-distance / dispersal)}; \code{2 * floor(2 * dispersal) + 1} must not exceed \code{min(x, y)} (see \code{vignette("ModelDescription", package = "EcoPhyloSim")}).}
 
 \item{runs}{Integer or vector of Integers, Number of generations or sequence of generations the model runs over (see Details); values must not decrease.}
 

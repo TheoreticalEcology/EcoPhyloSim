@@ -148,6 +148,7 @@ test_that("callModel() stops on invalid input (#13)", {
   expect_error(call(dispersalCutoff = 0), "dispersalCutoff")
   expect_error(call(dispersalCutoff = 4, densityCutoff = 4, specRate = 100), NA)
   expect_error(call(dispersalCutoff = 5), "dispersalCutoff")
+  expect_error(call(dispersalCutoff = NaN), "dispersalCutoff") # #141
   expect_error(call(densityCutoff = 5), "densityCutoff")
   expect_error(call(densityCutoff = 0), "densityCutoff")
   expect_error(call(dens = FALSE, densityCutoff = 10), NA)
