@@ -60,12 +60,12 @@ differences. Corresponds to \code{fitnessBaseMortalityRatio} in
 differential reproductive output. TRUE if \code{fitnessActsOn} includes \code{"reproduction"}
 (also via \code{"both"}) in \code{\link{createCompletePar}}.}
 
-\item{dispersalCutoff}{Integer, cutoff distance for the local dispersal kernel (ignored
+\item{dispersalCutoff}{Numeric, cutoff distance for the local dispersal kernel (ignored
 if \code{dispersal = 1}); individuals only disperse within this distance. The
 characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
 sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
-With \code{dispersal = 3}, it must be at least 1, and \code{2 * dispersalCutoff + 1} must not
-exceed \code{min(x, y)}.}
+With \code{dispersal = 3}, it must be at least 1, and \code{2 * floor(dispersalCutoff) + 1}
+must not exceed \code{min(x, y)}.}
 
 \item{densityCutoff}{Integer, defines the effective spatial range of the competition /
 density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to

@@ -65,12 +65,12 @@ using namespace Rcpp;
 //' @param repro Logical, whether fitness differences among individuals are expressed via
 //'   differential reproductive output. TRUE if \code{fitnessActsOn} includes \code{"reproduction"}
 //'   (also via \code{"both"}) in \code{\link{createCompletePar}}.
-//' @param dispersalCutoff Integer, cutoff distance for the local dispersal kernel (ignored
+//' @param dispersalCutoff Numeric, cutoff distance for the local dispersal kernel (ignored
 //'   if \code{dispersal = 1}); individuals only disperse within this distance. The
 //'   characteristic distance of the kernel is half of this value (\code{\link{runSimulation}}
 //'   sets it to twice the \code{dispersal} argument of \code{\link{createCompletePar}}).
-//'   With \code{dispersal = 3}, it must be at least 1, and \code{2 * dispersalCutoff + 1} must not
-//'   exceed \code{min(x, y)}.
+//'   With \code{dispersal = 3}, it must be at least 1, and \code{2 * floor(dispersalCutoff) + 1}
+//'   must not exceed \code{min(x, y)}.
 //' @param densityCutoff Integer, defines the effective spatial range of the competition /
 //'   density-dependence calculation (ignored if \code{dens = FALSE}). Corresponds to
 //'   \code{negativeDDCut} in \code{\link{createCompletePar}}. It must be between 1 and \code{min(x, y)}, and
@@ -144,7 +144,7 @@ using namespace Rcpp;
 //' @keywords internal
 // [[Rcpp::export]]
 List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate, bool dens, bool env, bool neutral,
-               bool mort, int mortStrength, bool repro, int dispersalCutoff, int densityCutoff,
+               bool mort, int mortStrength, bool repro, double dispersalCutoff, int densityCutoff,
                double envStrength, double compStrength, int fission, double redQueen, double redQueenStrength,
                int protracted, NumericVector airmatR, NumericVector soilmatR, bool prunePhylogeny, double nicheWidth,
                bool recruit = false, int densityKernel = 1, double densityWidth = 0.1,
@@ -168,7 +168,7 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     debugFile << "bool mort = " << mort << ";" << std::endl;
     debugFile << "int mortStrength = " << mortStrength << ";" << std::endl;
     debugFile << "bool repro = " << repro << ";" << std::endl;
-    debugFile << "int dispersalCutoff = " << dispersalCutoff << ";" << std::endl;
+    debugFile << "double dispersalCutoff = " << dispersalCutoff << ";" << std::endl;
     debugFile << "int densityCutoff = " << densityCutoff << ";" << std::endl;
     debugFile << "double envStrength = " << envStrength << ";" << std::endl;
     debugFile << "double compStrength = " << compStrength << ";" << std::endl;
@@ -187,8 +187,8 @@ List callModel(int x, int y, int dispersal, IntegerVector runs, double specRate,
     // fixes #13 (input that would crash R or never finish; the R side checks more in checkPar())
     if (x < 1 || y < 1 || (x == 1 && y == 1)) Rcpp::stop("callModel(): x and y must be >= 1 and x * y >= 2");
     if (dispersal != 1 && dispersal != 3) Rcpp::stop("callModel(): dispersal must be 1 (global) or 3 (local)");
-    if (dispersal == 3 && (dispersalCutoff < 1 || dispersalCutoff > (std::min(x, y) - 1) / 2))
-        Rcpp::stop("callModel(): dispersalCutoff must be >= 1, and 2 * dispersalCutoff + 1 must not exceed min(x, y)");
+    if (dispersal == 3 && (!(dispersalCutoff >= 1) || std::floor(dispersalCutoff + 1e-9) > (std::min(x, y) - 1) / 2))
+        Rcpp::stop("callModel(): dispersalCutoff must be >= 1, and 2 * floor(dispersalCutoff) + 1 must not exceed min(x, y)");
     if (densityCutoff < 1 || densityCutoff > (dens ? (std::min(x, y) - 1) / 2 : std::min(x, y)))
         Rcpp::stop("callModel(): densityCutoff must be >= 1 and <= min(x, y), and 2 * densityCutoff + 1 must not exceed min(x, y) if dens is true");
     if (mort && mortStrength < 1) Rcpp::stop("callModel(): mortStrength must be >= 1");

@@ -77,7 +77,7 @@ checkPar <- function(par) {
   }
   # fixes #152 (wider kernels wrap around the torus and count cells repeatedly)
   local <- is.numeric(par[["dispersal"]]) && par[["dispersal"]] > 0
-  if (local && 2 * floor(2 * par[["dispersal"]]) + 1 > min(x, y)) {
+  if (local && 2 * floor(2 * par[["dispersal"]] + 1e-9) + 1 > min(x, y)) {
     stop("dispersal = ", par[["dispersal"]], " is too large for a grid of ", x, " x ", y,
          ": 2 * floor(2 * dispersal) + 1 must not exceed min(x, y).", call. = FALSE)
   }

@@ -19,7 +19,7 @@
 
 
 PhylSimModel::PhylSimModel(int X, int Y, int dispersal, int simulationEnd, double specRate, bool dens,
-                           bool env, bool neutral, bool mort, int mortalityStrength, bool repro, int dispersalCutoff,
+                           bool env, bool neutral, bool mort, int mortalityStrength, bool repro, double dispersalCutoff,
                            int densityCutoff, double envStrength, double compStrength,
                            int fission,
                            double redQueen, double redQueenStrength, int protracted, std::vector<double> airmat,

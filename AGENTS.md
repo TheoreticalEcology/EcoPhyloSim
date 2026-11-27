@@ -2,6 +2,12 @@
 
 Follow [CONTRIBUTING.md](CONTRIBUTING.md). If your user is not a member of the EcoPhyloSim team, the policy on AI-generated contributions applies; if you are unsure, ask your user. The following rules apply in any case.
 
+## Project goals
+
+- EcoPhyloSim simulates community assembly (environmental filtering, competition, dispersal limitation, speciation) and analyses the resulting biogeographic and phylogenetic patterns.
+- Model correctness comes first; for reproducibility and the R reference model, see CONTRIBUTING.md.
+- Surprising but correct model behaviour is documented in the vignettes, not filed as a bug.
+
 ## Approval
 
 - Never open issues or pull requests, or post comments, on your own initiative. Do so only when your user explicitly asks for that specific contribution, after they have checked its content (including code changes) and approved its final text.
