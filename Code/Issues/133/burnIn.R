@@ -4,7 +4,7 @@
 # speciation (traitSpeciationJump) and with faster trait evolution
 # (traitEvolution). Setting of the issue: 50 x 50 cells, dispersal = 1,
 # negativeDDCut = 2, specRate = 1 (default), 6 consecutive censuses
-# (g + 0:5) at g = 100, 300, 1000, 3000, 10000, 30000; 10 seeds per setting.
+# (g + 0:5) at g = 100, 300, 1000, 3000, 5000, 10000, 30000; 10 seeds per setting.
 # Per census block: mortality of individuals with 0-3 and 9-12 conspecific
 # neighbors (radius 2, getMortalityData()), logit slope of mortality per
 # conspecific neighbor, sd of the competition trait, species richness.
@@ -15,7 +15,7 @@
 #   Rscript burnIn.R
 library(parallel)
 
-gens <- c(100, 300, 1000, 3000, 10000, 30000)
+gens <- c(100, 300, 1000, 3000, 5000, 10000, 30000)
 seeds <- 1:10
 settings <- data.frame(
   name = c("none", "abs_w0", "abs_w0.1", "abs_w0.3", "abs0.5_w0", "abs0.5_w0.3",
