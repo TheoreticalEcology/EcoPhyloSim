@@ -1469,9 +1469,10 @@ discussed in the issues of the package repository:
 - With the trait kernels (`negativeDDKernel = "absolute"` or `"gaussian"`),
   density dependence develops only after thousands of generations, so short
   runs show little of its effect; the `"species"` kernel acts from the first
-  speciation on, and a large enough jump of the competition trait at
-  speciation (e.g. `traitSpeciationJump = c(0, 0.3, 0)`) makes the absolute
-  kernel act within a few hundred generations
+  speciation on, and a jump of the competition trait at speciation
+  (`traitSpeciationJump = c(0, 0.3, 0)`) or faster trait evolution
+  (`traitEvolution = c(0.01, 0.05, 0.01)`) makes the absolute kernel act
+  within about 1,000 generations
   ([#133](https://github.com/TheoreticalEcology/EcoPhyloSim/issues/133)).
 :::
 
